@@ -2,17 +2,37 @@ import { createContext, useContext, useState, useCallback, useMemo } from 'react
 
 const DateFilterContext = createContext(null);
 
+export const toLocalYMD = (input) => {
+  const d = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+export const normalizeDatePeriod = (rawPeriod) => {
+  if (!rawPeriod || rawPeriod === 'all' || rawPeriod === 'allTime') return 'allTime';
+  if (rawPeriod === 'monthly' || rawPeriod === 'this_month') return 'this_month';
+  if (rawPeriod === 'lastMonth' || rawPeriod === 'previous_month') return 'previous_month';
+  if (rawPeriod === 'yearly' || rawPeriod === 'this_year') return 'yearly';
+  if (rawPeriod === 'custom') return 'custom';
+  return rawPeriod;
+};
+
 export const useDateFilter = () => {
   const context = useContext(DateFilterContext);
   if (!context) {
-    // Return dummy fallback if component is used outside provider
     return {
       startDate: '',
       endDate: '',
       period: 'allTime',
+      setStartDate: () => {},
+      setEndDate: () => {},
       setFromDate: () => {},
       setToDate: () => {},
       setPeriod: () => {},
+      openCustomRange: () => {},
       setCustomRange: () => {},
       resetDateFilter: () => {},
       isDateInRange: () => true,
@@ -24,54 +44,93 @@ export const useDateFilter = () => {
 };
 
 export const DateFilterProvider = ({ children }) => {
-  const [period, setPeriodState] = useState('allTime'); // 'allTime' | 'today' | 'weekly' | 'monthly' | 'lastMonth' | 'yearly' | 'custom'
+  // 'allTime' | 'this_month' | 'previous_month' | 'yearly' | 'custom'
+  const [period, setPeriodState] = useState('allTime');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const setPeriod = useCallback((newPeriod) => {
-    setPeriodState(newPeriod);
+  const setPeriod = useCallback((rawPeriod) => {
+    const normalized = normalizeDatePeriod(rawPeriod);
     const now = new Date();
-    
-    if (newPeriod === 'today') {
-      const todayStr = now.toISOString().split('T')[0];
+
+    if (normalized === 'this_month') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setPeriodState('this_month');
+      setStartDate(toLocalYMD(firstDay));
+      setEndDate(toLocalYMD(lastDay));
+      return;
+    }
+
+    if (normalized === 'previous_month') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+      setPeriodState('previous_month');
+      setStartDate(toLocalYMD(firstDay));
+      setEndDate(toLocalYMD(lastDay));
+      return;
+    }
+
+    if (normalized === 'yearly') {
+      const firstDay = new Date(now.getFullYear(), 0, 1);
+      const lastDay = new Date(now.getFullYear(), 11, 31);
+      setPeriodState('yearly');
+      setStartDate(toLocalYMD(firstDay));
+      setEndDate(toLocalYMD(lastDay));
+      return;
+    }
+
+    if (normalized === 'today') {
+      const todayStr = toLocalYMD(now);
+      setPeriodState('today');
       setStartDate(todayStr);
       setEndDate(todayStr);
-    } else if (newPeriod === 'weekly') {
+      return;
+    }
+
+    if (normalized === 'weekly') {
       const day = now.getDay();
       const first = new Date(now);
       first.setDate(now.getDate() - day);
       const last = new Date(first);
       last.setDate(first.getDate() + 6);
-      setStartDate(first.toISOString().split('T')[0]);
-      setEndDate(last.toISOString().split('T')[0]);
-    } else if (newPeriod === 'monthly') {
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      const today = now.toISOString().split('T')[0];
-      setStartDate(firstDay);
-      setEndDate(today);
-    } else if (newPeriod === 'lastMonth') {
-      const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-      const lastDay = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
-      setStartDate(firstDay);
-      setEndDate(lastDay);
-    } else if (newPeriod === 'yearly') {
-      const firstDay = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-      const today = now.toISOString().split('T')[0];
-      setStartDate(firstDay);
-      setEndDate(today);
-    } else if (newPeriod === 'allTime') {
+      setPeriodState('weekly');
+      setStartDate(toLocalYMD(first));
+      setEndDate(toLocalYMD(last));
+      return;
+    }
+
+    if (normalized === 'custom') {
+      setPeriodState('custom');
+      return;
+    }
+
+    setPeriodState('allTime');
+    setStartDate('');
+    setEndDate('');
+  }, []);
+
+  const openCustomRange = useCallback(() => {
+    if (period === 'custom') {
+      setPeriodState('allTime');
+      setStartDate('');
+      setEndDate('');
+      return;
+    }
+    if (period !== 'allTime') {
       setStartDate('');
       setEndDate('');
     }
-  }, []);
+    setPeriodState('custom');
+  }, [period]);
 
   const setFromDate = useCallback((val) => {
-    setStartDate(val);
+    setStartDate(val || '');
     setPeriodState('custom');
   }, []);
 
   const setToDate = useCallback((val) => {
-    setEndDate(val);
+    setEndDate(val || '');
     setPeriodState('custom');
   }, []);
 
@@ -87,91 +146,92 @@ export const DateFilterProvider = ({ children }) => {
     setPeriodState('allTime');
   }, []);
 
-  const isDateInRange = useCallback((dateValue) => {
-    if (!startDate && !endDate) return true;
-    if (!dateValue) return false;
+  const isDateInRange = useCallback(
+    (dateValue) => {
+      if (!startDate && !endDate) return true;
+      if (!dateValue) return false;
 
-    // Support array of fallback dates (e.g. [dueDate, startDate, createdAt])
-    if (Array.isArray(dateValue)) {
-      const validDates = dateValue.filter(Boolean);
-      if (validDates.length === 0) return false;
-      return validDates.some((d) => isDateInRange(d));
-    }
+      if (Array.isArray(dateValue)) {
+        const validDates = dateValue.filter(Boolean);
+        if (validDates.length === 0) return false;
+        return validDates.some((d) => isDateInRange(d));
+      }
 
-    // Extract candidate date representations
-    const candidates = [];
-    if (typeof dateValue === 'string') {
-      const trimmed = dateValue.trim();
-      if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
-        candidates.push(trimmed.substring(0, 10));
+      let targetStr = '';
+      if (typeof dateValue === 'string') {
+        const trimmed = dateValue.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+          targetStr = trimmed;
+        } else {
+          targetStr = toLocalYMD(trimmed);
+        }
+      } else {
+        targetStr = toLocalYMD(dateValue);
       }
-      const d = new Date(trimmed);
-      if (!Number.isNaN(d.getTime())) {
-        candidates.push(d.toISOString().split('T')[0]);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        candidates.push(`${y}-${m}-${day}`);
-      }
-    } else if (dateValue instanceof Date) {
-      if (!Number.isNaN(dateValue.getTime())) {
-        candidates.push(dateValue.toISOString().split('T')[0]);
-        const y = dateValue.getFullYear();
-        const m = String(dateValue.getMonth() + 1).padStart(2, '0');
-        const day = String(dateValue.getDate()).padStart(2, '0');
-        candidates.push(`${y}-${m}-${day}`);
-      }
-    } else if (typeof dateValue === 'number') {
-      const d = new Date(dateValue);
-      if (!Number.isNaN(d.getTime())) {
-        candidates.push(d.toISOString().split('T')[0]);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        candidates.push(`${y}-${m}-${day}`);
-      }
-    }
 
-    if (candidates.length === 0) return false;
-
-    return candidates.some((targetStr) => {
+      if (!targetStr) return false;
       if (startDate && targetStr < startDate) return false;
       if (endDate && targetStr > endDate) return false;
       return true;
-    });
-  }, [startDate, endDate]);
+    },
+    [startDate, endDate]
+  );
 
-  const filterByDateRange = useCallback((items = [], datePropOrGetter = 'createdAt') => {
-    if (!Array.isArray(items)) return [];
-    if (!startDate && !endDate) return items;
+  const filterByDateRange = useCallback(
+    (items = [], datePropOrGetter = 'createdAt') => {
+      if (!Array.isArray(items)) return [];
+      if (!startDate && !endDate) return items;
 
-    return items.filter((item) => {
-      if (!item) return false;
-      let rawDate;
-      if (typeof datePropOrGetter === 'function') {
-        rawDate = datePropOrGetter(item);
-      } else {
-        rawDate = item[datePropOrGetter] || item.createdAt || item.date || item.startDate || item.updatedAt;
-      }
-      return isDateInRange(rawDate);
-    });
-  }, [startDate, endDate, isDateInRange]);
+      return items.filter((item) => {
+        if (!item) return false;
+        let rawDate;
+        if (typeof datePropOrGetter === 'function') {
+          rawDate = datePropOrGetter(item);
+        } else {
+          rawDate =
+            item[datePropOrGetter] ||
+            item.createdAt ||
+            item.date ||
+            item.startDate ||
+            item.updatedAt;
+        }
+        return isDateInRange(rawDate);
+      });
+    },
+    [startDate, endDate, isDateInRange]
+  );
 
-  const value = useMemo(() => ({
-    startDate,
-    endDate,
-    period,
-    setStartDate: setFromDate,
-    setEndDate: setToDate,
-    setFromDate,
-    setToDate,
-    setPeriod,
-    setCustomRange,
-    resetDateFilter,
-    isDateInRange,
-    filterByDateRange,
-    isFiltered: Boolean(startDate || endDate || (period && period !== 'allTime')),
-  }), [startDate, endDate, period, setFromDate, setToDate, setPeriod, setCustomRange, resetDateFilter, isDateInRange, filterByDateRange]);
+  const value = useMemo(
+    () => ({
+      startDate,
+      endDate,
+      period,
+      setStartDate: setFromDate,
+      setEndDate: setToDate,
+      setFromDate,
+      setToDate,
+      setPeriod,
+      openCustomRange,
+      setCustomRange,
+      resetDateFilter,
+      isDateInRange,
+      filterByDateRange,
+      isFiltered: Boolean(startDate || endDate || (period && period !== 'allTime')),
+    }),
+    [
+      startDate,
+      endDate,
+      period,
+      setFromDate,
+      setToDate,
+      setPeriod,
+      openCustomRange,
+      setCustomRange,
+      resetDateFilter,
+      isDateInRange,
+      filterByDateRange,
+    ]
+  );
 
   return (
     <DateFilterContext.Provider value={value}>

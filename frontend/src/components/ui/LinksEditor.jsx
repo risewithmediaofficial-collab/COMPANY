@@ -1,4 +1,4 @@
-import { Link2, Plus, Trash2 } from 'lucide-react';
+import { Link2, Plus, Trash2 } from '@/components/ui/muiIcons';
 import { Button } from './button';
 import { Input } from './input';
 

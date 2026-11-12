@@ -28,7 +28,14 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-} from 'lucide-react';
+  Mic,
+  Scissors,
+  Smartphone,
+  ShieldCheck,
+  Search,
+  Laptop,
+  FileText,
+} from '@/components/ui/muiIcons';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
@@ -230,23 +237,38 @@ export const TASK_CATEGORY_PILLS = [
 
 export const TASK_PERIOD_OPTIONS = [
   { key: 'all', label: 'All Tasks' },
-  { key: 'today', label: '⚡ Today' },
-  { key: 'weekly', label: '📅 This Week' },
-  { key: 'this_month', label: '🗓️ This Month' },
-  { key: 'overdue', label: '🚨 Overdue' },
+  { key: 'today', label: 'Today' },
+  { key: 'weekly', label: 'This Week' },
+  { key: 'this_month', label: 'This Month' },
+  { key: 'overdue', label: 'Overdue' },
 ];
 
 export const TASK_SORT_OPTIONS = [
-  { value: 'dueDate_asc', label: '📅 Due Date: Earliest First' },
-  { value: 'dueDate_desc', label: '📅 Due Date: Latest First' },
-  { value: 'priority_desc', label: '⚡ Priority: High to Low' },
-  { value: 'priority_asc', label: '⚡ Priority: Low to High' },
-  { value: 'client_asc', label: '🏢 Client: A to Z' },
-  { value: 'client_desc', label: '🏢 Client: Z to A' },
-  { value: 'category_asc', label: '📁 Category: A to Z' },
-  { value: 'newest', label: '🕒 Recently Created' },
-  { value: 'oldest', label: '🕒 Oldest Created' },
+  { value: 'dueDate_asc', label: 'Due Date: Earliest First' },
+  { value: 'dueDate_desc', label: 'Due Date: Latest First' },
+  { value: 'priority_desc', label: 'Priority: High to Low' },
+  { value: 'priority_asc', label: 'Priority: Low to High' },
+  { value: 'client_asc', label: 'Client: A to Z' },
+  { value: 'client_desc', label: 'Client: Z to A' },
+  { value: 'category_asc', label: 'Category: A to Z' },
+  { value: 'newest', label: 'Recently Created' },
+  { value: 'oldest', label: 'Oldest Created' },
 ];
+
+const DEV_STAGE_SHORT_LABELS = {
+  backlog: 'Backlog',
+  analysis: 'Analysis',
+  ready_for_dev: 'Ready',
+  in_development: 'In Dev',
+  code_review: 'Review',
+  qa_testing: 'QA',
+  client_uat: 'UAT',
+  approved: 'Approved',
+  deployment: 'Deploy',
+  live: 'Live',
+  closed: 'Closed',
+  blocked: 'Blocked',
+};
 
 const priorityTone = {
   Low: 'neutral',
@@ -724,11 +746,12 @@ const Tasks = () => {
       label: 'Task Title',
       render: (row) => (
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 font-bold text-foreground text-xs hover:text-primary transition-colors">
-            <span>{row.taskTitle || row.title}</span>
+          <div className="flex items-center gap-1.5 font-bold text-foreground text-xs hover:text-foreground/80 transition-colors">
+            <span className="truncate">{row.taskTitle || row.title}</span>
             {row.isOverTarget && (
-              <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-rose-600 dark:text-rose-400 shrink-0">
-                🔴 Over Task
+              <span className="inline-flex items-center gap-1 rounded bg-primary border border-primary px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary-foreground shrink-0">
+                <AlertTriangle size={9} />
+                <span>Over Task</span>
               </span>
             )}
           </div>
@@ -769,8 +792,9 @@ const Tasks = () => {
                   const name = row.scriptWriterAssigned.name || row.scriptWriterName || 'Writer';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                      ✍️ {name}
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      <FileEdit size={10} />
+                      <span>{name}</span>
                     </span>
                   );
                 })()}
@@ -778,8 +802,9 @@ const Tasks = () => {
                   const name = row.voiceArtistAssigned.name || row.voiceArtistName || 'RJ / Voice';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                      🎙️ {name}
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      <Mic size={10} />
+                      <span>{name}</span>
                     </span>
                   );
                 })()}
@@ -787,8 +812,9 @@ const Tasks = () => {
                   const name = row.videographerAssigned.name || row.videographerName || 'Videographer';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                      🎥 {name}
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      <Video size={10} />
+                      <span>{name}</span>
                     </span>
                   );
                 })()}
@@ -796,8 +822,9 @@ const Tasks = () => {
                   const name = row.editorAssigned.name || row.editorName || 'Editor';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                      ✂️ {name}
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      <Scissors size={10} />
+                      <span>{name}</span>
                     </span>
                   );
                 })()}
@@ -805,8 +832,9 @@ const Tasks = () => {
                   const name = row.publisherAssigned.name || row.publisherName || 'Publisher';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                      📱 {name}
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      <Smartphone size={10} />
+                      <span>{name}</span>
                     </span>
                   );
                 })()}
@@ -849,12 +877,12 @@ const Tasks = () => {
       render: (row) => {
         const overdue = isTaskOverdue(row);
         return (
-          <div className="flex items-center gap-1.5">
-            <span className={`text-[11px] font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
+          <div className="flex items-center gap-1.5 tabular-nums">
+            <span className={`text-[11px] font-medium ${overdue ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
               {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '—'}
             </span>
             {overdue && (
-              <span className="px-1.5 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-[9px] font-extrabold text-rose-600 dark:text-rose-400 shrink-0">
+              <span className="px-1.5 py-0.5 rounded-md bg-primary border border-primary text-[9px] font-bold text-primary-foreground shrink-0">
                 Overdue
               </span>
             )}
@@ -882,25 +910,27 @@ const Tasks = () => {
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-1.5">
               {hasTimer && (
-                <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                <span className="text-[11px] font-semibold text-foreground inline-flex items-center gap-1 tabular-nums">
                   <Clock size={11} className="text-muted-foreground" />
                   {row.allocatedHours || 0}h {row.allocatedMinutes || 0}m
                 </span>
               )}
               {row.isAccepted && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-secondary text-foreground border border-border">
                   Accepted
                 </span>
               )}
               {overdue && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse">
-                  🚨 Overdue
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground border border-primary">
+                  <AlertTriangle size={9} />
+                  <span>Overdue</span>
                 </span>
               )}
             </div>
             {row.completionReason && (
-              <p className="text-[10px] text-amber-600 dark:text-amber-400 truncate max-w-[150px]" title={row.completionReason}>
-                📝 {row.completionReason}
+              <p className="text-[10px] text-muted-foreground truncate max-w-[150px] inline-flex items-center gap-1" title={row.completionReason}>
+                <FileText size={10} className="shrink-0" />
+                <span className="truncate">{row.completionReason}</span>
               </p>
             )}
           </div>
@@ -911,8 +941,8 @@ const Tasks = () => {
       key: 'createdAt',
       label: 'Created Date',
       render: (row) => (
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap">
-          <Calendar size={11} className="text-muted-foreground/70" />
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap tabular-nums">
+          <Calendar size={11} className="text-muted-foreground shrink-0" />
           <span>
             {row.createdAt
               ? new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
@@ -979,13 +1009,13 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('all')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'all'
-                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/25'
-                : 'bg-card border-border/80 text-foreground hover:bg-secondary/80 hover:border-border'
+                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
+                : 'bg-card border-border text-foreground hover:bg-secondary/80'
             }`}
           >
-            <CheckSquare size={13} className={quickFilter === 'all' ? 'text-primary-foreground' : 'text-primary'} />
+            <CheckSquare size={13} />
             <span>Total Tasks: {taskMetrics.total}</span>
           </button>
 
@@ -993,10 +1023,10 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('inProgress')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'inProgress'
-                ? 'bg-blue-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-500/25'
-                : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20'
+                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
+                : 'bg-card border-border text-foreground hover:bg-secondary/80'
             }`}
           >
             <Clock size={13} />
@@ -1007,10 +1037,10 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('done')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'done'
-                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-500/25'
-                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
+                : 'bg-card border-border text-foreground hover:bg-secondary/80'
             }`}
           >
             <CheckCircle2 size={13} />
@@ -1021,15 +1051,15 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('overdue')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'overdue'
-                ? 'bg-rose-600 text-white border-rose-600 shadow-xs ring-2 ring-rose-500/25'
+                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
                 : taskMetrics.overdue > 0
-                ? 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
-                : 'bg-card border-border/80 text-muted-foreground hover:bg-secondary/80'
+                ? 'bg-secondary border-foreground/30 text-foreground hover:bg-secondary/80'
+                : 'bg-card border-border text-muted-foreground hover:bg-secondary/80'
             }`}
           >
-            <AlertTriangle size={13} className={taskMetrics.overdue > 0 || quickFilter === 'overdue' ? 'text-rose-500 dark:text-rose-400' : 'text-muted-foreground'} />
+            <AlertTriangle size={13} />
             <span>Overdue: {taskMetrics.overdue}</span>
           </button>
 
@@ -1038,10 +1068,10 @@ const Tasks = () => {
             <button
               type="button"
               onClick={() => handleQuickFilterChange('overTarget')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
                 quickFilter === 'overTarget'
-                  ? 'bg-amber-600 text-white border-amber-600 shadow-xs ring-2 ring-amber-500/25'
-                  : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
+                  : 'bg-secondary border-foreground/30 text-foreground hover:bg-secondary/80'
               }`}
             >
               <AlertTriangle size={13} />
@@ -1054,7 +1084,7 @@ const Tasks = () => {
             <button
               type="button"
               onClick={() => setQuickFilter('all')}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary/80 hover:bg-secondary border border-border transition-all cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-all cursor-pointer"
             >
               <X size={13} />
               <span>Clear Filter</span>
@@ -1075,27 +1105,29 @@ const Tasks = () => {
         )}
 
         {/* ── TODAY'S DELIVERABLES OVERVIEW (Agency-Wide for Admin/SuperAdmin, Personal for Employee) ── */}
-        <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/5 via-card to-purple-500/5 p-4 sm:p-5 shadow-xs space-y-3.5 transition-all">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs space-y-3.5 transition-all">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 shrink-0">
-                <Calendar size={18} className="stroke-[2.5]" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                <Calendar size={18} />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm sm:text-base font-black text-foreground tracking-tight">
+                  <h3 className="text-sm sm:text-base font-bold text-foreground tracking-tight">
                     Today&apos;s Deliverables &amp; Action Items
                   </h3>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border tabular-nums">
                     {todayTasks.length} {todayTasks.length === 1 ? 'Task' : 'Tasks'}
                   </span>
                   {isEmployee ? (
-                    <span className="text-[10px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md border">
-                      👤 My Assigned Deliverables
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">
+                      <User size={10} />
+                      <span>My Assigned Deliverables</span>
                     </span>
                   ) : (
-                    <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">
-                      👑 Agency-Wide Overview
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">
+                      <ShieldCheck size={10} />
+                      <span>Agency-Wide Overview</span>
                     </span>
                   )}
                 </div>
@@ -1112,10 +1144,10 @@ const Tasks = () => {
                 <button
                   type="button"
                   onClick={() => setPeriodFilter('today')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border ${
                     periodFilter === 'today'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-card border border-border text-foreground hover:bg-secondary'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-background border-border text-foreground hover:bg-secondary'
                   }`}
                 >
                   <Sparkles size={12} />
@@ -1125,7 +1157,7 @@ const Tasks = () => {
               <button
                 type="button"
                 onClick={() => setShowTodayTray((prev) => !prev)}
-                className="p-1.5 rounded-xl border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                className="p-1.5 rounded-xl border border-border bg-background hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                 title={showTodayTray ? 'Collapse overview' : 'Expand overview'}
               >
                 {showTodayTray ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -1136,8 +1168,8 @@ const Tasks = () => {
           {showTodayTray && (
             <>
               {todayTasks.length === 0 ? (
-                <div className="p-6 text-center rounded-xl bg-card/60 border border-dashed border-border text-xs text-muted-foreground space-y-1">
-                  <p className="font-semibold text-foreground">✨ All clear for today!</p>
+                <div className="p-6 text-center rounded-xl bg-secondary/40 border border-dashed border-border text-xs text-muted-foreground space-y-1">
+                  <p className="font-semibold text-foreground">All clear for today!</p>
                   <p>
                     {isEmployee
                       ? "You have no deliverables or tasks scheduled for today."
@@ -1152,7 +1184,7 @@ const Tasks = () => {
                     return (
                       <div
                         key={t._id}
-                        className="p-3.5 rounded-xl border border-border bg-card/90 hover:border-indigo-500/50 hover:shadow-md transition-all flex flex-col justify-between space-y-3 relative group"
+                        className="p-3.5 rounded-xl border border-border bg-background hover:border-foreground/40 hover:shadow-md transition-all flex flex-col justify-between space-y-3 relative group"
                       >
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between gap-1 flex-wrap">
@@ -1161,8 +1193,9 @@ const Tasks = () => {
                             </span>
                             <div className="flex items-center gap-1.5">
                               {overdue && (
-                                <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
-                                  🚨 Overdue
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground border border-primary">
+                                  <AlertTriangle size={9} />
+                                  <span>Overdue</span>
                                 </span>
                               )}
                               <StatusBadge tone={priorityTone[t.priority] || 'neutral'}>
@@ -1173,7 +1206,7 @@ const Tasks = () => {
 
                           <h4
                             onClick={() => handleOpenWorkflowDrawer(t)}
-                            className="font-bold text-foreground text-xs hover:text-primary transition-colors cursor-pointer line-clamp-2 leading-snug"
+                            className="font-bold text-foreground text-xs hover:text-foreground/80 transition-colors cursor-pointer line-clamp-2 leading-snug"
                             title={t.taskTitle || t.title}
                           >
                             {t.taskTitle || t.title}
@@ -1198,18 +1231,21 @@ const Tasks = () => {
                           {(t.scriptWriterAssigned || t.videographerAssigned || t.editorAssigned) && (
                             <div className="flex flex-wrap gap-1 text-[9px] pt-0.5">
                               {t.scriptWriterAssigned && (
-                                <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 font-semibold">
-                                  ✍️ {t.scriptWriterAssigned.name || 'Writer'}
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-semibold">
+                                  <FileEdit size={9} />
+                                  <span>{t.scriptWriterAssigned.name || 'Writer'}</span>
                                 </span>
                               )}
                               {t.videographerAssigned && (
-                                <span className="px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 font-semibold">
-                                  🎥 {t.videographerAssigned.name || 'Videographer'}
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-semibold">
+                                  <Video size={9} />
+                                  <span>{t.videographerAssigned.name || 'Videographer'}</span>
                                 </span>
                               )}
                               {t.editorAssigned && (
-                                <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 font-semibold">
-                                  ✂️ {t.editorAssigned.name || 'Editor'}
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-semibold">
+                                  <Scissors size={9} />
+                                  <span>{t.editorAssigned.name || 'Editor'}</span>
                                 </span>
                               )}
                             </div>
@@ -1217,11 +1253,11 @@ const Tasks = () => {
                         </div>
 
                         {/* Footer with status selector & FULL VIEW button */}
-                        <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                        <div className="pt-2 border-t border-border flex items-center justify-between gap-2">
                           <select
                             value={t.status}
                             onChange={(e) => updateStatusMutation.mutate({ id: t._id, status: e.target.value })}
-                            className="rounded-lg border border-border bg-background px-2 py-0.5 text-[11px] font-bold text-foreground outline-none transition-all focus:border-primary max-w-[125px] truncate"
+                            className="rounded-lg border border-border bg-card px-2 py-0.5 text-[11px] font-bold text-foreground outline-none transition-all focus:border-primary max-w-[125px] truncate cursor-pointer"
                           >
                             {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
                               <option key={opt} value={opt}>
@@ -1241,7 +1277,7 @@ const Tasks = () => {
                             </button>
                             <Link
                               to={`/tasks/${t._id}`}
-                              className="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border border-primary/20 text-[11px] font-extrabold transition-all flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-secondary hover:bg-primary text-foreground hover:text-primary-foreground border border-border text-[11px] font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
                               title="Open Full Page View"
                             >
                               <span>Full View</span>
@@ -1274,19 +1310,19 @@ const Tasks = () => {
                   <button
                     type="button"
                     onClick={() => handleDepartmentFilterChange('all')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                       departmentFilter === 'all'
                         ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
-                        : 'text-muted-foreground hover:text-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                     }`}
                   >
                     <CheckSquare size={13} />
                     <span>All Tasks</span>
                     <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
                         departmentFilter === 'all'
-                          ? 'bg-white/20 text-white'
-                          : 'bg-background text-muted-foreground border border-border/50'
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-background text-muted-foreground border border-border'
                       }`}
                     >
                       {taskCountsByDepartment.all}
@@ -1295,19 +1331,19 @@ const Tasks = () => {
                   <button
                     type="button"
                     onClick={() => handleDepartmentFilterChange('content')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                       departmentFilter === 'content'
-                        ? 'bg-pink-600 text-white shadow-2xs font-bold'
-                        : 'text-pink-600 dark:text-pink-400 hover:bg-pink-500/10'
+                        ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                     }`}
                   >
                     <Film size={13} />
-                    <span>🎬 Content</span>
+                    <span>Content</span>
                     <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
                         departmentFilter === 'content'
-                          ? 'bg-white/25 text-white'
-                          : 'bg-pink-500/20 text-pink-600 dark:text-pink-400'
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-background text-muted-foreground border border-border'
                       }`}
                     >
                       {taskCountsByDepartment.content}
@@ -1316,19 +1352,19 @@ const Tasks = () => {
                   <button
                     type="button"
                     onClick={() => handleDepartmentFilterChange('non_content')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                       departmentFilter === 'non_content'
-                        ? 'bg-sky-600 text-white shadow-2xs font-bold'
-                        : 'text-sky-600 dark:text-sky-400 hover:bg-sky-500/10'
+                        ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                     }`}
                   >
-                    <Code2 size={13} />
-                    <span>💻 Non-Content</span>
+                    <Laptop size={13} />
+                    <span>Non-Content</span>
                     <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
                         departmentFilter === 'non_content'
-                          ? 'bg-white/25 text-white'
-                          : 'bg-sky-500/20 text-sky-600 dark:text-sky-400'
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-background text-muted-foreground border border-border'
                       }`}
                     >
                       {taskCountsByDepartment.non_content}
@@ -1424,7 +1460,7 @@ const Tasks = () => {
                   size="sm"
                   variant="ghost"
                   onClick={clearAllFilters}
-                  className="h-8 px-2.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
+                  className="h-8 px-2.5 text-xs text-foreground bg-secondary hover:bg-secondary/80 border border-border inline-flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
                   title="Clear all active filters"
                 >
                   <RotateCcw size={12} />
@@ -1447,8 +1483,7 @@ const Tasks = () => {
                 onEdit={
                   canCreate
                     ? (task) => {
-                        setSelectedTaskId(task._id);
-                        setShowAddModal(true);
+                        openTaskDetail(task._id);
                       }
                     : undefined
                 }
@@ -1475,7 +1510,7 @@ const Tasks = () => {
                   <div
                     key={task._id}
                     onClick={() => handleRowClick(task)}
-                    className="p-4 rounded-2xl border border-border bg-card shadow-xs hover:border-primary/50 transition-all space-y-3 cursor-pointer active:scale-[0.99]"
+                    className="p-4 rounded-2xl border border-border bg-card shadow-xs hover:border-foreground/40 transition-all space-y-3 cursor-pointer active:scale-[0.99]"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
@@ -1495,11 +1530,10 @@ const Tasks = () => {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedTaskId(task._id);
-                              setShowAddModal(true);
+                              openTaskDetail(task._id);
                             }}
-                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
-                            title="Edit Task"
+                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                            title="Open Task"
                           >
                             <Edit2 size={14} />
                           </button>
@@ -1511,7 +1545,7 @@ const Tasks = () => {
                               e.stopPropagation();
                               setDeleteTaskId(task._id);
                             }}
-                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
+                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                             title="Delete Task"
                           >
                             <Trash2 size={14} />
@@ -1531,7 +1565,7 @@ const Tasks = () => {
                                 <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
                               ))
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-secondary text-muted-foreground border border-border/80">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-secondary text-muted-foreground border border-border">
                                 <User size={10} /> Unassigned
                               </span>
                             )}
@@ -1543,8 +1577,9 @@ const Tasks = () => {
                                 const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
                                 const c = getPersonColor(name);
                                 return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    ✍️ {name}
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    <FileEdit size={10} />
+                                    <span>{name}</span>
                                   </span>
                                 );
                               })()}
@@ -1552,8 +1587,9 @@ const Tasks = () => {
                                 const name = task.voiceArtistAssigned.name || task.voiceArtistName || 'RJ / Voice';
                                 const c = getPersonColor(name);
                                 return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    🎙️ {name}
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    <Mic size={10} />
+                                    <span>{name}</span>
                                   </span>
                                 );
                               })()}
@@ -1561,8 +1597,9 @@ const Tasks = () => {
                                 const name = task.videographerAssigned.name || task.videographerName || 'Videographer';
                                 const c = getPersonColor(name);
                                 return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    🎥 {name}
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    <Video size={10} />
+                                    <span>{name}</span>
                                   </span>
                                 );
                               })()}
@@ -1570,8 +1607,9 @@ const Tasks = () => {
                                 const name = task.editorAssigned.name || task.editorName || 'Editor';
                                 const c = getPersonColor(name);
                                 return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    ✂️ {name}
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    <Scissors size={10} />
+                                    <span>{name}</span>
                                   </span>
                                 );
                               })()}
@@ -1579,8 +1617,9 @@ const Tasks = () => {
                                 const name = task.publisherAssigned.name || task.publisherName || 'Publisher';
                                 const c = getPersonColor(name);
                                 return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    📱 {name}
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    <Smartphone size={10} />
+                                    <span>{name}</span>
                                   </span>
                                 );
                               })()}
@@ -1590,22 +1629,24 @@ const Tasks = () => {
                           {/* Development Pipeline Workflow in List/Table view */}
                           {(task.department === 'Development' || task.development?.isDevTask || isWebsiteTaskType(task.taskType)) && (
                             <div className="flex flex-wrap items-center gap-1.5 text-[10px] pt-1">
-                              <span className={`px-2 py-0.5 rounded-md border font-bold flex items-center gap-1 shadow-2xs ${
+                              <span className={`px-2 py-0.5 rounded-md border font-bold inline-flex items-center gap-1 shadow-2xs ${
                                 task.development?.isBlocked
-                                  ? 'bg-rose-500/15 text-rose-600 border-rose-500/30'
-                                  : DEV_STAGE_TONES[task.development?.stage] || DEV_STAGE_TONES.in_development
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-secondary text-foreground border-border'
                               }`}>
                                 <Code2 size={11} />
                                 <span>Dev: {task.development?.isBlocked ? 'Blocked' : (DEV_STAGE_SHORT_LABELS[task.development?.stage] || 'In Dev')}</span>
                               </span>
                               {task.development?.reviewer && (
-                                <span className="px-2 py-0.5 rounded-md border font-semibold bg-purple-500/10 text-purple-600 border-purple-500/20">
-                                  🔍 Review: {task.development.reviewer.name || 'Reviewer'}
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border font-semibold bg-secondary text-foreground border-border">
+                                  <Search size={10} />
+                                  <span>Review: {task.development.reviewer.name || 'Reviewer'}</span>
                                 </span>
                               )}
                               {task.development?.tester && (
-                                <span className="px-2 py-0.5 rounded-md border font-semibold bg-cyan-500/10 text-cyan-600 border-cyan-500/20">
-                                  🛡️ QA: {task.development.tester.name || 'Tester'}
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border font-semibold bg-secondary text-foreground border-border">
+                                  <ShieldCheck size={10} />
+                                  <span>QA: {task.development.tester.name || 'Tester'}</span>
                                 </span>
                               )}
                             </div>
@@ -1615,12 +1656,12 @@ const Tasks = () => {
                     })()}
 
                     {/* Status Select & Due Date */}
-                    <div className="flex items-center justify-between pt-2.5 border-t border-border/60 gap-2">
+                    <div className="flex items-center justify-between pt-2.5 border-t border-border gap-2">
                       <div onClick={(e) => e.stopPropagation()}>
                         <select
                           value={task.status}
                           onChange={(e) => updateStatusMutation.mutate({ id: task._id, status: e.target.value })}
-                          className="rounded-xl border border-border bg-background px-2.5 py-1 text-xs font-bold text-foreground outline-none transition-all focus:border-primary"
+                          className="rounded-xl border border-border bg-background px-2.5 py-1 text-xs font-bold text-foreground outline-none transition-all focus:border-primary cursor-pointer"
                         >
                           {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
                             <option key={opt} value={opt}>
@@ -1630,18 +1671,18 @@ const Tasks = () => {
                         </select>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap tabular-nums">
                         {task.createdAt && (
-                          <div className="text-[11px] flex items-center gap-1 text-muted-foreground">
-                            <Calendar size={11} className="text-primary/70 shrink-0" />
+                          <div className="text-[11px] inline-flex items-center gap-1 text-muted-foreground">
+                            <Calendar size={11} className="text-muted-foreground shrink-0" />
                             <span>Created {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                           </div>
                         )}
                         {(() => {
                           const overdue = isTaskOverdue(task);
                           return (
-                            <div className={`text-[11px] flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
-                              {overdue ? <AlertTriangle size={12} className="text-rose-500 shrink-0" /> : <Clock size={12} className="text-primary shrink-0" />}
+                            <div className={`text-[11px] inline-flex items-center gap-1 font-medium ${overdue ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
+                              {overdue ? <AlertTriangle size={12} className="text-foreground shrink-0" /> : <Clock size={12} className="text-muted-foreground shrink-0" />}
                               <span>{task.dueDate ? `${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString()}` : 'No deadline'}</span>
                             </div>
                           );

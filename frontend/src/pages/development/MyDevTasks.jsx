@@ -14,7 +14,7 @@ import {
   AlertTriangle,
   ChevronRight,
   ExternalLink,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { toast } from 'react-hot-toast';
 
 export default function MyDevTasks() {
@@ -92,9 +92,9 @@ export default function MyDevTasks() {
       <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto responsive-table-container">
         <button
           onClick={() => setActiveTab('assigned')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all cursor-pointer ${
             activeTab === 'assigned'
-              ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+              ? 'bg-primary text-primary-foreground shadow-xs'
               : 'text-muted-foreground hover:bg-secondary'
           }`}
         >
@@ -102,9 +102,9 @@ export default function MyDevTasks() {
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all cursor-pointer ${
             activeTab === 'reviews'
-              ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/20'
+              ? 'bg-primary text-primary-foreground shadow-xs'
               : 'text-muted-foreground hover:bg-secondary'
           }`}
         >
@@ -112,9 +112,9 @@ export default function MyDevTasks() {
         </button>
         <button
           onClick={() => setActiveTab('qa')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all cursor-pointer ${
             activeTab === 'qa'
-              ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/20'
+              ? 'bg-primary text-primary-foreground shadow-xs'
               : 'text-muted-foreground hover:bg-secondary'
           }`}
         >
@@ -126,11 +126,11 @@ export default function MyDevTasks() {
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
         {loading ? (
           <div className="p-12 text-center text-muted-foreground text-xs flex items-center justify-center gap-2">
-            <RefreshCcw size={16} className="animate-spin text-primary" /> Loading tasks...
+            <RefreshCcw size={16} className="animate-spin text-foreground" /> Loading tasks...
           </div>
         ) : filteredTasks.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-xs space-y-2">
-            <CheckCircle2 size={32} className="mx-auto text-emerald-500/40" />
+            <CheckCircle2 size={32} className="mx-auto text-muted-foreground/50" />
             <p className="font-semibold text-foreground">You are all caught up!</p>
             <p className="text-muted-foreground">No tasks found for the selected category.</p>
           </div>
@@ -154,21 +154,21 @@ export default function MyDevTasks() {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary px-2 py-0.5 rounded">
                         {task.project?.name || 'CRM Task'}
                       </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground border border-border">
                         {dev.stage?.replace(/_/g, ' ') || 'backlog'}
                       </span>
                       {isBlocked && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary text-primary-foreground border border-primary">
                           Blocked: {dev.blockedReason}
                         </span>
                       )}
                       {dev.branch && (
                         <span className="text-[10px] font-mono text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded">
-                          🌿 {dev.branch}
+                          {dev.branch}
                         </span>
                       )}
                     </div>
-                    <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                    <h4 className="text-sm font-bold text-foreground group-hover:underline truncate">
                       {task.title}
                     </h4>
                   </div>

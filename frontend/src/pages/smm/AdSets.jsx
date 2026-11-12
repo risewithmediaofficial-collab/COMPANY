@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Layers, Target, MapPin, Users, Sliders, Play, CheckCircle, ArrowRight, Video, Sparkles, MessageCircle, FileText, Globe } from 'lucide-react';
+import { Plus, Layers, Target, MapPin, Users, Sliders, Play, CheckCircle, ArrowRight, Video, Sparkles, MessageCircle, FileText, Globe } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, SearchField } from '../../components/ui/page';
@@ -225,12 +225,12 @@ export default function AdSets() {
       key: 'name',
       label: 'Ad Set Name & Campaign',
       render: (row) => (
-        <div>
-          <span className="font-semibold text-foreground block">{row.name}</span>
+        <div className="min-w-0">
+          <span className="font-semibold text-foreground block truncate">{row.name}</span>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-            <span>{row.campaign?.name || 'Unassigned Campaign'}</span>
+            <span className="truncate">{row.campaign?.name || 'Unassigned Campaign'}</span>
             {row.formType && (
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary text-foreground border border-border shrink-0">
                 {row.formType}
               </span>
             )}
@@ -242,8 +242,8 @@ export default function AdSets() {
       key: 'audience',
       label: 'Target Audience & Location',
       render: (row) => (
-        <div className="text-xs space-y-0.5">
-          <span className="font-medium text-foreground block">
+        <div className="text-xs space-y-0.5 min-w-0">
+          <span className="font-medium text-foreground block truncate max-w-xs">
             {row.locationText || (row.audience?.location?.join(', ') || 'All Locations')}
           </span>
           <span className="text-muted-foreground block truncate max-w-xs">
@@ -257,7 +257,7 @@ export default function AdSets() {
       label: 'Destination / Form Type',
       render: (row) => (
         <div className="space-y-1">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 block w-fit">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-secondary text-foreground border border-border block w-fit">
             {row.formType || 'Instant Form'}
           </span>
           {row.campaign?.objective && (
@@ -271,7 +271,7 @@ export default function AdSets() {
     {
       key: 'budget',
       label: 'Daily Budget',
-      render: (row) => <span className="text-xs font-mono font-semibold">₹{row.budget?.toLocaleString()}</span>,
+      render: (row) => <span className="text-xs font-mono font-semibold tabular-nums">₹{(row.budget || 0).toLocaleString()}</span>,
     },
     {
       key: 'status',
@@ -284,9 +284,9 @@ export default function AdSets() {
       render: (row) => (
         <button
           onClick={() => handleLaunchAds(row)}
-          className="px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 font-bold rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs"
+          className="px-2.5 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
         >
-          <Play size={12} fill="currentColor" /> Run Ads
+          <Play size={12} /> <span>Run Ads</span>
         </button>
       ),
     },
@@ -298,9 +298,9 @@ export default function AdSets() {
         title="Ad Sets & Audience Targeting"
         subtitle="Configure target audiences, locations, lead form destinations & campaign placement settings"
         actions={
-          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
+          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-sm hover:opacity-90 cursor-pointer">
             <Plus size={18} />
-            Create Ad Set
+            <span>Create Ad Set</span>
           </button>
         }
       />
@@ -365,16 +365,16 @@ export default function AdSets() {
             <div className="p-3 bg-secondary/50 rounded-2xl border border-border space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-foreground">Campaign Summary</span>
-                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold text-[10px]">
+                <span className="px-2 py-0.5 rounded-full bg-card border border-border text-foreground font-semibold text-[10px]">
                   {selectedCampaign.platform || 'Meta'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground pt-1">
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground pt-1 tabular-nums">
                 <div>Client: <strong className="text-foreground">{selectedCampaign.client?.company || selectedCampaign.client?.name}</strong></div>
                 <div>Project: <strong className="text-foreground">{selectedCampaign.project?.name || 'General'}</strong></div>
                 <div>Objective: <strong className="text-foreground">{selectedCampaign.objective}</strong></div>
                 <div>
-                  Attached Videos: <strong className="text-purple-600 dark:text-purple-400">
+                  Attached Videos: <strong className="text-foreground">
                     {selectedCampaign.sourceContentIds?.length || (selectedCampaign.sourceContentId ? 1 : 0)} Videos
                   </strong>
                 </div>
@@ -397,8 +397,8 @@ export default function AdSets() {
           {/* Extra Fields: Target Audience & Location */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="font-semibold text-foreground mb-1 block flex items-center gap-1.5">
-                <Target size={14} className="text-primary" /> Target Audience *
+              <label className="font-semibold text-foreground mb-1 inline-flex items-center gap-1.5">
+                <Target size={14} className="text-foreground shrink-0" /> <span>Target Audience *</span>
               </label>
               <input
                 type="text"
@@ -411,8 +411,8 @@ export default function AdSets() {
             </div>
 
             <div>
-              <label className="font-semibold text-foreground mb-1 block flex items-center gap-1.5">
-                <MapPin size={14} className="text-rose-500" /> Target Location *
+              <label className="font-semibold text-foreground mb-1 inline-flex items-center gap-1.5">
+                <MapPin size={14} className="text-foreground shrink-0" /> <span>Target Location *</span>
               </label>
               <input
                 type="text"
@@ -523,9 +523,9 @@ export default function AdSets() {
 
       {/* Post-Creation Action Modal: Ad Set Created -> Convert to Running Ads */}
       {createdAdSetForNextStep && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
           <div className="bg-card border border-border max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center mx-auto">
               <CheckCircle size={28} />
             </div>
             <div className="text-center space-y-1">
@@ -536,17 +536,17 @@ export default function AdSets() {
             </div>
 
             <div className="p-3 bg-secondary/50 rounded-2xl border border-border text-xs space-y-1.5">
-              <div className="flex justify-between text-muted-foreground">
+              <div className="flex justify-between text-muted-foreground gap-2">
                 <span>Target Audience:</span>
-                <span className="font-semibold text-foreground">{createdAdSetForNextStep.targetAudienceText || 'Broad'}</span>
+                <span className="font-semibold text-foreground text-right">{createdAdSetForNextStep.targetAudienceText || 'Broad'}</span>
               </div>
-              <div className="flex justify-between text-muted-foreground">
+              <div className="flex justify-between text-muted-foreground gap-2">
                 <span>Location:</span>
-                <span className="font-semibold text-foreground">{createdAdSetForNextStep.locationText || 'All'}</span>
+                <span className="font-semibold text-foreground text-right">{createdAdSetForNextStep.locationText || 'All'}</span>
               </div>
-              <div className="flex justify-between text-muted-foreground">
+              <div className="flex justify-between text-muted-foreground gap-2">
                 <span>Destination:</span>
-                <span className="font-semibold text-primary">{createdAdSetForNextStep.formType || 'Instant Form'}</span>
+                <span className="font-semibold text-foreground text-right">{createdAdSetForNextStep.formType || 'Instant Form'}</span>
               </div>
             </div>
 
@@ -557,13 +557,13 @@ export default function AdSets() {
                   setCreatedAdSetForNextStep(null);
                   navigate('/smm/ads', { state: { adSet: set, campaign: set.campaign } });
                 }}
-                className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all"
+                className="flex-1 py-2.5 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs inline-flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
               >
-                <Play size={14} fill="currentColor" /> Convert to Ads & Start Running <ArrowRight size={14} />
+                <Play size={14} /> <span>Convert to Ads & Start Running</span> <ArrowRight size={14} />
               </button>
               <button
                 onClick={() => setCreatedAdSetForNextStep(null)}
-                className="py-2.5 px-4 bg-secondary text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80"
+                className="py-2.5 px-4 bg-secondary text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80 cursor-pointer border border-border"
               >
                 Stay in Ad Sets
               </button>

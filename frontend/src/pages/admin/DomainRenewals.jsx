@@ -16,7 +16,7 @@ import {
   Building2,
   Clock,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import {
@@ -73,10 +73,10 @@ const getRemainingDays = (expiryDate) => {
 };
 
 const toneByStatus = {
-  active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  renewed: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  expired: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+  active: 'bg-secondary text-foreground border-border',
+  pending: 'bg-muted text-foreground border-border',
+  renewed: 'bg-primary text-primary-foreground border-primary',
+  expired: 'bg-secondary text-foreground border-foreground/40 font-black',
 };
 
 const FormField = ({ label, children }) => (
@@ -130,7 +130,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
       <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
         <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
               <Globe2 size={20} />
             </div>
             <div className="min-w-0">
@@ -144,10 +144,10 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-all active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -160,7 +160,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
             <div className="space-y-6">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Asset / Domain Name <span className="text-rose-500">*</span>
+                  Asset / Domain Name <span className="text-foreground">*</span>
                 </label>
                 <Input
                   value={form.itemName}
@@ -173,7 +173,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Asset Type <span className="text-rose-500">*</span>
+                  Asset Type <span className="text-foreground">*</span>
                 </label>
                 <select
                   value={form.itemType}
@@ -217,7 +217,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Expiry Date <span className="text-rose-500">*</span>
+                  Expiry Date <span className="text-foreground">*</span>
                 </label>
                 <Input
                   type="date"
@@ -268,8 +268,8 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
-            <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
               <span>Press</span>
               <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
                 ESC
@@ -289,7 +289,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
               <Button
                 type="submit"
                 disabled={saving}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
               >
                 {saving ? 'Saving...' : record ? 'Save Changes' : 'Track Asset'}
               </Button>
@@ -361,12 +361,15 @@ export default function DomainRenewals() {
       label: 'Domain / Asset',
       render: (item) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {item.itemType === 'hosting' ? <Server size={14} /> : <Globe2 size={14} />}
           </div>
           <div>
             <p className="font-bold text-foreground">{item.itemName}</p>
-            <p className="text-[11px] text-muted-foreground">🏢 {item.clientId?.company || item.clientId?.name || 'Internal'}</p>
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Building2 size={11} className="shrink-0" />
+              <span>{item.clientId?.company || item.clientId?.name || 'Internal'}</span>
+            </p>
           </div>
         </div>
       ),
@@ -384,18 +387,16 @@ export default function DomainRenewals() {
       render: (item) => {
         const days = getRemainingDays(item.expiryDate);
         return (
-          <div className="text-xs">
+          <div className="text-xs tabular-nums">
             <p className="font-semibold text-foreground">{formatDate(item.expiryDate)}</p>
             {days !== null && (
               <span
-                className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded mt-0.5 ${
-                  days < 0
-                    ? 'bg-rose-500/10 text-rose-600'
-                    : days <= 15
-                    ? 'bg-rose-500/10 text-rose-600'
+                className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded border mt-0.5 tabular-nums ${
+                  days < 0 || days <= 15
+                    ? 'bg-primary text-primary-foreground border-primary'
                     : days <= 30
-                    ? 'bg-amber-500/10 text-amber-600'
-                    : 'bg-emerald-500/10 text-emerald-600'
+                    ? 'bg-secondary text-foreground border-foreground/40'
+                    : 'bg-secondary text-muted-foreground border-border'
                 }`}
               >
                 {days < 0 ? `Expired ${Math.abs(days)}d ago` : `${days} days remaining`}
@@ -409,7 +410,7 @@ export default function DomainRenewals() {
       key: 'renewalCost',
       label: 'Renewal Fee',
       render: (item) => (
-        <span className="font-bold text-xs text-foreground">
+        <span className="font-bold text-xs text-foreground tabular-nums">
           {item.renewalCost ? formatINR(item.renewalCost) : '—'}
         </span>
       ),
@@ -440,7 +441,7 @@ export default function DomainRenewals() {
           </button>
           <button
             onClick={() => setDeleteId(item._id)}
-            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -459,14 +460,17 @@ export default function DomainRenewals() {
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
             {item.itemType}
           </span>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${toneByStatus[item.status] || toneByStatus.active}`}>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border capitalize ${toneByStatus[item.status] || toneByStatus.active}`}>
             {item.status}
           </span>
         </div>
 
         <div>
           <h4 className="font-bold text-sm text-foreground">{item.itemName}</h4>
-          <p className="text-xs text-muted-foreground mt-0.5">🏢 {item.clientId?.company || item.clientId?.name || 'Internal'}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+            <Building2 size={12} className="shrink-0" />
+            <span>{item.clientId?.company || item.clientId?.name || 'Internal'}</span>
+          </p>
         </div>
 
         <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
@@ -476,17 +480,17 @@ export default function DomainRenewals() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Expires:</span>
-            <span className="font-semibold text-foreground">{formatDate(item.expiryDate)}</span>
+            <span className="font-semibold text-foreground tabular-nums">{formatDate(item.expiryDate)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Annual Cost:</span>
-            <span className="font-bold text-foreground">{item.renewalCost ? formatINR(item.renewalCost) : '—'}</span>
+            <span className="font-bold text-foreground tabular-nums">{item.renewalCost ? formatINR(item.renewalCost) : '—'}</span>
           </div>
         </div>
 
         {days !== null && days <= 30 && (
-          <div className="flex items-center gap-1.5 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-bold">
-            <AlertTriangle size={13} />
+          <div className="flex items-center gap-1.5 p-2 rounded-lg bg-secondary border border-foreground/30 text-foreground text-xs font-bold tabular-nums">
+            <AlertTriangle size={13} className="shrink-0" />
             <span>Expires in {days} days! Action required.</span>
           </div>
         )}
@@ -498,7 +502,7 @@ export default function DomainRenewals() {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Business & Finance', 'Domain & Hosting Renewals']}
       title="Domain & Hosting Renewals"
-      icon="🌐"
+      icon={Globe2}
       properties={[
         { label: 'Total Tracked', value: total, icon: Globe2 },
         { label: 'Expiring Soon (30d)', value: expiringSoonCount, tone: expiringSoonCount > 0 ? 'danger' : 'neutral' },

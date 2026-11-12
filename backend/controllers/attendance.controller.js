@@ -482,15 +482,35 @@ export const getTeamAttendance = async (req, res) => {
 
 export const getEodReports = async (req, res) => {
   try {
-    const { days = 7, userId, mine } = req.query;
-    const since = new Date();
-    since.setDate(since.getDate() - Number(days));
-    since.setHours(0, 0, 0, 0);
-
+    const { days, userId, mine, startDate, endDate } = req.query;
     const query = {
-      date: { $gte: since },
       'eodReport.submittedAt': { $exists: true },
     };
+
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        const [y, m, d] = String(startDate).slice(0, 10).split('-').map(Number);
+        const s = (!Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(d))
+          ? new Date(y, m - 1, d, 0, 0, 0, 0)
+          : new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        query.date.$gte = s;
+      }
+      if (endDate) {
+        const [y, m, d] = String(endDate).slice(0, 10).split('-').map(Number);
+        const e = (!Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(d))
+          ? new Date(y, m - 1, d, 23, 59, 59, 999)
+          : new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        query.date.$lte = e;
+      }
+    } else if (days && days !== 'all') {
+      const since = new Date();
+      since.setDate(since.getDate() - Number(days));
+      since.setHours(0, 0, 0, 0);
+      query.date = { $gte: since };
+    }
 
     if (req.user.role === 'employee' || mine === 'true') {
       query.user = userId || req.user._id;

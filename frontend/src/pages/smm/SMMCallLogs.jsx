@@ -27,7 +27,7 @@ import {
   Check,
   ChevronDown,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { smmApi } from '../../api/smm';
@@ -63,12 +63,12 @@ const CALL_PURPOSES = [
 ];
 
 const CALL_STATUSES = [
-  { value: 'Connected', label: 'Connected', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
-  { value: 'Follow-up Needed', label: 'Follow-up Needed', color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' },
-  { value: 'Scheduled', label: 'Scheduled', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' },
-  { value: 'No Answer / Busy', label: 'No Answer / Busy', color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' },
-  { value: 'Completed', label: 'Completed', color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20' },
-  { value: 'Cancelled', label: 'Cancelled', color: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20' },
+  { value: 'Connected', label: 'Connected', color: 'bg-primary text-primary-foreground border-primary' },
+  { value: 'Follow-up Needed', label: 'Follow-up Needed', color: 'bg-secondary text-foreground border-border' },
+  { value: 'Scheduled', label: 'Scheduled', color: 'bg-card text-foreground border-border' },
+  { value: 'No Answer / Busy', label: 'No Answer / Busy', color: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border-border' },
+  { value: 'Completed', label: 'Completed', color: 'bg-foreground text-background border-foreground' },
+  { value: 'Cancelled', label: 'Cancelled', color: 'bg-card text-muted-foreground border-border' },
 ];
 
 const initialForm = {
@@ -332,16 +332,16 @@ export default function SMMCallLogs() {
   const getCallTypeIcon = (type) => {
     switch (type) {
       case 'Incoming':
-        return <PhoneIncoming size={13} className="text-emerald-500" />;
+        return <PhoneIncoming size={13} className="text-foreground" />;
       case 'WhatsApp Call':
-        return <MessageCircle size={13} className="text-emerald-500" />;
+        return <MessageCircle size={13} className="text-foreground" />;
       case 'Google Meet':
       case 'Zoom':
-        return <Video size={13} className="text-blue-500" />;
+        return <Video size={13} className="text-foreground" />;
       case 'Direct Meeting':
-        return <User size={13} className="text-purple-500" />;
+        return <User size={13} className="text-foreground" />;
       default:
-        return <PhoneOutgoing size={13} className="text-sky-500" />;
+        return <PhoneOutgoing size={13} className="text-muted-foreground" />;
     }
   };
 
@@ -391,7 +391,7 @@ export default function SMMCallLogs() {
 
           <button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors shadow-xs cursor-pointer"
           >
             <Plus size={15} />
             <span>Log Call Note</span>
@@ -404,22 +404,22 @@ export default function SMMCallLogs() {
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-muted-foreground">Total Calls</span>
-            <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
+            <span className="p-1.5 rounded-lg bg-secondary border border-border text-foreground">
               <Phone size={13} />
             </span>
           </div>
-          <p className="text-xl font-extrabold text-foreground mt-1.5">{stats.total}</p>
+          <p className="text-xl font-extrabold text-foreground mt-1.5 tabular-nums">{stats.total}</p>
           <span className="text-[10px] text-muted-foreground">Across all clients</span>
         </div>
 
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-muted-foreground">Connected</span>
-            <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <span className="p-1.5 rounded-lg bg-secondary border border-border text-foreground">
               <CheckCircle2 size={13} />
             </span>
           </div>
-          <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">
+          <p className="text-xl font-extrabold text-foreground mt-1.5 tabular-nums">
             {stats.connected}
           </p>
           <span className="text-[10px] text-muted-foreground">Successful contacts</span>
@@ -428,11 +428,11 @@ export default function SMMCallLogs() {
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-muted-foreground">Follow-up Needed</span>
-            <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <span className="p-1.5 rounded-lg bg-secondary border border-border text-foreground">
               <AlertTriangle size={13} />
             </span>
           </div>
-          <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1.5">
+          <p className="text-xl font-extrabold text-foreground mt-1.5 tabular-nums">
             {stats.followUpNeeded}
           </p>
           <span className="text-[10px] text-muted-foreground">Requires action</span>
@@ -441,11 +441,11 @@ export default function SMMCallLogs() {
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-muted-foreground">Scheduled</span>
-            <span className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <span className="p-1.5 rounded-lg bg-secondary border border-border text-foreground">
               <Calendar size={13} />
             </span>
           </div>
-          <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5">
+          <p className="text-xl font-extrabold text-foreground mt-1.5 tabular-nums">
             {stats.scheduled}
           </p>
           <span className="text-[10px] text-muted-foreground">Upcoming calls</span>
@@ -454,11 +454,11 @@ export default function SMMCallLogs() {
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-muted-foreground">No Answer / Busy</span>
-            <span className="p-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <span className="p-1.5 rounded-lg bg-secondary border border-border text-muted-foreground">
               <PhoneMissed size={13} />
             </span>
           </div>
-          <p className="text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-1.5">
+          <p className="text-xl font-extrabold text-foreground mt-1.5 tabular-nums">
             {stats.noAnswer}
           </p>
           <span className="text-[10px] text-muted-foreground">Callback required</span>
@@ -467,11 +467,11 @@ export default function SMMCallLogs() {
         <div className="bg-card border border-border rounded-xl p-3.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-muted-foreground">Completed</span>
-            <span className="p-1.5 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
+            <span className="p-1.5 rounded-lg bg-secondary border border-border text-foreground">
               <Check size={13} />
             </span>
           </div>
-          <p className="text-xl font-extrabold text-teal-600 dark:text-teal-400 mt-1.5">
+          <p className="text-xl font-extrabold text-foreground mt-1.5 tabular-nums">
             {stats.completed}
           </p>
           <span className="text-[10px] text-muted-foreground">Resolved / Finalized</span>
@@ -711,12 +711,12 @@ export default function SMMCallLogs() {
                   )}
                   {log.priority && (
                     <span
-                      className={`ml-auto text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                      className={`ml-auto text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${
                         log.priority === 'Urgent'
-                          ? 'bg-rose-500/20 text-rose-600'
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : log.priority === 'High'
-                          ? 'bg-amber-500/20 text-amber-600'
-                          : 'bg-muted text-muted-foreground'
+                          ? 'bg-secondary text-foreground border-border'
+                          : 'bg-card text-muted-foreground border-border'
                       }`}
                     >
                       {log.priority}
@@ -726,7 +726,7 @@ export default function SMMCallLogs() {
               )}
 
               {/* Text Notes Body */}
-              <div className="bg-background/80 rounded-xl p-3 border border-border/80">
+              <div className="bg-background rounded-xl p-3 border border-border">
                 <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1">
                   <FileText size={12} /> Call Summary & Notes:
                 </p>
@@ -737,16 +737,16 @@ export default function SMMCallLogs() {
 
               {/* Next Action / Follow-up alert if present */}
               {(log.nextAction || log.nextFollowUpDate) && (
-                <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs">
-                  <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-medium">
+                <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-secondary/40 border border-border text-xs">
+                  <div className="flex items-center gap-1.5 text-foreground font-medium">
                     <Clock size={13} />
                     <span>Next Action:</span>
-                    <span className="text-foreground font-normal">
+                    <span className="text-muted-foreground font-normal">
                       {log.nextAction || 'Follow up with client'}
                     </span>
                   </div>
                   {log.nextFollowUpDate && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground bg-card border border-border px-2 py-0.5 rounded-md tabular-nums">
                       <Calendar size={11} />
                       Follow-up: {format(new Date(log.nextFollowUpDate), 'dd MMM yyyy')}
                     </span>
@@ -798,7 +798,7 @@ export default function SMMCallLogs() {
                     {(isAdmin || String(log.loggedBy?._id) === String(user?._id)) && (
                       <button
                         onClick={() => handleDeleteLog(log._id)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                         title="Delete Call Log"
                       >
                         <Trash2 size={13} />
@@ -1075,7 +1075,7 @@ export default function SMMCallLogs() {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -1096,7 +1096,7 @@ export default function SMMCallLogs() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
                 >
                   {submitting ? 'Saving...' : editingId ? 'Update Call Note' : 'Save Call Note'}
                 </Button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Globe, Mail, Phone, MapPin, Building2, Clock, Trash2, Edit2, Search } from 'lucide-react';
+import { Plus, Globe, Mail, Phone, MapPin, Building2, Clock, Trash2, Edit2, Search } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, SearchField } from '../../components/ui/page';

@@ -23,7 +23,7 @@ import {
   Loader2,
   Sparkles,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { cn } from '../../utils/cn';
 
 const CROP_CONTAINER_SIZE = 320; // Visual viewport size (px)
@@ -304,7 +304,7 @@ export const ProfileImageCropModal = ({
             <div className="flex flex-col items-center space-y-4 w-full sm:w-auto">
               {/* Crop Viewport Box */}
               <div
-                className="relative rounded-2xl overflow-hidden shadow-inner bg-slate-950 border border-border select-none touch-none cursor-grab active:cursor-grabbing max-w-[min(320px,calc(100vw-64px))] max-h-[min(320px,calc(100vw-64px))]"
+                className="relative rounded-2xl overflow-hidden shadow-inner bg-black border border-border select-none touch-none cursor-grab active:cursor-grabbing max-w-[min(320px,calc(100vw-64px))] max-h-[min(320px,calc(100vw-64px))]"
                 style={{
                   width: `${CROP_CONTAINER_SIZE}px`,
                   height: `${CROP_CONTAINER_SIZE}px`,
@@ -428,8 +428,8 @@ export const ProfileImageCropModal = ({
                 </svg>
 
                 {/* Floating "Drag to Move" Pill */}
-                <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-semibold text-white/90 flex items-center gap-1.5 shadow-lg">
-                  <Move size={12} />
+                <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/80 border border-white/15 text-[11px] font-semibold text-white flex items-center gap-1.5 shadow-lg">
+                  <Move size={12} className="shrink-0" />
                   <span>Drag to reposition</span>
                 </div>
               </div>
@@ -467,7 +467,7 @@ export const ProfileImageCropModal = ({
                   <ZoomIn size={16} />
                 </button>
 
-                <span className="text-xs font-mono font-bold text-muted-foreground min-w-[42px] text-right">
+                <span className="text-xs font-mono font-bold text-muted-foreground min-w-[42px] text-right tabular-nums">
                   {Math.round(zoom * 100)}%
                 </span>
               </div>
@@ -618,7 +618,7 @@ export const ProfileImageCropModal = ({
         </div>
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
           <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
           <div className="flex items-center gap-2.5 ml-auto">
             <Button

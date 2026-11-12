@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveWorkspace } from '../../store/slices/authSlice';
-import { ChevronDown, Building, Briefcase } from 'lucide-react';
+import { ChevronDown, Building, Briefcase } from '@/components/ui/muiIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api';
 

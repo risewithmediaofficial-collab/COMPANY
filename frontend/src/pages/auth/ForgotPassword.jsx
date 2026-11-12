@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Mail, Loader2, ArrowLeft } from 'lucide-react';
+import { Mail, Loader2, ArrowLeft } from '@/components/ui/muiIcons';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -34,7 +34,7 @@ const ForgotPassword = () => {
       </div>
 
       {submitted ? (
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-300">
+        <div className="rounded-xl border border-border bg-secondary p-4 text-sm text-foreground">
           Your password reset request has been sent to the administrator.
         </div>
       ) : (
@@ -62,7 +62,7 @@ const ForgotPassword = () => {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : 'Submit Request'}
           </button>

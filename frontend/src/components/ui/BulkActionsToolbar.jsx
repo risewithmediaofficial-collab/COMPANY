@@ -1,4 +1,4 @@
-import { X, Trash2, CheckSquare, Archive } from 'lucide-react';
+import { X, Trash2, CheckSquare, Archive } from '@/components/ui/muiIcons';
 import { Button } from './button';
 
 /**
@@ -41,7 +41,7 @@ const BulkActionsToolbar = ({
 
   return (
     <div
-      className={`sticky bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-4 border-t border-border bg-card/95 backdrop-blur-sm px-4 py-3 ${className}`}
+      className={`sticky bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-4 border-t border-border bg-card px-4 py-3 ${className}`}
     >
       <div className="flex items-center gap-3">
         <span className="text-sm font-semibold text-muted-foreground">

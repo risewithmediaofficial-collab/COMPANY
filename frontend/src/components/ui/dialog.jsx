@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { X } from '@/components/ui/muiIcons';
 import { cn } from '../../utils/cn';
 
 export const Dialog = DialogPrimitive.Root;
@@ -30,17 +30,21 @@ export const DialogContent = React.forwardRef(
       full: 'sm:max-w-[88vw]',
     };
 
-    // For side drawers: strip any legacy max-h or rounding constraints so it spans 100% full screen
+    // For side drawers: strip any legacy max-h, width calc, or rounding constraints so it spans 100% full screen height cleanly
     const sanitizedClassName = isSide && typeof className === 'string'
-      ? className.replace(/max-h-\[[^\]]+\]/g, '').replace(/my-auto/g, '').replace(/rounded-\S+/g, '')
+      ? className
+          .replace(/max-h-\[[^\]]+\]/g, '')
+          .replace(/w-\[calc\([^\]]+\)\]/g, '')
+          .replace(/my-auto/g, '')
+          .replace(/rounded-\S+/g, '')
       : className;
 
 
     return (
       <DialogPrimitive.Portal>
-        {/* Backdrop Overlay (Clean Transparent Dim with Subtle Blur) */}
+        {/* Backdrop Overlay (Clean Solid Dim) */}
         <DialogPrimitive.Overlay
-          className="fixed inset-0 z-50 bg-black/35 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-200"
+          className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-200"
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
         />

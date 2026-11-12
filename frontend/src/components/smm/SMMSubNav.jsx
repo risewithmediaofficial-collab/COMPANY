@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Video, Calendar, Megaphone, Layers,
   PlayCircle, Clock, BarChart2, FileSpreadsheet, DollarSign, PhoneCall, LayoutGrid
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 
 const SMM_NAV_ITEMS = [
   { name: 'Overview', path: '/smm', icon: LayoutDashboard, exact: true },

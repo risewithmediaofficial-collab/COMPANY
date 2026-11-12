@@ -5,10 +5,18 @@ import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { ClientCompletionDashboard } from '../../components/smm/ClientCompletionDashboard';
 import { TrackerDayDeliverablesDrawer } from '../../components/smm/TrackerDayDeliverablesDrawer';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '../../components/ui/dialog';
+import {
   ChevronLeft, ChevronRight, CheckCircle2, Clock, RefreshCw,
   LayoutGrid, AlertCircle, Check, X, Info, Plus, Sparkles, ArrowDownToLine,
   Trash2, AlertTriangle, ListTodo, Radio, Smartphone, CalendarDays
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import toast from 'react-hot-toast';
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -43,15 +51,15 @@ const HDR_BASE = {
   position: 'sticky',
   top: 0,
   zIndex: 20,
-  background: 'rgb(15,118,110)',  // teal-700
-  color: '#fff',
+  background: '#18181b',
+  color: '#fafafa',
   fontSize: 10,
   fontWeight: 800,
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
   whiteSpace: 'nowrap',
   padding: '6px 6px',
-  border: '1px solid rgba(255,255,255,0.15)',
+  border: '1px solid rgba(255,255,255,0.12)',
   textAlign: 'center',
 };
 const HDR_STICKY = (left, width) => ({
@@ -63,23 +71,22 @@ const HDR_STICKY = (left, width) => ({
   minWidth: width,
   maxWidth: width,
 });
-const HDR_SUN = { ...HDR_BASE, background: 'rgba(251,191,36,0.85)', color:'#78350f' };
+const HDR_SUN = { ...HDR_BASE, background: '#27272a', color: '#d4d4d8' };
 const HDR_TODAY = {
   ...HDR_BASE,
-  background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+  background: '#09090b',
   color: '#ffffff',
-  border: '2px solid #60a5fa',
-  boxShadow: '0 2px 8px rgba(37,99,235,0.35)',
+  border: '2px solid #71717a',
 };
 
 const CELL_BASE = {
   fontSize: 11,
   padding: '5px 4px',
-  border: '1px solid rgba(0,0,0,0.08)',
+  border: '1px solid hsl(var(--border))',
   whiteSpace: 'nowrap',
   verticalAlign: 'middle',
   textAlign: 'center',
-  background: 'hsl(var(--card, 0 0% 100%))',
+  background: 'hsl(var(--card))',
   color: 'inherit',
 };
 const CELL_STICKY = (left, width) => ({
@@ -90,12 +97,12 @@ const CELL_STICKY = (left, width) => ({
   width,
   minWidth: width,
   maxWidth: width,
-  background: 'hsl(var(--card, 0 0% 100%))',
+  background: 'hsl(var(--card))',
   boxShadow: left === L.PLAN ? '2px 0 6px -2px rgba(0,0,0,0.08)' : undefined,
 });
 const STATUS_CELL_STICKY = (left, width) => ({
   ...CELL_STICKY(left, width),
-  background: 'var(--tracker-status-sticky, #f0fdfa)',  // 100% solid opaque background, never transparent
+  background: 'hsl(var(--secondary))',
   padding: '4px 4px',
   zIndex: 15,
   boxShadow: left === L.PLAN ? '2px 0 6px -2px rgba(0,0,0,0.08)' : undefined,
@@ -106,23 +113,23 @@ const DAY_CELL = (sun, isToday) => ({
   minWidth: COL.DAY,
   maxWidth: COL.DAY,
   background: isToday
-    ? 'rgba(37, 99, 235, 0.08)'
+    ? 'hsl(var(--secondary))'
     : sun
-    ? 'rgba(252,211,77,0.08)'
+    ? 'hsl(var(--secondary) / 0.35)'
     : undefined,
-  borderLeft: isToday ? '2px solid #3b82f6' : undefined,
-  borderRight: isToday ? '2px solid #3b82f6' : undefined,
+  borderLeft: isToday ? '2px solid hsl(var(--foreground))' : undefined,
+  borderRight: isToday ? '2px solid hsl(var(--foreground))' : undefined,
 });
 const STATUS_DAY_CELL = (sun, isToday) => ({
   ...DAY_CELL(sun, isToday),
   padding: '3px 2px',
   background: isToday
-    ? 'rgba(37, 99, 235, 0.14)'
+    ? 'hsl(var(--secondary))'
     : sun
-    ? 'rgba(252,211,77,0.08)'
-    : 'rgba(204,251,241,0.2)',
-  borderLeft: isToday ? '2px solid #3b82f6' : undefined,
-  borderRight: isToday ? '2px solid #3b82f6' : undefined,
+    ? 'hsl(var(--secondary) / 0.5)'
+    : 'hsl(var(--secondary) / 0.3)',
+  borderLeft: isToday ? '2px solid hsl(var(--foreground))' : undefined,
+  borderRight: isToday ? '2px solid hsl(var(--foreground))' : undefined,
 });
 
 // ── Helper: detect if label contains actual poster/content text (not just dashes or blank) ──
@@ -179,9 +186,9 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
 
   const displayLabel = hasMultiple
     ? doneCount === totalCount
-      ? `✓ ${totalCount} DONE`
+      ? `${totalCount} DONE`
       : doneCount > 0
-      ? `⚡ ${doneCount}/${totalCount}`
+      ? `${doneCount}/${totalCount}`
       : `${totalCount} ${STATUS_LABEL[s] || 'TODO'}`
     : (STATUS_LABEL[s] || 'TODO');
 
@@ -205,10 +212,10 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
     userSelect: 'none',
   };
   const styles = {
-    todo:    { ...baseStyle, background: '#e0f2fe', color: '#0369a1', borderColor: '#7dd3fc' },
-    pending: { ...baseStyle, background: '#fef3c7', color: '#92400e', borderColor: '#fcd34d' },
-    done:    { ...baseStyle, background: '#10b981', color: '#ffffff', borderColor: '#059669' },
-    skip:    { ...baseStyle, background: '#f3f4f6', color: '#6b7280', borderColor: '#d1d5db' },
+    todo:    { ...baseStyle, background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', borderColor: 'hsl(var(--border))' },
+    pending: { ...baseStyle, background: 'hsl(var(--secondary))', color: 'hsl(var(--foreground))', borderColor: 'hsl(var(--muted-foreground))' },
+    done:    { ...baseStyle, background: 'hsl(var(--foreground))', color: 'hsl(var(--background))', borderColor: 'hsl(var(--foreground))' },
+    skip:    { ...baseStyle, background: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))', borderColor: 'hsl(var(--border))' },
   };
 
   const handleContextMenu = (e) => {
@@ -253,9 +260,9 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
             transform: 'translateX(-50%)',
             zIndex: 100,
             marginTop: 4,
-            background: '#ffffff',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e2e8f0',
+            background: 'hsl(var(--card))',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.15)',
+            border: '1px solid hsl(var(--border))',
             borderRadius: 8,
             padding: 4,
             display: 'flex',
@@ -278,7 +285,7 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
                 ...styles[opt],
                 padding: '4px 6px',
                 borderRadius: 5,
-                boxShadow: s === opt ? '0 0 0 1.5px #2563eb' : 'none',
+                boxShadow: s === opt ? '0 0 0 1.5px hsl(var(--foreground))' : 'none',
               }}
             >
               {opt === 'done'    && <CheckCircle2 size={9} />}
@@ -295,7 +302,7 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
                 setMenuOpen(false);
                 onOpenDrawer();
               }}
-              className="text-[9px] font-bold text-indigo-600 hover:bg-indigo-50 p-1 rounded text-center mt-1 border-t border-slate-100"
+              className="text-[9px] font-bold text-foreground hover:bg-secondary p-1 rounded text-center mt-1 border-t border-border cursor-pointer"
             >
               Sidebar Details →
             </button>
@@ -352,18 +359,18 @@ const DayCellDeliverableSlot = ({
             width: '100%',
             fontSize: 10,
             padding: '2px 3px',
-            border: '1px solid #6366f1',
+            border: '1px solid hsl(var(--foreground))',
             borderRadius: 4,
             outline: 'none',
-            background: 'var(--input,#fff)',
+            background: 'hsl(var(--background))',
             color: 'inherit',
             minWidth: 0,
           }}
         />
-        <button onClick={commit} style={{ color: '#10b981', flexShrink: 0 }}>
+        <button onClick={commit} style={{ color: 'hsl(var(--foreground))', flexShrink: 0 }}>
           <Check size={11} />
         </button>
-        <button onClick={() => setEditing(false)} style={{ color: '#9ca3af', flexShrink: 0 }}>
+        <button onClick={() => setEditing(false)} style={{ color: 'hsl(var(--muted-foreground))', flexShrink: 0 }}>
           <X size={11} />
         </button>
       </div>
@@ -372,7 +379,7 @@ const DayCellDeliverableSlot = ({
 
   return (
     <div
-      className="group/cell flex items-center justify-center w-full min-h-[24px] px-1 py-0.5 rounded cursor-pointer hover:bg-indigo-50/80 dark:hover:bg-slate-800/80 hover:ring-1 hover:ring-indigo-400/40 transition-all select-none"
+      className="group/cell flex items-center justify-center w-full min-h-[24px] px-1 py-0.5 rounded cursor-pointer hover:bg-secondary/80 hover:ring-1 hover:ring-border transition-colors select-none"
       onClick={() => onOpenDrawer()}
       title={
         hasMultiple
@@ -387,13 +394,13 @@ const DayCellDeliverableSlot = ({
           {relevantItems.slice(0, 2).map((it, idx) => (
             <span
               key={it.id || idx}
-              className="truncate max-w-full text-[9px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 px-1 py-0.5 rounded border border-indigo-400/25 block text-center w-full"
+              className="truncate max-w-full text-[9px] font-bold text-foreground bg-secondary px-1 py-0.5 rounded border border-border block text-center w-full"
             >
               {it.label || `${it.type.toUpperCase()}${idx + 1}`}
             </span>
           ))}
           {relevantItems.length > 2 && (
-            <span className="text-[8px] font-black text-indigo-600 dark:text-indigo-400">
+            <span className="text-[8px] font-black text-muted-foreground tabular-nums">
               +{relevantItems.length - 2} more
             </span>
           )}
@@ -401,7 +408,7 @@ const DayCellDeliverableSlot = ({
       ) : (
         <span
           className={`truncate text-[10.5px] block w-full text-center ${
-            displayVal ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-400 font-normal'
+            displayVal ? 'font-bold text-foreground' : 'text-muted-foreground font-normal'
           }`}
         >
           {displayVal || '—'}
@@ -424,10 +431,10 @@ const EditableLabel = memo(({ value, onSave }) => {
         ref={ref} value={draft}
         onChange={e => setDraft(e.target.value)}
         onKeyDown={e => { if(e.key==='Enter') commit(); if(e.key==='Escape') setEditing(false); }}
-        style={{ width:'100%', fontSize:10, padding:'2px 3px', border:'1px solid #6366f1', borderRadius:4, outline:'none', background:'var(--input,#fff)', color:'inherit', minWidth:0 }}
+        style={{ width:'100%', fontSize:10, padding:'2px 3px', border:'1px solid hsl(var(--foreground))', borderRadius:4, outline:'none', background:'hsl(var(--background))', color:'inherit', minWidth:0 }}
       />
-      <button onClick={commit} style={{ color:'#10b981', flexShrink:0 }}><Check size={11}/></button>
-      <button onClick={()=>setEditing(false)} style={{ color:'#9ca3af', flexShrink:0 }}><X size={11}/></button>
+      <button onClick={commit} style={{ color:'hsl(var(--foreground))', flexShrink:0 }}><Check size={11}/></button>
+      <button onClick={()=>setEditing(false)} style={{ color:'hsl(var(--muted-foreground))', flexShrink:0 }}><X size={11}/></button>
     </div>
   );
 
@@ -438,7 +445,7 @@ const EditableLabel = memo(({ value, onSave }) => {
       style={{
         width:'100%', background:'none', border:'none', cursor:'pointer',
         fontSize:10, fontWeight: value ? 700 : 400,
-        color: value ? 'inherit' : '#9ca3af',
+        color: value ? 'inherit' : 'hsl(var(--muted-foreground))',
         whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
         padding:'1px 2px', borderRadius:3,
       }}
@@ -461,7 +468,7 @@ const EditablePlan = memo(({ value, onSave, placeholder }) => {
       onChange={e => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={e => { if(e.key==='Enter') commit(); if(e.key==='Escape') setEditing(false); }}
-      style={{ width:'100%', fontSize:10, padding:'3px 4px', border:'1px solid #6366f1', borderRadius:4, outline:'none', background:'var(--input,#fff)', color:'inherit' }}
+      style={{ width:'100%', fontSize:10, padding:'3px 4px', border:'1px solid hsl(var(--foreground))', borderRadius:4, outline:'none', background:'hsl(var(--background))', color:'inherit' }}
       placeholder={placeholder}
     />
   );
@@ -1162,28 +1169,25 @@ const SMMOnePageTracker = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold shadow-2xs" title="Live sync connected: real-time updates active without page refresh">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-border rounded-xl text-foreground text-xs font-semibold shadow-2xs" title="Live sync connected: real-time updates active without page refresh">
+            <span className="inline-flex rounded-full h-2 w-2 bg-foreground" />
             <span>Live Sync</span>
           </div>
           <div className="flex items-center gap-1 bg-card border border-border rounded-xl px-1.5 sm:px-2 py-1 sm:py-1.5 shadow-xs">
-            <button onClick={prevMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors" title="Previous Month"><ChevronLeft size={15}/></button>
+            <button onClick={prevMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors cursor-pointer" title="Previous Month"><ChevronLeft size={15}/></button>
             <span className="text-xs font-bold text-foreground w-28 sm:w-32 text-center">{MONTHS[month-1]} {year}</span>
-            <button onClick={nextMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors" title="Next Month"><ChevronRight size={15}/></button>
+            <button onClick={nextMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors cursor-pointer" title="Next Month"><ChevronRight size={15}/></button>
           </div>
-          <button onClick={() => fetchData(false)} disabled={loading} className="p-1.5 sm:p-2 rounded-xl border border-border bg-card hover:bg-secondary transition-colors" title="Manual Refresh">
-            <RefreshCw size={14} className={loading ? 'animate-spin text-primary' : 'text-muted-foreground'}/>
+          <button onClick={() => fetchData(false)} disabled={loading} className="p-1.5 sm:p-2 rounded-xl border border-border bg-card hover:bg-secondary transition-colors cursor-pointer" title="Manual Refresh">
+            <RefreshCw size={14} className={loading ? 'animate-spin text-foreground' : 'text-muted-foreground'}/>
           </button>
           <button
             onClick={handleSyncFromContent}
             disabled={isSyncing || loading}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 border border-cyan-500/40 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 text-xs font-bold rounded-xl hover:bg-cyan-100 dark:hover:bg-cyan-900/50 shadow-xs transition-all"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 border border-border bg-secondary text-foreground text-xs font-bold rounded-xl hover:bg-secondary/80 shadow-xs transition-colors cursor-pointer"
             title="Auto-populate Reels, Posts, and Stories from the Content module"
           >
-            <ArrowDownToLine size={13} className={isSyncing ? 'animate-bounce text-primary' : ''} />
+            <ArrowDownToLine size={13} className={isSyncing ? 'animate-bounce text-foreground' : ''} />
             <span className="hidden xs:inline sm:inline">{isSyncing ? 'Syncing...' : 'Sync from Content'}</span>
           </button>
           <button
@@ -1191,7 +1195,7 @@ const SMMOnePageTracker = () => {
               setShowAddModal(true);
               fetchClients();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 shadow-sm transition-colors cursor-pointer"
             title="Add a client to the tracker"
           >
             <Plus size={14} />
@@ -1205,10 +1209,10 @@ const SMMOnePageTracker = () => {
       {/* ── Section Tabs & View Mode Switcher ── */}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {[{id:'posts',label:'📸 Post & Reel Tracker'},{id:'stories',label:'🎬 30-Day Story Sheet'}].map(tab => (
+          {[{id:'posts',label:'Post & Reel Tracker'},{id:'stories',label:'30-Day Story Sheet'}].map(tab => (
             <button key={tab.id} onClick={() => setSection(tab.id)}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold border transition-all duration-200
-                ${section===tab.id ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20' : 'bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer
+                ${section===tab.id ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
               {tab.label}
             </button>
           ))}
@@ -1219,7 +1223,7 @@ const SMMOnePageTracker = () => {
           <button
             type="button"
             onClick={() => setViewMode('sheet')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
               viewMode === 'sheet'
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
@@ -1232,7 +1236,7 @@ const SMMOnePageTracker = () => {
           <button
             type="button"
             onClick={() => setViewMode('day')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
               viewMode === 'day'
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
@@ -1249,38 +1253,39 @@ const SMMOnePageTracker = () => {
       <div className="flex items-center justify-between gap-2.5 flex-wrap">
         <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
           {/* Todo badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#e0f2fe', color:'#0369a1', fontSize:10.5, fontWeight:700, border:'1px solid #7dd3fc' }}>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-card text-foreground border border-border text-[10.5px] font-bold">
             <ListTodo size={11}/>
-            Todo
+            <span>Todo</span>
           </span>
 
           {/* Pending badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#fef3c7', color:'#92400e', fontSize:10.5, fontWeight:700, border:'1px solid #fcd34d' }}>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-secondary text-foreground border border-muted-foreground text-[10.5px] font-bold">
             <Clock size={11}/>
-            Pending
+            <span>Pending</span>
           </span>
 
           {/* Done badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#10b981', color:'#ffffff', fontSize:10.5, fontWeight:700, border:'1px solid #059669' }}>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-foreground text-background border border-foreground text-[10.5px] font-bold">
             <CheckCircle2 size={11}/>
-            Done
+            <span>Done</span>
           </span>
 
           {/* Skip badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:10.5, fontWeight:700, border:'1px solid #d1d5db' }}>
-            Skip
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-muted text-muted-foreground border border-border text-[10.5px] font-bold">
+            <span>Skip</span>
           </span>
 
           {/* Sunday */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'rgba(251,191,36,0.2)', color:'#92400e', fontSize:10.5, fontWeight:700, border:'1px solid rgba(251,191,36,0.4)' }}>
-            <span style={{ width:8, height:8, background:'rgba(251,191,36,0.8)', borderRadius:2, display:'inline-block' }}/>Sunday
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-secondary/60 text-muted-foreground border border-border text-[10.5px] font-bold">
+            <span className="w-2 h-2 rounded-xs bg-zinc-500 inline-block" />
+            <span>Sunday</span>
           </span>
 
           {/* Today / Live */}
           {isCurrentMonth && (
-            <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'linear-gradient(135deg, #2563eb, #1d4ed8)', color:'#ffffff', fontSize:10.5, fontWeight:800, border:'1px solid #60a5fa', boxShadow:'0 1px 4px rgba(37,99,235,0.25)' }}>
-              <span style={{ width:6, height:6, background:'#ef4444', borderRadius:'50%', display:'inline-block', boxShadow:'0 0 6px #ef4444' }}/>
-              Today (Day {currentDayNumber})
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-primary text-primary-foreground border border-primary text-[10.5px] font-extrabold tabular-nums">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground inline-block" />
+              <span>Today (Day {currentDayNumber})</span>
             </span>
           )}
         </div>
@@ -1290,10 +1295,11 @@ const SMMOnePageTracker = () => {
           <button
             type="button"
             onClick={() => scrollToToday(true)}
-            className="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all cursor-pointer shadow-xs shrink-0"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold bg-secondary text-foreground hover:bg-secondary/80 border border-border transition-colors cursor-pointer shadow-xs shrink-0"
             title="Scroll horizontally to today's column"
           >
-            <span>📍 Scroll to Today</span>
+            <CalendarDays size={13} />
+            <span>Scroll to Today</span>
           </button>
         )}
       </div>
@@ -1342,14 +1348,14 @@ const SMMOnePageTracker = () => {
                 </button>
                 <div className="min-w-0">
                   <h3 className="text-sm font-extrabold text-foreground flex items-center gap-2">
-                    <span>Day {focusedDay} • {dayHeaders[focusedDay - 1]?.dow || ''}</span>
+                    <span className="tabular-nums">Day {focusedDay} • {dayHeaders[focusedDay - 1]?.dow || ''}</span>
                     {isCurrentMonth && focusedDay === currentDayNumber && (
-                      <span className="text-[9px] font-black uppercase bg-rose-500 text-white px-1.5 py-0.5 rounded tracking-wide animate-pulse">
-                        ● LIVE TODAY
+                      <span className="text-[9px] font-black uppercase bg-primary text-primary-foreground px-1.5 py-0.5 rounded tracking-wide">
+                        LIVE TODAY
                       </span>
                     )}
                   </h3>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[10px] text-muted-foreground tabular-nums">
                     {MONTHS[month-1]} {focusedDay}, {year}
                   </span>
                 </div>
@@ -1357,7 +1363,7 @@ const SMMOnePageTracker = () => {
                   type="button"
                   onClick={() => setFocusedDay((d) => Math.min(daysInMonth, d + 1))}
                   disabled={focusedDay >= daysInMonth}
-                  className="p-1.5 rounded-xl border border-border bg-background hover:bg-secondary disabled:opacity-40 transition-colors"
+                  className="p-1.5 rounded-xl border border-border bg-background hover:bg-secondary disabled:opacity-40 transition-colors cursor-pointer"
                   title="Next Day"
                 >
                   <ChevronRight size={16} />
@@ -1368,13 +1374,14 @@ const SMMOnePageTracker = () => {
                 <button
                   type="button"
                   onClick={() => setFocusedDay(currentDayNumber)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
                     focusedDay === currentDayNumber
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'bg-secondary text-foreground border border-border hover:bg-secondary/80'
                   }`}
                 >
-                  {focusedDay === currentDayNumber ? 'Today Selected' : '📍 Go to Today'}
+                  <CalendarDays size={13} />
+                  <span>{focusedDay === currentDayNumber ? 'Today Selected' : 'Go to Today'}</span>
                 </button>
               )}
             </div>
@@ -1388,18 +1395,18 @@ const SMMOnePageTracker = () => {
                     key={d}
                     type="button"
                     onClick={() => setFocusedDay(d)}
-                    className={`flex flex-col items-center justify-center min-w-[36px] py-1 px-1 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+                    className={`flex flex-col items-center justify-center min-w-[36px] py-1 px-1 rounded-xl text-xs font-bold transition-colors shrink-0 border cursor-pointer ${
                       isSelected
-                        ? 'bg-primary text-primary-foreground border-primary shadow-xs scale-105'
+                        ? 'bg-primary text-primary-foreground border-primary shadow-xs'
                         : isLiveToday
-                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/35'
+                        ? 'bg-secondary text-foreground border-foreground'
                         : sun
-                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25'
-                        : 'bg-secondary/40 text-muted-foreground border-border/60 hover:bg-secondary'
+                        ? 'bg-secondary/40 text-muted-foreground border-border'
+                        : 'bg-card text-muted-foreground border-border hover:bg-secondary'
                     }`}
                   >
                     <span className="text-[8.5px] font-medium opacity-80">{dow}</span>
-                    <span className="text-xs font-black">{d}</span>
+                    <span className="text-xs font-black tabular-nums">{d}</span>
                   </button>
                 );
               })}
@@ -1420,20 +1427,20 @@ const SMMOnePageTracker = () => {
                 : [];
               const { done, total } = calcProgress(row, statusField);
               const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-              const pctColor = pct === 100 ? '#10b981' : pct >= 60 ? '#3b82f6' : '#fbbf24';
+              const pctColor = pct === 100 ? 'hsl(var(--foreground))' : pct >= 60 ? '#52525b' : '#a1a1aa';
 
               return (
                 <div key={row.client?._id || rowIdx} className="bg-card border border-border rounded-2xl p-3.5 sm:p-4 shadow-xs space-y-3">
                   <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary font-black text-xs flex items-center justify-center shrink-0">
+                      <span className="w-6 h-6 rounded-lg bg-secondary border border-border text-foreground font-black text-xs flex items-center justify-center shrink-0 tabular-nums">
                         {rowIdx + 1}
                       </span>
                       <div className="min-w-0">
                         <h4 className="font-bold text-sm text-foreground truncate" title={name}>
                           {name}
                         </h4>
-                        <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.2 rounded border border-indigo-200 dark:border-indigo-900/50">
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded border border-border">
                           Team: {row.team || 'RWM'}
                         </span>
                       </div>
@@ -1444,7 +1451,7 @@ const SMMOnePageTracker = () => {
                         setDeleteMode('month');
                         setClientToDelete(row);
                       }}
-                      className="p-1 rounded text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors shrink-0"
+                      className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0 cursor-pointer"
                       title={`Delete ${name} from tracker`}
                     >
                       <Trash2 size={13} />
@@ -1452,7 +1459,7 @@ const SMMOnePageTracker = () => {
                   </div>
 
                   {/* Quota & Progress Bar */}
-                  <div className="grid grid-cols-2 gap-2 text-xs bg-secondary/30 p-2.5 rounded-xl border border-border/50">
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-secondary/30 p-2.5 rounded-xl border border-border">
                     <div>
                       <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-0.5">Plan Quota</span>
                       <EditablePlan
@@ -1463,11 +1470,11 @@ const SMMOnePageTracker = () => {
                     </div>
                     <div>
                       <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-0.5">Monthly Progress</span>
-                      <div className="flex items-center justify-between font-bold text-[11px]">
+                      <div className="flex items-center justify-between font-bold text-[11px] tabular-nums">
                         <span>{done}/{total} done</span>
-                        <span style={{ color: pctColor }}>{pct}%</span>
+                        <span className="text-foreground">{pct}%</span>
                       </div>
-                      <div className="h-1.5 w-full bg-border rounded-full overflow-hidden mt-1">
+                      <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden mt-1">
                         <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pct}%`, background: pctColor }} />
                       </div>
                     </div>
@@ -1476,13 +1483,13 @@ const SMMOnePageTracker = () => {
                   {/* Deliverable Slot for this specific day */}
                   <div className="bg-background border border-border rounded-xl p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-extrabold text-teal-700 dark:text-teal-400 tracking-wider">
+                      <span className="text-[10px] uppercase font-extrabold text-foreground tracking-wider tabular-nums">
                         Day {focusedDay} Deliverable
                       </span>
                       <button
                         type="button"
                         onClick={() => handleOpenDayDrawer(rowIdx, focusedDay)}
-                        className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1"
+                        className="text-[10px] font-bold text-foreground hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         Sidebar Details →
                       </button>
@@ -1520,12 +1527,12 @@ const SMMOnePageTracker = () => {
         /* ── RESPONSIVE FULL MONTH SHEET (SPREADSHEET GRID) ── */
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
           {/* Title bar */}
-          <div className="bg-teal-600 dark:bg-teal-700 text-white px-4 sm:px-5 py-2.5 flex items-center justify-between flex-wrap gap-2">
+          <div className="bg-zinc-900 text-zinc-50 border-b border-border px-4 sm:px-5 py-2.5 flex items-center justify-between flex-wrap gap-2">
             <span className="font-black text-xs sm:text-sm tracking-wide">
               {section==='posts' ? 'POST & REEL TRACKER' : '30-DAY STORY SHEET — EVERY CLIENT / EVERY DAY'}
             </span>
-            <span className="text-[10px] sm:text-[11px] font-semibold opacity-80">
-              {section==='posts' ? 'INSTAGRAM + FACEBOOK • IST • SELECT DONE → GREEN STATUS' : 'STORIES — EVERY CLIENT / EVERY DAY'}
+            <span className="text-[10px] sm:text-[11px] font-semibold text-zinc-300">
+              {section==='posts' ? 'INSTAGRAM + FACEBOOK • IST • CLICK STATUS TO UPDATE' : 'STORIES — EVERY CLIENT / EVERY DAY'}
             </span>
           </div>
 
@@ -1586,8 +1593,8 @@ const SMMOnePageTracker = () => {
                               style={{
                                 fontSize: 8,
                                 fontWeight: 900,
-                                background: '#ef4444',
-                                color: '#ffffff',
+                                background: '#fafafa',
+                                color: '#09090b',
                                 padding: '1px 4px',
                                 borderRadius: 4,
                                 letterSpacing: '0.06em',
@@ -1596,7 +1603,7 @@ const SMMOnePageTracker = () => {
                                 gap: 2,
                               }}
                             >
-                              ● LIVE
+                              LIVE
                             </span>
                           </div>
                         )}
@@ -1622,7 +1629,7 @@ const SMMOnePageTracker = () => {
                   const name = row.client?.companyName || 'Unknown';
                   const { done, total } = calcProgress(row, statusField);
                   const pct = total > 0 ? Math.round((done/total)*100) : 0;
-                  const pctColor = pct===100 ? '#10b981' : pct>=60 ? '#3b82f6' : '#fbbf24';
+                  const pctColor = pct===100 ? 'hsl(var(--foreground))' : pct>=60 ? '#52525b' : '#a1a1aa';
 
                   return (
                     <React.Fragment key={row.client?._id || rowIdx}>
@@ -1630,9 +1637,9 @@ const SMMOnePageTracker = () => {
                       {/* Content row */}
                       <tr>
                         <td style={CELL_STICKY(curL.NO, curCol.NO)}>
-                          <span style={{ fontWeight:800, fontSize:10.5 }}>{rowIdx+1}</span>
+                          <span style={{ fontWeight:800, fontSize:10.5, fontVariantNumeric:'tabular-nums' }}>{rowIdx+1}</span>
                         </td>
-                        <td style={isMobile ? { ...CELL_BASE, width: curCol.TEAM, minWidth: curCol.TEAM, maxWidth: curCol.TEAM, color:'#6366f1', fontWeight:700, fontSize:10 } : { ...CELL_STICKY(curL.TEAM, curCol.TEAM), color:'#6366f1', fontWeight:700, fontSize:10 }}>
+                        <td style={isMobile ? { ...CELL_BASE, width: curCol.TEAM, minWidth: curCol.TEAM, maxWidth: curCol.TEAM, color:'hsl(var(--muted-foreground))', fontWeight:700, fontSize:10 } : { ...CELL_STICKY(curL.TEAM, curCol.TEAM), color:'hsl(var(--muted-foreground))', fontWeight:700, fontSize:10 }}>
                           {row.team || 'RWM'}
                         </td>
                         <td style={{ ...CELL_STICKY(curL.CLIENT, curCol.CLIENT), textAlign:'left', paddingLeft: isMobile ? 4 : 8, paddingRight: isMobile ? 4 : 6, boxShadow: isMobile ? '2px 0 6px -2px rgba(0,0,0,0.12)' : undefined }}>
@@ -1650,7 +1657,7 @@ const SMMOnePageTracker = () => {
                                 setDeleteMode('month');
                                 setClientToDelete(row);
                               }}
-                              className="p-1 rounded text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex-shrink-0 cursor-pointer"
+                              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex-shrink-0 cursor-pointer"
                               title={`Delete ${name} from tracker`}
                             >
                               <Trash2 size={11} />
@@ -1676,25 +1683,25 @@ const SMMOnePageTracker = () => {
                         })}
                         <td style={isMobile
                           ? { ...CELL_BASE, width: curCol.DONE, minWidth: curCol.DONE, maxWidth: curCol.DONE }
-                          : { ...CELL_STICKY('auto', curCol.DONE), right:0, left:'auto', zIndex:15, background:'hsl(var(--card, 0 0% 100%))', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }
+                          : { ...CELL_STICKY('auto', curCol.DONE), right:0, left:'auto', zIndex:15, background:'hsl(var(--card))', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }
                         }>
-                          <div style={{ fontWeight:800, fontSize:10 }}>{done}/{total}</div>
-                          <div style={{ marginTop:2, height:4, background:'#e5e7eb', borderRadius:4, overflow:'hidden' }}>
+                          <div style={{ fontWeight:800, fontSize:10, fontVariantNumeric:'tabular-nums' }}>{done}/{total}</div>
+                          <div style={{ marginTop:2, height:4, background:'hsl(var(--secondary))', borderRadius:4, overflow:'hidden' }}>
                             <div style={{ height:'100%', width:`${pct}%`, background:pctColor, borderRadius:4, transition:'width 0.3s' }}/>
                           </div>
                         </td>
                       </tr>
 
                       {/* Status row */}
-                      <tr style={{ borderBottom:'2px solid rgba(0,0,0,0.08)' }}>
+                      <tr style={{ borderBottom:'2px solid hsl(var(--border))' }}>
                         <td style={STATUS_CELL_STICKY(curL.NO, curCol.NO)}/>
-                        <td style={isMobile ? { ...CELL_BASE, width: curCol.TEAM, minWidth: curCol.TEAM, maxWidth: curCol.TEAM, background:'var(--tracker-status-sticky, #f0fdfa)' } : STATUS_CELL_STICKY(curL.TEAM, curCol.TEAM)}/>
+                        <td style={isMobile ? { ...CELL_BASE, width: curCol.TEAM, minWidth: curCol.TEAM, maxWidth: curCol.TEAM, background:'hsl(var(--secondary))' } : STATUS_CELL_STICKY(curL.TEAM, curCol.TEAM)}/>
                         <td style={{ ...STATUS_CELL_STICKY(curL.CLIENT, curCol.CLIENT), textAlign:'left', paddingLeft: isMobile ? 4 : 8, boxShadow: isMobile ? '2px 0 6px -2px rgba(0,0,0,0.12)' : undefined }}>
-                          <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'#0f766e', whiteSpace:'nowrap' }}>
+                          <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'hsl(var(--muted-foreground))', whiteSpace:'nowrap' }}>
                             {statusRowLbl}
                           </span>
                         </td>
-                        <td style={isMobile ? { ...CELL_BASE, width: curCol.PLAN, minWidth: curCol.PLAN, maxWidth: curCol.PLAN, background:'var(--tracker-status-sticky, #f0fdfa)' } : STATUS_CELL_STICKY(curL.PLAN, curCol.PLAN)}/>
+                        <td style={isMobile ? { ...CELL_BASE, width: curCol.PLAN, minWidth: curCol.PLAN, maxWidth: curCol.PLAN, background:'hsl(var(--secondary))' } : STATUS_CELL_STICKY(curL.PLAN, curCol.PLAN)}/>
                         {dayHeaders.map(({d, sun, isToday}) => {
                           const cell = row.days.find(dc => dc.day===d) || {};
                           const rawSt = cell[statusField] || 'todo';
@@ -1717,8 +1724,8 @@ const SMMOnePageTracker = () => {
                           );
                         })}
                         <td style={isMobile
-                          ? { ...CELL_BASE, width: curCol.DONE, minWidth: curCol.DONE, maxWidth: curCol.DONE, background:'var(--tracker-status-sticky, #f0fdfa)' }
-                          : { ...STATUS_CELL_STICKY('auto', curCol.DONE), right:0, left:'auto', zIndex:15, background:'var(--tracker-status-sticky, #f0fdfa)', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }
+                          ? { ...CELL_BASE, width: curCol.DONE, minWidth: curCol.DONE, maxWidth: curCol.DONE, background:'hsl(var(--secondary))' }
+                          : { ...STATUS_CELL_STICKY('auto', curCol.DONE), right:0, left:'auto', zIndex:15, background:'hsl(var(--secondary))', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }
                         }/>
                       </tr>
 
@@ -1730,22 +1737,25 @@ const SMMOnePageTracker = () => {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-border/60 px-4 py-2.5 flex items-center justify-between bg-muted/20">
-            <span className="text-[11px] text-muted-foreground">
+          <div className="border-t border-border/60 px-4 py-2.5 flex items-center justify-between bg-muted/20 gap-3 flex-wrap">
+            <span className="text-[11px] text-muted-foreground tabular-nums">
               {rows.length} clients &nbsp;•&nbsp; {daysInMonth} days &nbsp;•&nbsp; {MONTHS[month-1]} {year}
             </span>
-            <div className="flex items-center gap-4 text-[11px] font-semibold flex-wrap">
-              <span className="text-sky-600 dark:text-sky-400">
-                📋 Todo: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='todo').length, 0)}
+            <div className="flex items-center gap-4 text-[11px] font-semibold flex-wrap tabular-nums">
+              <span className="inline-flex items-center gap-1 text-foreground">
+                <ListTodo size={12} />
+                <span>Todo: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='todo').length, 0)}</span>
               </span>
-              <span className="text-amber-600 dark:text-amber-400">
-                ⏳ Pending: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='pending').length, 0)}
+              <span className="inline-flex items-center gap-1 text-foreground">
+                <Clock size={12} />
+                <span>Pending: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='pending').length, 0)}</span>
               </span>
-              <span className="text-emerald-600 dark:text-emerald-400">
-                ✅ Done: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='done').length, 0)}
+              <span className="inline-flex items-center gap-1 text-foreground font-bold">
+                <CheckCircle2 size={12} />
+                <span>Done: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='done').length, 0)}</span>
               </span>
               <span className="text-muted-foreground">
-                ⏭ Skip: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='skip').length, 0)}
+                Skip: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='skip').length, 0)}
               </span>
             </div>
           </div>
@@ -1772,36 +1782,55 @@ const SMMOnePageTracker = () => {
         />
       )}
 
-      {/* ── Add Client Modal ── */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
-            <div className="flex items-center justify-between pb-3 border-b border-border">
-              <div>
-                <h3 className="font-bold text-base text-foreground">Add Client to Tracker</h3>
-                <p className="text-xs text-muted-foreground">Select from added clients or auto-sync content</p>
+      {/* ── Add Client Side Drawer ── */}
+      <Dialog
+        open={showAddModal}
+        onOpenChange={(open) => {
+          setShowAddModal(open);
+          if (!open) setDetectedContent(null);
+        }}
+      >
+        <DialogContent
+          variant="side"
+          size="md"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl"
+        >
+          <DialogHeader className="px-5 py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground">
+                <Plus size={18} />
               </div>
-              <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setDetectedContent(null);
-                }}
-                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground"
-              >
-                <X size={18} />
-              </button>
+              <div className="min-w-0">
+                <DialogTitle className="text-base font-bold text-foreground truncate">
+                  Add Client to Tracker
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground truncate">
+                  Select from added clients or auto-sync content
+                </DialogDescription>
+              </div>
             </div>
+            <DialogClose
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all cursor-pointer shrink-0"
+            >
+              <X size={16} />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </DialogHeader>
 
-            <form onSubmit={handleCreateClientTracker} className="space-y-4">
+          <form onSubmit={handleCreateClientTracker} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 custom-scrollbar">
               {/* Client Selection Dropdown */}
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="block text-xs font-bold text-foreground mb-1.5">
                   Choose Client *
                 </label>
                 <select
                   value={newClient.isCustom ? '__custom__' : newClient.clientId}
                   onChange={(e) => handleClientSelect(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-foreground outline-none text-foreground font-semibold"
                 >
                   <option value="">-- Select Client from Added Clients --</option>
                   {availableClients.map((c) => (
@@ -1809,39 +1838,39 @@ const SMMOnePageTracker = () => {
                       {c.companyName || c.company || c.name}
                     </option>
                   ))}
-                  <option value="__custom__">➕ Add New Client Manually...</option>
+                  <option value="__custom__">+ Add New Client Manually...</option>
                 </select>
               </div>
 
               {/* Manual Name Input if Custom */}
               {newClient.isCustom && (
                 <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">New Client Name *</label>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">New Client Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. ACME CORP"
                     value={newClient.companyName}
                     onChange={(e) => setNewClient({ ...newClient, companyName: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-foreground outline-none text-foreground font-semibold"
                   />
                 </div>
               )}
 
               {/* Auto-detected Content Badge */}
               {loadingContent ? (
-                <div className="bg-muted/40 rounded-xl p-3 text-xs flex items-center gap-2 text-muted-foreground animate-pulse">
-                  <RefreshCw size={14} className="animate-spin text-primary" />
+                <div className="bg-muted/40 rounded-xl p-3 text-xs flex items-center gap-2 text-muted-foreground">
+                  <RefreshCw size={14} className="animate-spin text-foreground" />
                   <span>Checking Content module for scheduled Reels, Posts & Stories…</span>
                 </div>
               ) : detectedContent?.total > 0 ? (
-                <div className="bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-400 dark:border-cyan-700 rounded-xl p-3 text-xs text-cyan-900 dark:text-cyan-200 space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-cyan-800 dark:text-cyan-300">
-                    <Sparkles size={14} className="text-cyan-600 dark:text-cyan-400" />
+                <div className="bg-secondary/60 border border-border rounded-xl p-3 text-xs text-foreground space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-foreground">
+                    <Sparkles size={14} className="text-foreground" />
                     Auto-detected from Content Module ({MONTHS[month-1]} {year})
                   </div>
-                  <p className="text-[11px] leading-relaxed">
-                    Found <strong>{detectedContent.reels} Reels</strong>, <strong>{detectedContent.posts} Posts</strong>, and <strong>{detectedContent.stories} Stories</strong>. Quotas and day upload schedules have been automatically filled!
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    Found <strong className="text-foreground">{detectedContent.reels} Reels</strong>, <strong className="text-foreground">{detectedContent.posts} Posts</strong>, and <strong className="text-foreground">{detectedContent.stories} Stories</strong>. Quotas and day upload schedules have been automatically filled!
                   </p>
                 </div>
               ) : newClient.clientId ? (
@@ -1852,88 +1881,88 @@ const SMMOnePageTracker = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">Team</label>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">Team</label>
                   <input
                     type="text"
                     value={newClient.team}
                     onChange={(e) => setNewClient({ ...newClient, team: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-foreground outline-none text-foreground font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">Stories Quota</label>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">Stories Quota</label>
                   <input
                     type="number"
                     min={0}
                     max={31}
                     value={newClient.stories}
                     onChange={(e) => setNewClient({ ...newClient, stories: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-foreground outline-none text-foreground font-semibold tabular-nums"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">Reels Target</label>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">Reels Target</label>
                   <input
                     type="number"
                     min={0}
                     max={100}
                     value={newClient.reels}
                     onChange={(e) => setNewClient({ ...newClient, reels: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-foreground outline-none text-foreground font-semibold tabular-nums"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">Posts Target</label>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">Posts Target</label>
                   <input
                     type="number"
                     min={0}
                     max={100}
                     value={newClient.posts}
                     onChange={(e) => setNewClient({ ...newClient, posts: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-foreground outline-none text-foreground font-semibold tabular-nums"
                   />
                 </div>
               </div>
 
               <div className="bg-muted/40 rounded-xl p-3 text-xs flex items-center justify-between text-muted-foreground">
                 <span>Computed Plan:</span>
-                <span className="font-bold text-primary">{newClient.reels}R + {newClient.posts}P &bull; {newClient.stories} Stories</span>
+                <span className="font-bold text-foreground tabular-nums">{newClient.reels}R + {newClient.posts}P &bull; {newClient.stories} Stories</span>
               </div>
+            </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setDetectedContent(null);
-                  }}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl border border-border hover:bg-secondary transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting || (!newClient.companyName && !newClient.clientId)}
-                  className="px-4 py-2 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  {submitting ? 'Adding...' : 'Add to Tracker'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div className="shrink-0 flex items-center justify-end gap-2 px-5 py-4 border-t border-border bg-card">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddModal(false);
+                  setDetectedContent(null);
+                }}
+                className="px-4 py-2 text-xs font-semibold rounded-xl border border-border hover:bg-secondary transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting || (!newClient.companyName && !newClient.clientId)}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+              >
+                {submitting ? 'Adding...' : 'Add to Tracker'}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       {/* ── Delete Client Confirmation Modal ── */}
       {clientToDelete && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
             {/* Header */}
             <div className="flex items-start justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="p-2 sm:p-2.5 rounded-xl bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 shrink-0">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-secondary border border-border text-foreground shrink-0">
                   <Trash2 size={18} className="sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
@@ -1944,7 +1973,7 @@ const SMMOnePageTracker = () => {
               <button
                 disabled={deleting}
                 onClick={() => setClientToDelete(null)}
-                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -1962,9 +1991,9 @@ const SMMOnePageTracker = () => {
             <div className="space-y-2.5">
               <label
                 onClick={() => setDeleteMode('month')}
-                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                   deleteMode === 'month'
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                    ? 'border-foreground bg-secondary/60 ring-1 ring-foreground'
                     : 'border-border bg-card hover:bg-secondary/50'
                 }`}
               >
@@ -1973,12 +2002,12 @@ const SMMOnePageTracker = () => {
                   name="deleteMode"
                   checked={deleteMode === 'month'}
                   onChange={() => setDeleteMode('month')}
-                  className="mt-0.5 text-primary"
+                  className="mt-0.5 text-foreground"
                 />
                 <div className="space-y-0.5">
                   <div className="text-xs font-bold text-foreground">
                     Remove from {MONTHS[month - 1]} {year} tracker only{' '}
-                    <span className="text-[10px] text-primary font-semibold">(Recommended)</span>
+                    <span className="text-[10px] text-muted-foreground font-semibold">(Recommended)</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
                     Hides this client from this month's tracker grid and analytics. The client remains active in SMM Clients and can be re-added anytime.
@@ -1988,9 +2017,9 @@ const SMMOnePageTracker = () => {
 
               <label
                 onClick={() => setDeleteMode('permanent')}
-                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                   deleteMode === 'permanent'
-                    ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 ring-1 ring-red-500'
+                    ? 'border-foreground bg-secondary/80 ring-1 ring-foreground'
                     : 'border-border bg-card hover:bg-secondary/50'
                 }`}
               >
@@ -1999,10 +2028,10 @@ const SMMOnePageTracker = () => {
                   name="deleteMode"
                   checked={deleteMode === 'permanent'}
                   onChange={() => setDeleteMode('permanent')}
-                  className="mt-0.5 text-red-600"
+                  className="mt-0.5 text-foreground"
                 />
                 <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
+                  <div className="text-xs font-bold text-foreground flex items-center gap-1">
                     <AlertTriangle size={12} />
                     Delete client permanently from SMM
                   </div>
@@ -2019,7 +2048,7 @@ const SMMOnePageTracker = () => {
                 type="button"
                 disabled={deleting}
                 onClick={() => setClientToDelete(null)}
-                className="px-4 py-2 text-xs font-semibold rounded-xl border border-border hover:bg-secondary transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-xs font-semibold rounded-xl border border-border hover:bg-secondary transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
@@ -2027,7 +2056,7 @@ const SMMOnePageTracker = () => {
                 type="button"
                 disabled={deleting}
                 onClick={handleDeleteClient}
-                className="px-4 py-2 text-xs font-bold rounded-xl bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
               >
                 {deleting && <RefreshCw size={13} className="animate-spin" />}
                 <Trash2 size={13} />

@@ -4,7 +4,7 @@ import {
   normalizeObjective,
   objectiveSupportsSocial
 } from '../../utils/smmDestinations';
-import { MessageCircle, PhoneCall, Instagram, Facebook, Smartphone, FileSpreadsheet, Check } from 'lucide-react';
+import { MessageCircle, PhoneCall, Instagram, Facebook, Smartphone, FileSpreadsheet, Check, Sparkles, Target } from '@/components/ui/muiIcons';
 
 export const SMMDestinationSelector = ({
   objective = 'Awareness',
@@ -56,23 +56,23 @@ export const SMMDestinationSelector = ({
 
   const getIcon = (item) => {
     const v = item.value.toLowerCase();
-    if (v.includes('message')) return <MessageCircle size={14} className="text-emerald-500" />;
-    if (v.includes('call')) return <PhoneCall size={14} className="text-blue-500" />;
-    if (v === 'instagram') return <Instagram size={14} className="text-pink-500" />;
-    if (v === 'facebook') return <Facebook size={14} className="text-blue-600" />;
-    if (v.includes('instagram & facebook')) return <span className="text-xs">✨</span>;
-    if (v.includes('app')) return <Smartphone size={14} className="text-purple-500" />;
-    if (v.includes('instant form')) return <FileSpreadsheet size={14} className="text-amber-500" />;
-    return <span className="text-xs">{item.icon || '🎯'}</span>;
+    if (v.includes('message')) return <MessageCircle size={14} className="text-foreground" />;
+    if (v.includes('call')) return <PhoneCall size={14} className="text-foreground" />;
+    if (v === 'instagram') return <Instagram size={14} className="text-foreground" />;
+    if (v === 'facebook') return <Facebook size={14} className="text-foreground" />;
+    if (v.includes('instagram & facebook')) return <Sparkles size={14} className="text-foreground" />;
+    if (v.includes('app')) return <Smartphone size={14} className="text-foreground" />;
+    if (v.includes('instant form')) return <FileSpreadsheet size={14} className="text-foreground" />;
+    return <Target size={14} className="text-muted-foreground" />;
   };
 
   return (
     <div className="p-3.5 bg-secondary/30 rounded-2xl border border-border space-y-3">
       <div className="flex items-center justify-between">
-        <label className="font-bold text-foreground text-xs flex items-center gap-1.5">
-          <MessageCircle size={14} className="text-primary" /> {label}
+        <label className="font-bold text-foreground text-xs inline-flex items-center gap-1.5">
+          <MessageCircle size={14} className="text-foreground shrink-0" /> <span>{label}</span>
         </label>
-        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-card text-foreground border border-border">
           Objective: {normObj}
         </span>
       </div>
@@ -87,21 +87,22 @@ export const SMMDestinationSelector = ({
         <option value="">-- Select Destination --</option>
         {destinations.map((d) => (
           <option key={d.value} value={d.value}>
-            {d.icon} {d.label}
+            {d.label}
           </option>
         ))}
       </select>
 
       {/* Social Multi-Select Pills (Only active when objective supports Instagram / Facebook) */}
       {supportsSocial && (
-        <div className="p-2.5 rounded-xl bg-background/80 border border-border space-y-2">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-semibold text-foreground flex items-center gap-1">
-              <span>📱 Social Destination:</span>
-              <span className="text-muted-foreground font-normal">(Select Instagram, Facebook, or both)</span>
+        <div className="p-2.5 rounded-xl bg-background border border-border space-y-2">
+          <div className="flex items-center justify-between text-[11px] gap-2">
+            <span className="font-semibold text-foreground inline-flex items-center gap-1.5 min-w-0">
+              <Smartphone size={12} className="shrink-0" />
+              <span>Social Destination:</span>
+              <span className="text-muted-foreground font-normal truncate">(Select Instagram, Facebook, or both)</span>
             </span>
             {isSocialActive && (
-              <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-bold text-primary-foreground bg-primary px-1.5 py-0.5 rounded shrink-0">
                 Active
               </span>
             )}
@@ -118,18 +119,18 @@ export const SMMDestinationSelector = ({
                   handleTogglePlatform('Instagram');
                 }
               }}
-              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
                 isInstagramSelected
-                  ? 'bg-pink-500/15 border-pink-500 text-pink-700 dark:text-pink-300 shadow-xs'
+                  ? 'bg-secondary border-foreground text-foreground shadow-xs'
                   : 'bg-secondary/40 border-border text-muted-foreground hover:bg-secondary'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Instagram size={15} className={isInstagramSelected ? 'text-pink-500' : 'text-muted-foreground'} />
+                <Instagram size={15} className={isInstagramSelected ? 'text-foreground' : 'text-muted-foreground'} />
                 <span>Instagram</span>
               </div>
               <div className={`w-4 h-4 rounded flex items-center justify-center border ${
-                isInstagramSelected ? 'bg-pink-500 border-pink-500 text-white' : 'border-border'
+                isInstagramSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
               }`}>
                 {isInstagramSelected && <Check size={11} strokeWidth={3} />}
               </div>
@@ -145,18 +146,18 @@ export const SMMDestinationSelector = ({
                   handleTogglePlatform('Facebook');
                 }
               }}
-              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
                 isFacebookSelected
-                  ? 'bg-blue-600/15 border-blue-600 text-blue-700 dark:text-blue-300 shadow-xs'
+                  ? 'bg-secondary border-foreground text-foreground shadow-xs'
                   : 'bg-secondary/40 border-border text-muted-foreground hover:bg-secondary'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Facebook size={15} className={isFacebookSelected ? 'text-blue-600' : 'text-muted-foreground'} />
+                <Facebook size={15} className={isFacebookSelected ? 'text-foreground' : 'text-muted-foreground'} />
                 <span>Facebook</span>
               </div>
               <div className={`w-4 h-4 rounded flex items-center justify-center border ${
-                isFacebookSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-border'
+                isFacebookSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
               }`}>
                 {isFacebookSelected && <Check size={11} strokeWidth={3} />}
               </div>
@@ -170,9 +171,9 @@ export const SMMDestinationSelector = ({
               <button
                 type="button"
                 onClick={() => onChange('Instagram', ['Instagram'])}
-                className={`px-2 py-0.5 rounded-lg border transition-all ${
+                className={`px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
                   value === 'Instagram'
-                    ? 'bg-pink-500/20 text-pink-600 border-pink-500/40 font-bold'
+                    ? 'bg-primary text-primary-foreground border-primary font-bold'
                     : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
               >
@@ -181,9 +182,9 @@ export const SMMDestinationSelector = ({
               <button
                 type="button"
                 onClick={() => onChange('Facebook', ['Facebook'])}
-                className={`px-2 py-0.5 rounded-lg border transition-all ${
+                className={`px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
                   value === 'Facebook'
-                    ? 'bg-blue-600/20 text-blue-600 border-blue-600/40 font-bold'
+                    ? 'bg-primary text-primary-foreground border-primary font-bold'
                     : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
               >
@@ -192,9 +193,9 @@ export const SMMDestinationSelector = ({
               <button
                 type="button"
                 onClick={() => onChange('Instagram & Facebook', ['Instagram', 'Facebook'])}
-                className={`px-2 py-0.5 rounded-lg border transition-all ${
+                className={`px-2 py-0.5 rounded-lg border transition-colors cursor-pointer ${
                   value === 'Instagram & Facebook'
-                    ? 'bg-primary/20 text-primary border-primary/40 font-bold'
+                    ? 'bg-primary text-primary-foreground border-primary font-bold'
                     : 'text-muted-foreground hover:text-foreground border-transparent hover:border-border'
                 }`}
               >

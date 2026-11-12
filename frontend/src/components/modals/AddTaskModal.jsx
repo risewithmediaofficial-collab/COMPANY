@@ -73,7 +73,7 @@ import {
   Shield,
   Clock,
   Share2,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useProjectMonthlyDeliverables } from '../../hooks/useMonthlyDeliverables';
 import { MONTH_NAMES } from '../projects/MonthlyDeliverablesSection';
 import { toast } from 'sonner';
@@ -679,8 +679,8 @@ export const AddTaskModal = ({
           {/* Top meta pill row: Status & Priority */}
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-primary/10 text-primary text-xs font-bold">
-                {task ? '✍️' : '📋'}
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary border border-border text-foreground text-xs font-bold">
+                <FileText size={13} className="shrink-0" />
               </span>
               <span className="text-xs font-bold text-foreground uppercase tracking-wider">
                 {task ? 'Edit Task Card' : 'New Task Card'}
@@ -695,7 +695,7 @@ export const AddTaskModal = ({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger className="h-8 rounded-full px-3 text-xs font-bold bg-secondary/60 border-border hover:bg-secondary transition-colors">
-                      <span className="inline-block w-2 h-2 rounded-full bg-primary mr-1.5 shrink-0" />
+                      <span className="inline-block w-2 h-2 rounded-full bg-foreground mr-1.5 shrink-0" />
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -717,12 +717,12 @@ export const AddTaskModal = ({
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger
                       className={`h-8 rounded-full px-3 text-xs font-bold border transition-colors ${field.value === 'Urgent'
-                          ? 'bg-rose-500/10 text-rose-600 border-rose-500/30'
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : field.value === 'High'
-                            ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                            ? 'bg-secondary text-foreground border-foreground/40'
                             : field.value === 'Medium'
-                              ? 'bg-blue-500/10 text-blue-600 border-blue-500/30'
-                              : 'bg-slate-500/10 text-slate-600 border-slate-500/30'
+                              ? 'bg-secondary/70 text-foreground border-border'
+                              : 'bg-muted text-muted-foreground border-border'
                         }`}
                     >
                       <SelectValue placeholder="Priority" />
@@ -806,12 +806,12 @@ export const AddTaskModal = ({
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
                   <FormLabel className="text-xs font-bold text-foreground/90 flex items-center gap-1.5">
-                    <Calendar size={13} className="text-blue-500" /> Due Date
+                    <Calendar size={13} className="text-foreground shrink-0" /> Due Date
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
-                      className="h-9 rounded-xl text-xs bg-background border-border"
+                      className="h-9 rounded-xl text-xs tabular-nums bg-background border-border"
                       {...field}
                     />
                   </FormControl>
@@ -821,10 +821,10 @@ export const AddTaskModal = ({
             />
 
             {/* 2b. Task Completion Timer & Due Time */}
-            <div className="col-span-full rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-3.5 space-y-2.5">
+            <div className="col-span-full rounded-2xl border border-border bg-secondary/40 p-3.5 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                  <Clock size={13} className="text-indigo-500" /> Completion Timer & Duration
+                  <Clock size={13} className="text-foreground shrink-0" /> Completion Timer &amp; Duration
                 </span>
                 <span className="text-[10px] text-muted-foreground font-semibold">
                   Timer begins when employee accepts the task
@@ -848,7 +848,7 @@ export const AddTaskModal = ({
                             min={0}
                             max={99}
                             placeholder="0"
-                            className="h-8 rounded-xl text-xs bg-background border-border pr-8"
+                            className="h-8 rounded-xl text-xs tabular-nums bg-background border-border pr-8"
                             {...field}
                             onChange={(e) => field.onChange(Math.max(0, parseInt(e.target.value, 10) || 0))}
                           />
@@ -875,7 +875,7 @@ export const AddTaskModal = ({
                             min={0}
                             max={59}
                             placeholder="0"
-                            className="h-8 rounded-xl text-xs bg-background border-border pr-9"
+                            className="h-8 rounded-xl text-xs tabular-nums bg-background border-border pr-9"
                             {...field}
                             onChange={(e) => field.onChange(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
                           />
@@ -898,7 +898,7 @@ export const AddTaskModal = ({
                       <FormControl>
                         <Input
                           type="time"
-                          className="h-8 rounded-xl text-xs bg-background border-border"
+                          className="h-8 rounded-xl text-xs tabular-nums bg-background border-border"
                           {...field}
                         />
                       </FormControl>
@@ -942,7 +942,7 @@ export const AddTaskModal = ({
                 <FormItem className="space-y-1.5">
                   <FormLabel className="text-xs font-bold text-foreground/90 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <Building2 size={13} className="text-amber-500" /> Client
+                      <Building2 size={13} className="text-foreground shrink-0" /> Client
                     </span>
                     <span className="text-[10px] font-normal text-muted-foreground">(Optional)</span>
                   </FormLabel>
@@ -965,9 +965,9 @@ export const AddTaskModal = ({
                       <SelectItem
                         key="__saas_internal__"
                         value="__saas_internal__"
-                        className="font-semibold text-primary"
+                        className="font-semibold text-foreground"
                       >
-                        🚀 SaaS & Internal Agency (No Client)
+                        SaaS &amp; Internal Agency (No Client)
                       </SelectItem>
                       {clients.map((c) => (
                         <SelectItem key={c._id} value={c._id} className="text-xs">
@@ -989,7 +989,7 @@ export const AddTaskModal = ({
                 <FormItem className="space-y-1.5">
                   <FormLabel className="text-xs font-bold text-foreground/90 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <FolderKanban size={13} className="text-indigo-500" /> Project
+                      <FolderKanban size={13} className="text-foreground shrink-0" /> Project
                     </span>
                     <span className="text-[10px] font-normal text-muted-foreground">(Optional)</span>
                   </FormLabel>
@@ -1038,10 +1038,10 @@ export const AddTaskModal = ({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="_none">General / Unspecified</SelectItem>
-                      <SelectItem value="Development">💻 Development & Tech</SelectItem>
-                      <SelectItem value="Marketing">📈 Marketing & SMM</SelectItem>
-                      <SelectItem value="Creative">🎨 Creative & Design</SelectItem>
-                      <SelectItem value="Operations">⚙️ Operations</SelectItem>
+                      <SelectItem value="Development">Development &amp; Tech</SelectItem>
+                      <SelectItem value="Marketing">Marketing &amp; SMM</SelectItem>
+                      <SelectItem value="Creative">Creative &amp; Design</SelectItem>
+                      <SelectItem value="Operations">Operations</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>
@@ -1121,7 +1121,8 @@ export const AddTaskModal = ({
                     : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
-                <span>🎨</span> Content Deliverable
+                <Sparkles size={13} className="shrink-0" />
+                <span>Content Deliverable</span>
               </button>
               <button
                 type="button"
@@ -1131,7 +1132,8 @@ export const AddTaskModal = ({
                     : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
-                <span>⚙️</span> Development / General
+                <FolderKanban size={13} className="shrink-0" />
+                <span>Development / General</span>
               </button>
             </div>
 
@@ -1193,20 +1195,20 @@ export const AddTaskModal = ({
           {matchedDeliverableTarget && (
             <div
               className={`rounded-xl border p-2.5 text-xs font-medium flex items-center justify-between gap-3 ${matchedDeliverableTarget.currentCount >= matchedDeliverableTarget.targetQuantity
-                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300'
-                  : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
+                  ? 'border-foreground/30 bg-secondary text-foreground'
+                  : 'border-border bg-secondary/50 text-foreground'
                 }`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 tabular-nums">
                 <Target size={14} className="shrink-0" />
                 <span>
                   <strong>{matchedDeliverableTarget.contentType}</strong> target: {matchedDeliverableTarget.currentCount} / {matchedDeliverableTarget.targetQuantity}
                 </span>
               </div>
-              <span className="text-[11px] font-bold">
+              <span className="text-[11px] font-bold tabular-nums">
                 {matchedDeliverableTarget.currentCount >= matchedDeliverableTarget.targetQuantity
-                  ? '⚠ Target Reached'
-                  : `✨ ${matchedDeliverableTarget.targetQuantity - matchedDeliverableTarget.currentCount} remaining`}
+                  ? 'Target Reached'
+                  : `${matchedDeliverableTarget.targetQuantity - matchedDeliverableTarget.currentCount} remaining`}
               </span>
             </div>
           )}
@@ -1251,7 +1253,7 @@ export const AddTaskModal = ({
                       render={({ field }) => (
                         <FormItem className="space-y-1">
                           <FormLabel className="text-xs font-semibold text-foreground/90">
-                            🔗 Reference / Inspiration Link
+                            Reference / Inspiration Link
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -1270,7 +1272,7 @@ export const AddTaskModal = ({
                       render={({ field }) => (
                         <FormItem className="space-y-1">
                           <FormLabel className="text-xs font-semibold text-foreground/90">
-                            🏷️ Target Hashtags
+                            Target Hashtags
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -1290,7 +1292,7 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          📝 Caption / Post Copy
+                          Caption / Post Copy
                         </FormLabel>
                         <FormControl>
                           <Textarea
@@ -1309,7 +1311,7 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          💡 Content Idea / Hook Angle
+                          Content Idea / Hook Angle
                         </FormLabel>
                         <FormControl>
                           <Textarea
@@ -1463,8 +1465,8 @@ export const AddTaskModal = ({
               className="w-full flex items-center justify-between p-4 bg-secondary/15 hover:bg-secondary/30 transition-colors text-left"
             >
               <div className="flex items-center gap-2.5">
-                <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold">
-                  ⚡
+                <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary border border-border text-foreground text-xs font-bold">
+                  <Share2 size={13} className="shrink-0" />
                 </span>
                 <div>
                   <span className="text-xs font-bold text-foreground">
@@ -1489,7 +1491,7 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          ✍️ Script Writer
+                          Script Writer
                         </FormLabel>
                         <Select
                           onValueChange={(val) => field.onChange(val === '_none' ? '' : val)}
@@ -1520,7 +1522,7 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          🎙️ RJ / Voice Artist
+                          RJ / Voice Artist
                         </FormLabel>
                         <Select
                           onValueChange={(val) => field.onChange(val === '_none' ? '' : val)}
@@ -1551,7 +1553,7 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          🎥 Videographer
+                          Videographer
                         </FormLabel>
                         <Select
                           onValueChange={(val) => field.onChange(val === '_none' ? '' : val)}
@@ -1582,7 +1584,7 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          ✂️ Video / Graphic Editor
+                          Video / Graphic Editor
                         </FormLabel>
                         <Select
                           onValueChange={(val) => field.onChange(val === '_none' ? '' : val)}
@@ -1613,7 +1615,7 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          📱 Publisher / Poster
+                          Publisher / Poster
                         </FormLabel>
                         <Select
                           onValueChange={(val) => field.onChange(val === '_none' ? '' : val)}
@@ -1644,12 +1646,12 @@ export const AddTaskModal = ({
                     render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-foreground/90">
-                          🗓️ Publishing Schedule
+                          Publishing Schedule
                         </FormLabel>
                         <FormControl>
                           <Input
                             type="datetime-local"
-                            className="h-9 rounded-xl text-xs bg-background"
+                            className="h-9 rounded-xl text-xs tabular-nums bg-background"
                             {...field}
                           />
                         </FormControl>
@@ -1692,10 +1694,10 @@ export const AddTaskModal = ({
                       render={({ field }) => (
                         <FormItem className="space-y-1">
                           <FormLabel className="text-xs font-semibold text-muted-foreground">
-                            📅 Shoot Date
+                            Shoot Date
                           </FormLabel>
                           <FormControl>
-                            <Input type="date" className="h-8 rounded-xl text-xs bg-background" {...field} />
+                            <Input type="date" className="h-8 rounded-xl text-xs tabular-nums bg-background" {...field} />
                           </FormControl>
                         </FormItem>
                       )}
@@ -1706,7 +1708,7 @@ export const AddTaskModal = ({
                       render={({ field }) => (
                         <FormItem className="space-y-1">
                           <FormLabel className="text-xs font-semibold text-muted-foreground">
-                            📍 Shoot Location
+                            Shoot Location
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -1724,7 +1726,7 @@ export const AddTaskModal = ({
                       render={({ field }) => (
                         <FormItem className="space-y-1">
                           <FormLabel className="text-xs font-semibold text-muted-foreground">
-                            📁 Raw Footage Link
+                            Raw Footage Link
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -1753,8 +1755,8 @@ export const AddTaskModal = ({
             className="w-full flex items-center justify-between p-4 bg-secondary/15 hover:bg-secondary/30 transition-colors text-left"
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold">
-                <Paperclip size={13} />
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary border border-border text-foreground text-xs font-bold">
+                <Paperclip size={13} className="shrink-0" />
               </span>
               <div>
                 <span className="text-xs font-bold text-foreground">
@@ -1778,7 +1780,7 @@ export const AddTaskModal = ({
                   render={({ field }) => (
                     <FormItem className="space-y-1">
                       <FormLabel className="text-xs font-semibold text-foreground/90">
-                        🔒 Internal Team Notes (Private)
+                        Internal Team Notes (Private)
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -1797,7 +1799,7 @@ export const AddTaskModal = ({
                   render={({ field }) => (
                     <FormItem className="space-y-1">
                       <FormLabel className="text-xs font-semibold text-foreground/90">
-                        🌐 Client Portal Notes (Public)
+                        Client Portal Notes (Public)
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -1934,9 +1936,9 @@ export const AddTaskModal = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveBatchTask(bIdx)}
-                        className="text-rose-500 hover:text-rose-700 p-1"
+                        className="text-muted-foreground hover:text-foreground p-1"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={13} className="shrink-0" />
                       </button>
                     </div>
 
@@ -1998,9 +2000,9 @@ export const AddTaskModal = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveAdditionalTask(idx)}
-                    className="text-rose-500 hover:text-rose-700"
+                    className="text-muted-foreground hover:text-foreground"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} className="shrink-0" />
                   </button>
                 </div>
 
@@ -2053,7 +2055,7 @@ export const AddTaskModal = ({
         {/* ========================================================
             STICKY BOTTOM ACTION BAR (Ultra Clean & Mobile Accessible)
            ======================================================== */}
-        <div className="sticky bottom-0 z-20 -mx-4 -mb-4 sm:-mx-6 sm:-mb-5 px-4 py-3 sm:px-6 sm:py-3.5 bg-card/95 backdrop-blur-md border-t border-border flex flex-wrap items-center justify-between gap-2 sm:gap-3 shadow-lg select-none">
+        <div className="sticky bottom-0 z-20 -mx-4 -mb-4 sm:-mx-6 sm:-mb-5 px-4 py-3 sm:px-6 sm:py-3.5 bg-card border-t border-border flex flex-wrap items-center justify-between gap-2 sm:gap-3 shadow-sm select-none">
           <div className="flex items-center gap-2">
             <Button
               type="button"
@@ -2069,7 +2071,7 @@ export const AddTaskModal = ({
               <button
                 type="button"
                 onClick={handleClearDraft}
-                className="text-[11px] text-muted-foreground hover:text-rose-500 transition-colors underline"
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors underline"
               >
                 Clear Draft
               </button>
@@ -2125,16 +2127,16 @@ export const AddTaskModal = ({
         <DialogHeader className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 pr-20 select-none">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs font-bold">
-                {task ? '✍️' : '✨'}
+              <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-secondary text-foreground border border-border text-xs font-bold">
+                {task ? <FileText size={14} className="shrink-0" /> : <Sparkles size={14} className="shrink-0" />}
               </span>
               <DialogTitle className="text-sm sm:text-base font-bold text-foreground">
                 {task ? 'Edit Task Deliverable' : 'Create Task'}
               </DialogTitle>
             </div>
             {hasDraft && !task && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="px-2 py-0.5 rounded-full bg-secondary text-foreground border border-border font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
                 Draft Saved
               </span>
             )}

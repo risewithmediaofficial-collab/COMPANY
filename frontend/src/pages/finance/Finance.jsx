@@ -19,7 +19,8 @@ import {
   Clock,
   RefreshCw,
   Landmark,
-} from 'lucide-react';
+  X,
+} from '@/components/ui/muiIcons';
 
 const OverviewSection = lazy(() => import('./sections/OverviewSection'));
 const IncomeSection = lazy(() => import('./sections/IncomeSection'));
@@ -40,6 +41,7 @@ const FinanceSectionSkeleton = () => (
 
 import { useFinanceModuleOverview } from '../../hooks/useFinance';
 import { formatINR } from '../../utils/financeFormatters';
+import { useDateFilter } from '../../context/DateFilterContext';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -79,10 +81,8 @@ export default function Finance() {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddAction, setQuickAddAction] = useState('invoice');
 
-  // Filter States
-  const [periodFilter, setPeriodFilter] = useState('this_month');
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
+  // Global Date Filter state
+  const { startDate, endDate } = useDateFilter();
 
   // Sync tab with URL
   useEffect(() => {
@@ -105,39 +105,13 @@ export default function Finance() {
     });
   };
 
-  // Determine date ranges for overview query
+  // Determine date ranges for overview query from global filter
   const dateParams = useMemo(() => {
-    const now = new Date();
-    if (periodFilter === 'today') {
-      const todayStr = now.toISOString().slice(0, 10);
-      return { startDate: todayStr, endDate: todayStr };
-    }
-    if (periodFilter === 'this_week') {
-      const firstDay = new Date(now);
-      firstDay.setDate(now.getDate() - now.getDay());
-      return { startDate: firstDay.toISOString().slice(0, 10) };
-    }
-    if (periodFilter === 'this_month') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-      return { startDate: start };
-    }
-    if (periodFilter === 'this_quarter') {
-      const qMonth = Math.floor(now.getMonth() / 3) * 3;
-      const start = new Date(now.getFullYear(), qMonth, 1).toISOString().slice(0, 10);
-      return { startDate: start };
-    }
-    if (periodFilter === 'this_year') {
-      const start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
-      return { startDate: start };
-    }
-    if (periodFilter === 'custom') {
-      const res = {};
-      if (customStartDate) res.startDate = customStartDate;
-      if (customEndDate) res.endDate = customEndDate;
-      return res;
-    }
-    return {};
-  }, [periodFilter, customStartDate, customEndDate]);
+    const res = {};
+    if (startDate) res.startDate = startDate;
+    if (endDate) res.endDate = endDate;
+    return res;
+  }, [startDate, endDate]);
 
   // Only load heavy overview data when Overview tab is active
   const { data: overviewData = {}, isLoading: overviewLoading, refetch } = useFinanceModuleOverview(dateParams, {
@@ -155,7 +129,7 @@ export default function Finance() {
       <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-sm font-bold text-lg shrink-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs font-bold text-lg shrink-0">
               ₹
             </div>
             <div>
@@ -163,13 +137,24 @@ export default function Finance() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {activeTab === 'overview' && (
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-border bg-card hover:bg-secondary text-foreground font-semibold text-xs rounded-xl shadow-2xs transition-colors cursor-pointer min-h-[38px]"
+                title="Refresh Finance Overview"
+              >
+                <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+                <span>Refresh</span>
+              </button>
+            )}
             {/* Central Add New Button */}
             <button
               onClick={() => openQuickAdd('invoice')}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:shadow hover:scale-[1.01] cursor-pointer min-h-[38px]"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer min-h-[38px]"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 shrink-0" />
               <span>Add New</span>
             </button>
           </div>
@@ -185,13 +170,13 @@ export default function Finance() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 min-h-[38px] ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors shrink-0 min-h-[38px] ${
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-2xs scale-[1.01]'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                  <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -202,90 +187,6 @@ export default function Finance() {
 
       {/* ── MAIN CONTENT CONTAINER ────────────────────────────────────── */}
       <div className="space-y-5">
-        {/* PERIOD & DATE FILTER BAR (Active on Overview) */}
-        {activeTab === 'overview' && (
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-card p-3.5 rounded-xl border border-border shadow-2xs text-xs">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-foreground">Period:</span>
-                <div className="flex flex-wrap gap-1">
-                  {[
-                    { id: 'today', label: 'Today' },
-                    { id: 'this_week', label: 'This Week' },
-                    { id: 'this_month', label: 'This Month' },
-                    { id: 'this_quarter', label: 'This Quarter' },
-                    { id: 'this_year', label: 'This Year' },
-                    { id: 'all_time', label: 'All Time' },
-                  ].map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setPeriodFilter(p.id);
-                        setCustomStartDate('');
-                        setCustomEndDate('');
-                      }}
-                      className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                        periodFilter === p.id
-                          ? 'bg-primary/10 text-primary font-bold border border-primary/20'
-                          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date to Date Picker */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-2 md:pt-0 md:pl-2 border-t md:border-t-0 md:border-l border-border">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="text-muted-foreground font-medium text-[11px]">Date Range:</span>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => {
-                    setCustomStartDate(e.target.value);
-                    setPeriodFilter('custom');
-                  }}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="px-2 py-1 rounded-lg border border-border text-xs bg-background text-foreground cursor-pointer focus:ring-1 focus:ring-primary"
-                />
-                <span className="text-muted-foreground font-bold text-[10px]">to</span>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => {
-                    setCustomEndDate(e.target.value);
-                    setPeriodFilter('custom');
-                  }}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="px-2 py-1 rounded-lg border border-border text-xs bg-background text-foreground cursor-pointer focus:ring-1 focus:ring-primary"
-                />
-                {(customStartDate || customEndDate) && (
-                  <button
-                    onClick={() => {
-                      setCustomStartDate('');
-                      setCustomEndDate('');
-                      setPeriodFilter('this_month');
-                    }}
-                    className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors font-bold text-xs"
-                    title="Clear Date Range"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={() => refetch()}
-              className="flex items-center gap-1 text-slate-500 hover:text-slate-800 font-semibold text-xs cursor-pointer"
-            >
-              <RefreshCw className="h-3 w-3" /> Refresh
-            </button>
-          </div>
-        )}
-
         {/* ── SECTION SWITCHER ────────────────────────────────────────── */}
         <Suspense fallback={<FinanceSectionSkeleton />}>
           {activeTab === 'overview' && (

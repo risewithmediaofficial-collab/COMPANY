@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Home, ArrowLeft, Ghost } from 'lucide-react';
+import { Home, ArrowLeft, Ghost } from '@/components/ui/muiIcons';
 
 const NotFound = () => {
   return (
@@ -26,7 +26,7 @@ const NotFound = () => {
         </button>
         <Link 
           to="/"
-          className="flex items-center px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+          className="flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-bold shadow-sm hover:bg-primary/90 transition-all"
         >
           <Home size={18} className="mr-2" />
           Dashboard

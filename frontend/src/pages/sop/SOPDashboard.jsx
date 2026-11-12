@@ -15,7 +15,7 @@ import {
   ArrowRight,
   Sparkles,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { Button } from '../../components/ui/button';
 import { DataTable } from '../../components/ui/DataTable';
 import { StatusBadge } from '../../components/ui/page';
@@ -341,7 +341,7 @@ const SOPDashboard = () => {
         <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
           <div className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 z-10">
+            <div className="shrink-0 border-b border-border bg-card px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 z-10">
               <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                 <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
                   <BookOpen className="h-5 w-5" />
@@ -428,7 +428,7 @@ const SOPDashboard = () => {
             )}
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
               <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 {canEditSop(viewingSOP) && (
                   <Button variant="outline" size="sm" onClick={() => openEdit(viewingSOP)} className="h-10 px-3 sm:px-4 rounded-xl flex-1 sm:flex-initial">
@@ -454,7 +454,7 @@ const SOPDashboard = () => {
         <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
           <div className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 z-10">
+            <div className="shrink-0 border-b border-border bg-card px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 z-10">
               <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                 <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
                   <BookOpen className="h-5 w-5" />
@@ -555,7 +555,7 @@ const SOPDashboard = () => {
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
               <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                 <Button

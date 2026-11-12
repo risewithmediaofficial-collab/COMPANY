@@ -44,11 +44,8 @@ Comprehensive inventory of all pages, nested views, role-specific screens, share
 | `/tasks/new` | `AddTask.jsx` | Form grid stacking, date picker inputs on small mobile | FIXED | VERIFIED (320px - 1440px) |
 | `/tasks/:id` | `TaskDetails.jsx` | Discussion thread input, attachment previews, status change buttons | FIXED | VERIFIED (320px - 1440px) |
 | `/calendar` | `ContentCalendar.jsx` | Month grid cell sizing on mobile/tablet, week/day view reflow | FIXED | VERIFIED (320px - 1440px) |
-| `/dm-calendar` | `DMCalendar.jsx` | Video shoot / DM event cards stack, date navigation controls | FIXED | VERIFIED (320px - 1440px) |
 | `/influencers` | `InfluencersDashboard.jsx` | Influencer roster cards, campaign budget tracking reflow | FIXED | VERIFIED (320px - 1440px) |
 | `/daily-tasks` | `ContentCalendar.jsx` (day view) | Agenda list view time slots and event pills wrapping | FIXED | VERIFIED (320px - 1440px) |
-| `/pending-notes` | `PendingNotes.jsx` | Note triage cards, manager comment inputs, status badges | FIXED | VERIFIED (320px - 1440px) |
-| `/manager-board` | `ManagerBoard.jsx` | Board columns horizontal scroll, drag/tap targets on mobile | FIXED | VERIFIED (320px - 1440px) |
 | **Finance OS** |
 | `/finance` & `/finance/overview` | `OverviewSection.jsx` | Metric card grid reflow, profit/loss charts resize | FIXED | VERIFIED (320px - 1440px) |
 | `/finance/income` | `IncomeSection.jsx` | Income logs table containment, date filters wrap | FIXED | VERIFIED (320px - 1440px) |
@@ -69,7 +66,6 @@ Comprehensive inventory of all pages, nested views, role-specific screens, share
 | `/domain-renewals` | `DomainRenewals.jsx` | Domain cards & table, days remaining alert pills | FIXED | VERIFIED (320px - 1440px) |
 | `/referral` | `ReferralDashboard.jsx` | Referral link copy box, earnings cards, payout table | FIXED | VERIFIED (320px - 1440px) |
 | `/admin/users` | `Users.jsx` | User management table containment, role dropdowns, action buttons | FIXED | VERIFIED (320px - 1440px) |
-| `/admin/manager-assignments` | `ManagerTaskAssignments.jsx` | Assignment mapping cards, employee picker select | FIXED | VERIFIED (320px - 1440px) |
 | **SMM Module** |
 | `/smm` | `SMMDashboard.jsx` | Metrics grid, scheduled posts carousel, quick stats | FIXED | VERIFIED (320px - 1440px) |
 | `/smm/content` | `SMMContent.jsx` | Content library cards, video/image thumbnail aspect ratios | FIXED | VERIFIED (320px - 1440px) |
@@ -114,6 +110,5 @@ Comprehensive inventory of all pages, nested views, role-specific screens, share
 | Push Diagnostics | `PushDiagnosticsModal.jsx` | Mobile view diagnostic cards, copy logs button | FIXED | VERIFIED (320px - 1440px) |
 | Image Crop Modal | `ProfileImageCropModal.jsx` | Cropper canvas responsive sizing on small screens | FIXED | VERIFIED (320px - 1440px) |
 | EOD Submission | `EODReportModal.jsx` | Textarea auto-sizing, task checklist touch items | FIXED | VERIFIED (320px - 1440px) |
-| Shoot Event Modal | `AddEditVideoShootModal.jsx` | Complex event form field stacking and scroll | FIXED | VERIFIED (320px - 1440px) |
 | **System & Fallbacks** |
 | `/404` | `NotFound.jsx` | Centered error illustration and return home button | FIXED | VERIFIED (320px - 1440px) |

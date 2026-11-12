@@ -25,7 +25,7 @@ import {
   Clock,
   VolumeX,
   Volume2,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { ProfileImageCropModal } from '../components/modals/ProfileImageCropModal';
@@ -142,7 +142,7 @@ const Settings = () => {
     try {
       // 1. In-App Floating Banner
       triggerBannerNotification({
-        title: '🔔 Banner Notification Working!',
+        title: 'Banner Notification Working',
         message: 'Your in-app floating banner and system desktop notifications are verified and active.',
         link: '/settings',
         type: 'success',
@@ -150,7 +150,7 @@ const Settings = () => {
 
       // 2. Direct browser OS banner notification
       await sendBrowserNotification({
-        title: '🔔 Banner Notification Active!',
+        title: 'Banner Notification Active',
         message: 'Rise With Media system desktop alerts are connected successfully.',
         link: '/settings',
       });
@@ -365,7 +365,7 @@ const Settings = () => {
   };
 
   if (isLoading) {
-    return <div className="h-96 rounded-2xl border border-border bg-card animate-pulse" />;
+    return <div className="h-96 rounded-2xl border border-border bg-card" />;
   }
 
   return (
@@ -382,7 +382,7 @@ const Settings = () => {
               onClick={() => setActiveSection(section.id)}
               className={`flex items-center px-4 py-3 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0 lg:w-full ${
                 activeSection === section.id
-                  ? 'bg-primary text-white shadow-md shadow-primary/20'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/50 lg:border-transparent'
               }`}
             >
@@ -410,16 +410,16 @@ const Settings = () => {
                       className="hidden"
                       onChange={handleAvatarFileSelect}
                     />
-                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl overflow-hidden">
+                    <div className="w-24 h-24 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-3xl font-black shadow-md overflow-hidden">
                       {avatarPreview || currentAvatar ? <img src={getAssetUrl(avatarPreview || currentAvatar)} alt="" className="h-full w-full object-cover" /> : profileUser?.name?.charAt(0)}
                     </div>
                     <label
                       htmlFor="profile-avatar-upload"
                       aria-disabled={uploadProfileAvatar.isPending || updateProfile.isPending}
-                      className={`absolute -bottom-2 -right-2 rounded-xl border border-border bg-card p-2 text-primary shadow-lg transition-all ${
+                      className={`absolute -bottom-2 -right-2 rounded-xl border border-border bg-card p-2 text-foreground shadow-md transition-all ${
                         uploadProfileAvatar.isPending || updateProfile.isPending
                           ? 'pointer-events-none opacity-60'
-                          : 'cursor-pointer hover:bg-primary hover:text-white'
+                          : 'cursor-pointer hover:bg-primary hover:text-primary-foreground'
                       }`}
                       title="Upload and crop photo"
                     >
@@ -500,7 +500,7 @@ const Settings = () => {
                   <button
                     onClick={saveProfile}
                     disabled={updateProfile.isPending}
-                    className="flex items-center px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-60"
+                    className="flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold shadow-sm hover:bg-primary/90 transition-all disabled:opacity-60"
                   >
                     <Save size={18} className="mr-2" />
                     {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
@@ -517,33 +517,33 @@ const Settings = () => {
                 </div>
 
                 {/* Native Desktop / Browser Push Notifications Card */}
-                <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
+                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-                        <BellRing size={20} className="animate-pulse" />
+                      <div className="p-2.5 rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                        <BellRing size={20} />
                       </div>
                       <div>
                         <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                           Banner & Push Notifications
-                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
+                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-secondary text-foreground border border-border">
                             Heads-Up & Desktop
                           </span>
                         </h4>
                         <p className="text-xs text-muted-foreground">Receive instant popup banner alerts on your device for tasks, leads, and messages even when the app is closed.</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {browserPermission === 'granted' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground border border-primary">
                           <CheckCircle2 size={13} /> Banner Alerts Active
                         </span>
                       ) : browserPermission === 'denied' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-foreground border border-border">
                           <AlertTriangle size={13} /> Blocked in Browser
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-muted-foreground border border-border">
                           <AlertTriangle size={13} /> Not Enabled
                         </span>
                       )}
@@ -555,7 +555,7 @@ const Settings = () => {
                       <button
                         type="button"
                         onClick={handleEnableBrowserNotifications}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
                       >
                         <BellRing size={14} />
                         Enable Banner Notifications
@@ -577,7 +577,7 @@ const Settings = () => {
                       type="button"
                       disabled={isTestingDelayed}
                       onClick={handleDelayedPushTest}
-                      className="flex items-center gap-2 px-3.5 py-2 bg-secondary text-secondary-foreground text-xs font-semibold rounded-xl hover:bg-secondary/80 transition-all border border-border cursor-pointer active:scale-95 disabled:opacity-50"
+                      className="flex items-center gap-2 px-3.5 py-2 bg-secondary text-secondary-foreground text-xs font-semibold rounded-xl hover:bg-secondary/80 transition-all border border-border cursor-pointer active:scale-95 disabled:opacity-50 tabular-nums"
                       title="Schedules a push in 10 seconds so you can close this tab and verify background delivery"
                     >
                       <Clock size={14} className={isTestingDelayed ? 'animate-spin' : ''} />
@@ -587,10 +587,10 @@ const Settings = () => {
                     <button
                       type="button"
                       onClick={toggleBannerSound}
-                      className="flex items-center gap-2 px-3 py-2 bg-secondary/60 hover:bg-secondary text-secondary-foreground text-xs font-semibold rounded-xl transition-all border border-border/80 cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-muted text-foreground text-xs font-semibold rounded-xl transition-all border border-border cursor-pointer"
                       title="Toggle synthesizer audio chime on banner alerts"
                     >
-                      {bannerSoundMuted ? <VolumeX size={14} className="text-muted-foreground" /> : <Volume2 size={14} className="text-emerald-500" />}
+                      {bannerSoundMuted ? <VolumeX size={14} className="text-muted-foreground" /> : <Volume2 size={14} className="text-foreground" />}
                       <span>{bannerSoundMuted ? 'Sound Muted' : 'Sound Enabled'}</span>
                     </button>
                   </div>
@@ -689,7 +689,7 @@ const Settings = () => {
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={() => updateCompany.mutate(companyProfile)} disabled={updateCompany.isPending} className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-60">
+                    <button onClick={() => updateCompany.mutate(companyProfile)} disabled={updateCompany.isPending} className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all disabled:opacity-60">
                       {updateCompany.isPending ? 'Saving...' : 'Save Company Details & GST Settings'}
                     </button>
                   </div>
@@ -709,7 +709,7 @@ const Settings = () => {
                     onClick={() => !darkMode && dispatch(toggleDarkMode())}
                     className={`p-6 rounded-xl border-2 transition-all flex flex-col items-center gap-4 ${darkMode ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}
                   >
-                    <div className="w-12 h-12 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-sm">
                       <Palette size={24} />
                     </div>
                     <span className="font-bold">Dark Mode</span>
@@ -718,7 +718,7 @@ const Settings = () => {
                     onClick={() => darkMode && dispatch(toggleDarkMode())}
                     className={`p-6 rounded-xl border-2 transition-all flex flex-col items-center gap-4 ${!darkMode ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}
                   >
-                    <div className="w-12 h-12 rounded-xl bg-zinc-100 text-zinc-900 flex items-center justify-center shadow-lg border border-border">
+                    <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center shadow-sm border border-border">
                       <Palette size={24} />
                     </div>
                     <span className="font-bold">Light Mode</span>
@@ -748,7 +748,7 @@ const Settings = () => {
                   <button
                     onClick={() => savePreferences()}
                     disabled={updatePreferences.isPending}
-                    className="mt-6 inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+                    className="mt-6 inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-60"
                   >
                     <Globe size={16} className="mr-2" />
                     Save Regional Settings
@@ -808,7 +808,7 @@ const Settings = () => {
                     <button
                       onClick={handleChangePassword}
                       disabled={changePassword.isPending}
-                      className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-60"
+                      className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:opacity-60"
                     >
                       {changePassword.isPending ? 'Updating...' : 'Update Password'}
                     </button>
@@ -828,7 +828,7 @@ const Settings = () => {
                   {Object.entries(permissions).map(([key, value]) => (
                     <div key={key} className="flex items-center justify-between rounded-xl border border-border p-4">
                       <span className="text-sm font-medium">{key.replace(/([A-Z])/g, ' $1')}</span>
-                      <span className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-muted-foreground'}`}>{value ? 'Enabled' : 'Disabled'}</span>
+                      <span className={`text-xs font-bold ${value ? 'text-foreground' : 'text-muted-foreground'}`}>{value ? 'Enabled' : 'Disabled'}</span>
                     </div>
                   ))}
                 </div>

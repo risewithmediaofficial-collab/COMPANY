@@ -4,6 +4,14 @@ import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNa
 import { PageHeader } from '../../components/ui/page';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '../../components/ui/dialog';
+import {
   GitPullRequest,
   CheckCircle2,
   XCircle,
@@ -13,7 +21,8 @@ import {
   MessageSquare,
   AlertTriangle,
   User,
-} from 'lucide-react';
+  X,
+} from '@/components/ui/muiIcons';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 
@@ -115,19 +124,19 @@ export default function DevelopmentReviews() {
       {/* ── Pending Code Reviews ─────────────────────────────────────── */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Clock size={16} className="text-purple-500" />
-          <h3 className="font-bold text-foreground text-sm uppercase tracking-wider">
+          <Clock size={16} className="text-foreground" />
+          <h3 className="font-bold text-foreground text-sm uppercase tracking-wider tabular-nums">
             Pending Code Reviews ({pendingReviews.length})
           </h3>
         </div>
 
         {loading ? (
           <div className="p-12 text-center text-muted-foreground text-xs flex items-center justify-center gap-2 bg-card border border-border rounded-2xl">
-            <RefreshCcw size={16} className="animate-spin text-primary" /> Loading review queue...
+            <RefreshCcw size={16} className="animate-spin text-foreground" /> Loading review queue...
           </div>
         ) : pendingReviews.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-xs bg-card border border-border rounded-2xl space-y-1">
-            <CheckCircle2 size={24} className="mx-auto text-emerald-500/50" />
+            <CheckCircle2 size={24} className="mx-auto text-muted-foreground/50" />
             <p className="font-semibold text-foreground">No pending code reviews</p>
             <p className="text-[11px]">All tasks in development are up to date.</p>
           </div>
@@ -152,7 +161,7 @@ export default function DevelopmentReviews() {
                           setDetailTaskId(task._id);
                           setShowDetailModal(true);
                         }}
-                        className="font-bold text-foreground text-sm mt-1.5 hover:text-primary transition-colors cursor-pointer"
+                        className="font-bold text-foreground text-sm mt-1.5 hover:underline cursor-pointer"
                       >
                         {task.title}
                       </h4>
@@ -164,7 +173,7 @@ export default function DevelopmentReviews() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground text-[11px] font-medium">Branch:</span>
                       <span className="font-mono font-semibold text-foreground">
-                        {dev.branch ? `🌿 ${dev.branch}` : 'No branch specified'}
+                        {dev.branch || 'No branch specified'}
                       </span>
                     </div>
 
@@ -176,7 +185,7 @@ export default function DevelopmentReviews() {
                             href={dev.pullRequestUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary font-bold inline-flex items-center gap-1 hover:underline text-[11px]"
+                            className="text-foreground font-bold inline-flex items-center gap-1 hover:underline text-[11px]"
                           >
                             PR #{dev.pullRequestNumber || 'Link'} <ExternalLink size={10} />
                           </a>
@@ -196,13 +205,13 @@ export default function DevelopmentReviews() {
                   <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
                     <button
                       onClick={() => handleOpenAction(task, 'changes_requested')}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold transition-all min-h-[38px]"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-border text-foreground bg-secondary hover:bg-muted text-xs font-bold transition-all min-h-[38px] cursor-pointer"
                     >
                       <XCircle size={13} /> Request Changes
                     </button>
                     <button
                       onClick={() => handleOpenAction(task, 'approved')}
-                      className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold transition-all shadow-sm min-h-[38px]"
+                      className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold transition-all shadow-xs min-h-[38px] cursor-pointer"
                     >
                       <CheckCircle2 size={13} /> Approve Code
                     </button>
@@ -214,39 +223,57 @@ export default function DevelopmentReviews() {
         )}
       </div>
 
-      {/* ── Review Action Modal ──────────────────────────────────────── */}
-      {selectedTask && actionType && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl w-[calc(100vw-24px)] max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-5 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
+      {/* ── Review Action Side Drawer ────────────────────────────────── */}
+      <Dialog
+        open={Boolean(selectedTask && actionType)}
+        onOpenChange={(open) => !open && setSelectedTask(null)}
+      >
+        <DialogContent
+          variant="side"
+          size="md"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl"
+        >
+          <DialogHeader className="px-5 py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground">
                 {actionType === 'approved' ? (
-                  <CheckCircle2 size={16} className="text-emerald-500" />
+                  <CheckCircle2 size={18} />
                 ) : (
-                  <XCircle size={16} className="text-rose-500" />
+                  <XCircle size={18} />
                 )}
-                {actionType === 'approved' ? 'Approve Code Review' : 'Request Changes'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setSelectedTask(null)}
-                className="flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground text-xs"
-              >
-                ✕
-              </button>
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-base font-bold text-foreground truncate">
+                  {actionType === 'approved' ? 'Approve Code Review' : 'Request Changes'}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground truncate">
+                  {actionType === 'approved' ? 'Confirm code review approval' : 'Provide requested revisions for this PR'}
+                </DialogDescription>
+              </div>
             </div>
+            <DialogClose
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all cursor-pointer shrink-0"
+            >
+              <X size={16} />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </DialogHeader>
 
-            <form onSubmit={handleSubmitReview} className="space-y-3.5 text-xs">
+          <form onSubmit={handleSubmitReview} className="flex flex-col flex-1 min-h-0 overflow-hidden text-xs">
+            <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 custom-scrollbar">
               <p className="text-muted-foreground">
-                Task: <strong className="text-foreground">{selectedTask.title}</strong>
+                Task: <strong className="text-foreground">{selectedTask?.title}</strong>
               </p>
 
               <div>
-                <label className="font-semibold text-foreground block mb-1">
+                <label className="font-semibold text-foreground block mb-1.5">
                   {actionType === 'approved' ? 'Approval Notes (optional)' : 'Change Request Details *'}
                 </label>
                 <textarea
-                  rows={4}
+                  rows={5}
                   required={actionType === 'changes_requested'}
                   placeholder={
                     actionType === 'approved'
@@ -255,38 +282,34 @@ export default function DevelopmentReviews() {
                   }
                   value={commentsInput}
                   onChange={(e) => setCommentsInput(e.target.value)}
-                  className="w-full p-2.5 bg-background border border-border rounded-xl text-xs outline-none focus:border-primary"
+                  className="w-full p-3 bg-background border border-border rounded-xl text-xs text-foreground outline-none focus:border-foreground"
                 />
               </div>
+            </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setSelectedTask(null)}
-                  className="app-button-secondary text-xs min-h-[38px] px-3.5"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className={`px-4 py-2 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md min-h-[38px] ${
-                    actionType === 'approved'
-                      ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
-                      : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'
-                  }`}
-                >
-                  {submitting
-                    ? 'Submitting...'
-                    : actionType === 'approved'
-                    ? 'Confirm Approval'
-                    : 'Send Change Request'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div className="shrink-0 flex flex-wrap items-center justify-end gap-2 px-5 py-4 border-t border-border bg-card">
+              <button
+                type="button"
+                onClick={() => setSelectedTask(null)}
+                className="app-button-secondary text-xs min-h-[38px] px-4"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs min-h-[38px] cursor-pointer"
+              >
+                {submitting
+                  ? 'Submitting...'
+                  : actionType === 'approved'
+                  ? 'Confirm Approval'
+                  : 'Send Change Request'}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Reusable Task Detail Modal ───────────────────────────────── */}
       {detailTaskId && (

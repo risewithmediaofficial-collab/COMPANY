@@ -11,7 +11,7 @@ import {
   ArrowDownRight,
   ShieldCheck,
   AlertTriangle,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   ResponsiveContainer,
   LineChart,
@@ -113,47 +113,50 @@ export default function ForecastReportsSection() {
   return (
     <div className="space-y-6">
       {/* Report Switcher Header */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
+      <div className="bg-card p-4 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setReportType('forecast')}
-            className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
               reportType === 'forecast'
-                ? 'bg-indigo-600 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                ? 'bg-primary text-primary-foreground shadow-2xs'
+                : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80'
             }`}
           >
-            📈 Six-Month Cash Forecast
+            <TrendingUp className="h-3.5 w-3.5 shrink-0" />
+            <span>Six-Month Cash Forecast</span>
           </button>
           <button
             onClick={() => setReportType('aging')}
-            className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
               reportType === 'aging'
-                ? 'bg-indigo-600 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                ? 'bg-primary text-primary-foreground shadow-2xs'
+                : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80'
             }`}
           >
-            ⏱️ Receivables Aging Buckets
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            <span>Receivables Aging Buckets</span>
           </button>
           <button
             onClick={() => setReportType('pnl')}
-            className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
               reportType === 'pnl'
-                ? 'bg-indigo-600 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                ? 'bg-primary text-primary-foreground shadow-2xs'
+                : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80'
             }`}
           >
-            📑 Monthly Profit & Loss
+            <FileText className="h-3.5 w-3.5 shrink-0" />
+            <span>Monthly Profit &amp; Loss</span>
           </button>
         </div>
 
         {reportType === 'forecast' && (
-          <div className="flex items-center gap-2">
-            <span className="text-slate-500 font-medium">Scenario:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground font-medium">Scenario:</span>
             <select
               value={scenario}
               onChange={(e) => setScenario(e.target.value)}
-              className="rounded-lg border border-slate-200 px-3 py-1 font-semibold text-slate-800 bg-slate-50"
+              className="rounded-lg border border-border px-3 py-1 font-semibold text-foreground bg-secondary/50"
             >
               <option value="expected">Expected (100% Inflow / 100% Outflow)</option>
               <option value="conservative">Conservative (85% Inflow / 108% Outflow)</option>
@@ -161,7 +164,7 @@ export default function ForecastReportsSection() {
             </select>
             <button
               onClick={handleExportForecast}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-foreground font-semibold hover:bg-secondary cursor-pointer"
             >
               <Download className="h-3.5 w-3.5" /> Export CSV
             </button>
@@ -171,7 +174,7 @@ export default function ForecastReportsSection() {
         {reportType === 'aging' && (
           <button
             onClick={handleExportAging}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-foreground font-semibold hover:bg-secondary cursor-pointer"
           >
             <Download className="h-3.5 w-3.5" /> Export Aging CSV
           </button>
@@ -182,7 +185,7 @@ export default function ForecastReportsSection() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="rounded-lg border border-slate-200 px-3 py-1 font-semibold text-slate-800 bg-slate-50"
+              className="rounded-lg border border-border px-3 py-1 font-semibold text-foreground bg-secondary/50"
             >
               <option value="2025">2025</option>
               <option value="2026">2026</option>
@@ -190,9 +193,9 @@ export default function ForecastReportsSection() {
             </select>
             <button
               onClick={handleExportPnl}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-foreground font-semibold hover:bg-secondary cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5" /> Export P&L CSV
+              <Download className="h-3.5 w-3.5" /> Export P&amp;L CSV
             </button>
           </div>
         )}
@@ -203,88 +206,94 @@ export default function ForecastReportsSection() {
         <div className="space-y-6">
           {/* Forecast Summary KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase">Average Monthly Outflows</span>
-              <div className="text-2xl font-bold text-rose-600 mt-1">{formatINR(forecastData.monthlyAverageBurn || 0)}</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Estimated salaries, tools & overhead</div>
+            <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase">Average Monthly Outflows</span>
+              <div className="text-2xl font-bold text-foreground mt-1 tabular-nums">{formatINR(forecastData.monthlyAverageBurn || 0)}</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">Estimated salaries, tools &amp; overhead</div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase">Cash Runway Status</span>
-              <div className="text-2xl font-bold text-indigo-700 mt-1">
+            <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase">Cash Runway Status</span>
+              <div className="text-2xl font-bold text-foreground mt-1 tabular-nums">
                 {typeof forecastData.runwayMonths === 'number'
                   ? `${forecastData.runwayMonths} Months`
                   : forecastData.runwayMonths || 'N/A'}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Under {scenario} scenario assumptions</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">Under {scenario} scenario assumptions</div>
             </div>
           </div>
 
           {/* Forecast Timeline Chart */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="bg-card p-5 rounded-xl border border-border shadow-2xs">
             <div className="mb-4">
-              <h3 className="text-sm font-bold text-slate-900">Projected Cash Balance Trajectory</h3>
-              <p className="text-xs text-slate-500">6-month forecast of opening vs closing liquidity</p>
+              <h3 className="text-sm font-bold text-foreground">Projected Cash Balance Trajectory</h3>
+              <p className="text-xs text-muted-foreground">6-month forecast of opening vs closing liquidity</p>
             </div>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={forecastMonths} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="monthLabel" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="monthLabel" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                   <YAxis
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(val) => Math.abs(val) >= 1000 ? `₹${(val / 1000).toFixed(0)}k` : `₹${val}`}
                   />
                   <Tooltip
                     formatter={(val) => [formatINR(val), '']}
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      borderColor: 'hsl(var(--border))',
+                      color: 'hsl(var(--foreground))',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
                   />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                  <Line type="monotone" dataKey="closingCash" stroke="#4f46e5" strokeWidth={3} name="Closing Cash" dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="projectedInflow" stroke="#10b981" strokeWidth={2} name="Projected Collections" strokeDasharray="3 3" />
-                  <Line type="monotone" dataKey="projectedOutflow" stroke="#ef4444" strokeWidth={2} name="Projected Disbursements" strokeDasharray="3 3" />
+                  <Line type="monotone" dataKey="closingCash" stroke="hsl(var(--foreground))" strokeWidth={3} name="Closing Cash" dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="projectedInflow" stroke="#71717a" strokeWidth={2} name="Projected Collections" strokeDasharray="4 4" />
+                  <Line type="monotone" dataKey="projectedOutflow" stroke="#a1a1aa" strokeWidth={2} name="Projected Disbursements" strokeDasharray="2 3" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Month by month forecast breakdown table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-4 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900">Forecast Cashbook Matrix (6 Months)</h3>
+          <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
+            <div className="p-4 border-b border-border">
+              <h3 className="text-sm font-bold text-foreground">Forecast Cashbook Matrix (6 Months)</h3>
             </div>
             <div className="responsive-table-container overflow-y-auto max-h-[480px] text-xs">
               <table className="w-full min-w-[720px] text-left">
-                <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <thead className="sticky top-0 z-10 bg-secondary border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="p-3">Month</th>
-                    <th className="p-3">Opening Cash</th>
-                    <th className="p-3">Expected Inflows</th>
-                    <th className="p-3">Salaries Outflow</th>
-                    <th className="p-3">Tools & Overhead</th>
-                    <th className="p-3">Net Cash Movement</th>
+                    <th className="p-3 text-right">Opening Cash</th>
+                    <th className="p-3 text-right">Expected Inflows</th>
+                    <th className="p-3 text-right">Salaries Outflow</th>
+                    <th className="p-3 text-right">Tools &amp; Overhead</th>
+                    <th className="p-3 text-right">Net Cash Movement</th>
                     <th className="p-3 text-right">Projected Closing Cash</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border tabular-nums">
                   {forecastMonths.map((m) => (
-                    <tr key={m.monthIndex} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-3 font-bold text-slate-900">{m.monthLabel}</td>
-                      <td className="p-3 text-slate-700">{formatINR(m.openingCash)}</td>
-                      <td className="p-3 font-semibold text-emerald-600">+{formatINR(m.projectedInflow)}</td>
-                      <td className="p-3 text-rose-600">-{formatINR(m.breakdownOutflow?.salaries || 0)}</td>
-                      <td className="p-3 text-rose-600">
+                    <tr key={m.monthIndex} className="hover:bg-secondary/40 transition-colors">
+                      <td className="p-3 font-bold text-foreground">{m.monthLabel}</td>
+                      <td className="p-3 text-right text-muted-foreground">{formatINR(m.openingCash)}</td>
+                      <td className="p-3 text-right font-semibold text-foreground">+{formatINR(m.projectedInflow)}</td>
+                      <td className="p-3 text-right text-muted-foreground">-{formatINR(m.breakdownOutflow?.salaries || 0)}</td>
+                      <td className="p-3 text-right text-muted-foreground">
                         -{formatINR((m.breakdownOutflow?.subscriptions || 0) + (m.breakdownOutflow?.overhead || 0))}
                       </td>
-                      <td className="p-3 font-bold">
-                        <span className={m.netMovement >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                      <td className="p-3 text-right font-bold">
+                        <span className={m.netMovement >= 0 ? 'text-foreground' : 'text-muted-foreground'}>
                           {m.netMovement >= 0 ? '+' : ''}
                           {formatINR(m.netMovement)}
                         </span>
                       </td>
-                      <td className="p-3 text-right font-bold text-indigo-700 text-sm">{formatINR(m.closingCash)}</td>
+                      <td className="p-3 text-right font-bold text-foreground text-sm">{formatINR(m.closingCash)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -299,62 +308,58 @@ export default function ForecastReportsSection() {
         <div className="space-y-6">
           {/* Aging Buckets Grid */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {(agingData.buckets || []).map((b, i) => (
-              <div key={b.label} className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">{b.label}</span>
-                <div
-                  className={`text-lg font-bold mt-1 ${
-                    i === 0 ? 'text-slate-800' : i === 1 ? 'text-amber-600' : 'text-rose-600'
-                  }`}
-                >
+            {(agingData.buckets || []).map((b) => (
+              <div key={b.label} className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">{b.label}</span>
+                <div className="text-lg font-bold mt-1 text-foreground tabular-nums">
                   {formatINR(b.total)}
                 </div>
-                <div className="text-[11px] text-slate-500 mt-0.5">{b.count} Invoices</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">{b.count} Invoices</div>
               </div>
             ))}
           </div>
 
           {/* Aging Details Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+          <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
+            <div className="p-4 border-b border-border flex justify-between items-center">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Detailed Receivables Aging Schedule</h3>
-                <p className="text-xs text-slate-500">
-                  Total Outstanding: <strong className="text-slate-800">{formatINR(agingData.totalOutstanding)}</strong>
+                <h3 className="text-sm font-bold text-foreground">Detailed Receivables Aging Schedule</h3>
+                <p className="text-xs text-muted-foreground">
+                  Total Outstanding: <strong className="text-foreground tabular-nums">{formatINR(agingData.totalOutstanding)}</strong>
                 </p>
               </div>
             </div>
 
             <div className="responsive-table-container overflow-y-auto max-h-[500px] text-xs">
               <table className="w-full min-w-[700px] text-left">
-                <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <thead className="sticky top-0 z-10 bg-secondary border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="p-3">Aging Bucket</th>
                     <th className="p-3">Invoice #</th>
                     <th className="p-3">Client</th>
                     <th className="p-3">Due Date</th>
                     <th className="p-3 text-center">Days Overdue</th>
-                    <th className="p-3">Total Billed</th>
+                    <th className="p-3 text-right">Total Billed</th>
                     <th className="p-3 text-right">Balance Outstanding</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border tabular-nums">
                   {(agingData.buckets || []).flatMap((b) =>
                     (b.invoices || []).map((inv) => (
-                      <tr key={inv._id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="p-3 font-semibold text-slate-600">{b.label}</td>
-                        <td className="p-3 font-bold text-slate-900">{inv.invoiceNumber}</td>
-                        <td className="p-3 font-medium text-slate-800">{inv.clientName}</td>
-                        <td className="p-3 text-slate-600">{formatDateIST(inv.dueDate)}</td>
+                      <tr key={inv._id} className="hover:bg-secondary/40 transition-colors">
+                        <td className="p-3 font-semibold text-muted-foreground">{b.label}</td>
+                        <td className="p-3 font-bold text-foreground">{inv.invoiceNumber}</td>
+                        <td className="p-3 font-medium text-foreground">{inv.clientName}</td>
+                        <td className="p-3 text-muted-foreground">{formatDateIST(inv.dueDate)}</td>
                         <td className="p-3 text-center">
                           {inv.daysOverdue > 0 ? (
-                            <span className="font-bold text-rose-600">{inv.daysOverdue} days</span>
+                            <span className="font-bold text-foreground">{inv.daysOverdue} days</span>
                           ) : (
-                            <span className="text-emerald-600 font-semibold">Not Due</span>
+                            <span className="text-muted-foreground font-semibold">Not Due</span>
                           )}
                         </td>
-                        <td className="p-3 text-slate-700">{formatINR(inv.totalAmount)}</td>
-                        <td className="p-3 text-right font-bold text-rose-700 text-sm">
+                        <td className="p-3 text-right text-muted-foreground">{formatINR(inv.totalAmount)}</td>
+                        <td className="p-3 text-right font-bold text-foreground text-sm">
                           {formatINR(inv.balanceAmount)}
                         </td>
                       </tr>
@@ -371,56 +376,54 @@ export default function ForecastReportsSection() {
       {reportType === 'pnl' && (
         <div className="space-y-6">
           {/* P&L Annual Summary Card */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-semibold uppercase text-slate-400">ANNUAL PERFORMANCE {selectedYear}</span>
-              <div className="text-2xl font-bold text-slate-900 mt-1">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">ANNUAL PERFORMANCE {selectedYear}</span>
+              <div className="text-2xl font-bold text-foreground mt-1 tabular-nums">
                 Net Profit: {formatINR(pnlData.totalNetProfit)}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Annual Margin: <strong>{pnlData.annualMargin !== null ? `${pnlData.annualMargin}%` : 'N/A'}</strong> on Total Service Revenue of {formatINR(pnlData.totalServiceRevenue)}
+              <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+                Annual Margin: <strong className="text-foreground">{pnlData.annualMargin !== null ? `${pnlData.annualMargin}%` : 'N/A'}</strong> on Total Service Revenue of {formatINR(pnlData.totalServiceRevenue)}
               </p>
             </div>
           </div>
 
           {/* Monthly P&L Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-4 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900">Profit & Loss Statement: {selectedYear}</h3>
-              <p className="text-xs text-slate-500">
+          <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
+            <div className="p-4 border-b border-border">
+              <h3 className="text-sm font-bold text-foreground">Profit &amp; Loss Statement: {selectedYear}</h3>
+              <p className="text-xs text-muted-foreground">
                 Formula: Recognized Service Revenue − Direct Costs = Gross Contribution − Overhead = Net Profit
               </p>
             </div>
 
             <div className="responsive-table-container overflow-y-auto max-h-[500px] text-xs">
               <table className="w-full min-w-[750px] text-left">
-                <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <thead className="sticky top-0 z-10 bg-secondary border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="p-3">Month</th>
-                    <th className="p-3">Service Revenue</th>
-                    <th className="p-3">Direct Service Costs</th>
-                    <th className="p-3">Gross Contribution</th>
-                    <th className="p-3">Salaries Expense</th>
-                    <th className="p-3">Other Overhead</th>
-                    <th className="p-3">Net Profit</th>
+                    <th className="p-3 text-right">Service Revenue</th>
+                    <th className="p-3 text-right">Direct Service Costs</th>
+                    <th className="p-3 text-right">Gross Contribution</th>
+                    <th className="p-3 text-right">Salaries Expense</th>
+                    <th className="p-3 text-right">Other Overhead</th>
+                    <th className="p-3 text-right">Net Profit</th>
                     <th className="p-3 text-right">Margin %</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border tabular-nums">
                   {(pnlData.monthlyBreakdown || []).map((m) => (
-                    <tr key={m.monthIndex} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-3 font-bold text-slate-900">{m.monthName}</td>
-                      <td className="p-3 font-semibold text-blue-600">{formatINR(m.serviceRevenue)}</td>
-                      <td className="p-3 text-rose-600">-{formatINR(m.directCosts)}</td>
-                      <td className="p-3 font-bold text-slate-800">{formatINR(m.grossContribution)}</td>
-                      <td className="p-3 text-rose-600">-{formatINR(m.salaryExpenses)}</td>
-                      <td className="p-3 text-rose-600">-{formatINR(m.otherOverhead)}</td>
-                      <td className="p-3 font-bold text-sm">
-                        <span className={m.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
-                          {formatINR(m.netProfit)}
-                        </span>
+                    <tr key={m.monthIndex} className="hover:bg-secondary/40 transition-colors">
+                      <td className="p-3 font-bold text-foreground">{m.monthName}</td>
+                      <td className="p-3 text-right font-semibold text-foreground">{formatINR(m.serviceRevenue)}</td>
+                      <td className="p-3 text-right text-muted-foreground">-{formatINR(m.directCosts)}</td>
+                      <td className="p-3 text-right font-bold text-foreground">{formatINR(m.grossContribution)}</td>
+                      <td className="p-3 text-right text-muted-foreground">-{formatINR(m.salaryExpenses)}</td>
+                      <td className="p-3 text-right text-muted-foreground">-{formatINR(m.otherOverhead)}</td>
+                      <td className="p-3 text-right font-bold text-sm text-foreground">
+                        {formatINR(m.netProfit)}
                       </td>
-                      <td className="p-3 text-right font-bold">
+                      <td className="p-3 text-right font-bold text-foreground">
                         {m.marginPercent !== null ? `${m.marginPercent}%` : 'N/A'}
                       </td>
                     </tr>

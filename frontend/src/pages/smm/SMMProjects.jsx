@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Briefcase, Calendar, DollarSign, User, CheckSquare } from 'lucide-react';
+import { Plus, Briefcase, Calendar, DollarSign, User, CheckSquare } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, SearchField } from '../../components/ui/page';

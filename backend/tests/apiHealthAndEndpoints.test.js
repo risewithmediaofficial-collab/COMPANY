@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const BASE_URL = process.env.API_URL || 'http://localhost:5001';
+const BASE_URL = process.env.API_URL || 'http://localhost:5005';
 
 const isConnRefused = (err) => {
   if (!err) return false;
@@ -22,7 +22,7 @@ test('API Live: Health check endpoint /api/health returns 200 and success', asyn
     assert.ok(data.timestamp);
   } catch (err) {
     if (isConnRefused(err)) {
-      console.warn('Server not currently running on port 5001, skipping live HTTP test');
+      console.warn('Server not currently running on port 5005, skipping live HTTP test');
       return;
     }
     throw err;

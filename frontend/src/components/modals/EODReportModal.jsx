@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { FileCheck, X } from 'lucide-react';
+import { FileCheck, X } from '@/components/ui/muiIcons';
 import { useSubmitEOD } from '../../hooks/useAttendance';
 
 const eodSchema = z.object({
@@ -62,7 +62,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent variant="center" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90dvh]">
+      <DialogContent variant="side" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
         <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
@@ -104,7 +104,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
                         <Input
                           type="date"
                           max={new Date().toISOString().split('T')[0]}
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm tabular-nums focus:ring-2 focus:ring-primary/20 shadow-2xs"
                           {...field}
                         />
                       </FormControl>
@@ -172,7 +172,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -194,7 +194,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
                 <Button
                   type="submit"
                   disabled={submitEOD.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
                 >
                   {submitEOD.isPending ? 'Submitting...' : 'Submit Report'}
                 </Button>

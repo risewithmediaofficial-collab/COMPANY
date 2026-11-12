@@ -15,7 +15,7 @@ import {
   Phone,
   Mail,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import api from '../../api';
 import { formatINR } from '../../utils/currency';
 import toast from 'react-hot-toast';
@@ -33,11 +33,11 @@ import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
 
 const statusTone = {
-  submitted: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  contacted: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  qualified: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
-  closed_won: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  closed_lost: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+  submitted: 'bg-secondary text-muted-foreground border-border',
+  contacted: 'bg-secondary text-foreground border-border',
+  qualified: 'bg-muted text-foreground border-border',
+  closed_won: 'bg-primary text-primary-foreground border-primary',
+  closed_lost: 'bg-secondary text-muted-foreground border-border line-through',
 };
 
 const ReferralDashboard = () => {
@@ -145,7 +145,7 @@ const ReferralDashboard = () => {
       key: 'dealValue',
       label: 'Est. Deal Value',
       render: (r) => (
-        <span className="font-bold text-xs text-foreground">
+        <span className="font-bold text-xs text-foreground tabular-nums">
           {r.dealValue ? formatINR(r.dealValue) : '—'}
         </span>
       ),
@@ -154,7 +154,7 @@ const ReferralDashboard = () => {
       key: 'commission',
       label: 'Commission (10%)',
       render: (r) => (
-        <span className="font-bold text-xs text-emerald-600">
+        <span className="font-bold text-xs text-foreground tabular-nums">
           {r.commissionEarned ? formatINR(r.commissionEarned) : r.dealValue ? formatINR(r.dealValue * 0.1) : 'Pending'}
         </span>
       ),
@@ -172,19 +172,22 @@ const ReferralDashboard = () => {
 
   // Cards Render
   const renderCard = (r) => (
-    <div className="space-y-3">
+    <div className="space-y-3 tabular-nums">
       <div className="flex items-center justify-between">
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize ${statusTone[r.status] || statusTone.submitted}`}>
           {(r.status || 'submitted').replace(/_/g, ' ')}
         </span>
-        <span className="text-xs font-bold text-emerald-600">
+        <span className="text-xs font-bold text-foreground">
           {r.dealValue ? `Est: ${formatINR(r.dealValue)}` : ''}
         </span>
       </div>
 
       <div>
         <h4 className="font-bold text-sm text-foreground">{r.leadName || r.name}</h4>
-        <p className="text-xs text-muted-foreground mt-0.5">🏢 {r.company || 'Direct Contact'}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+          <Building2 size={12} className="shrink-0 text-muted-foreground/70" />
+          <span>{r.company || 'Direct Contact'}</span>
+        </p>
       </div>
 
       <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
@@ -194,7 +197,7 @@ const ReferralDashboard = () => {
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Commission:</span>
-          <span className="font-bold text-emerald-600">
+          <span className="font-bold text-foreground">
             {r.commissionEarned ? formatINR(r.commissionEarned) : r.dealValue ? formatINR(r.dealValue * 0.1) : 'Pending'}
           </span>
         </div>
@@ -206,12 +209,12 @@ const ReferralDashboard = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Growth & Sales', 'Referral Hub']}
       title="Partner Referrals & Commission Hub"
-      icon="🤝"
+      icon={Users}
       properties={[
-        { label: 'Total Earnings', value: formatINR(totalEarnings), tone: 'success', icon: Award },
-        { label: 'Pending Payout', value: formatINR(pendingEarnings), tone: pendingEarnings > 0 ? 'warning' : 'neutral', icon: IndianRupee },
+        { label: 'Total Earnings', value: formatINR(totalEarnings), tone: 'neutral', icon: Award },
+        { label: 'Pending Payout', value: formatINR(pendingEarnings), tone: 'neutral', icon: IndianRupee },
         { label: 'Referred Leads', value: referrals.length, icon: Users },
-        { label: 'Won Deals', value: wonCount, tone: 'info', icon: CheckCircle2 },
+        { label: 'Won Deals', value: wonCount, tone: 'neutral', icon: CheckCircle2 },
       ]}
       actions={
         <div className="flex flex-wrap items-center gap-2">
@@ -222,7 +225,7 @@ const ReferralDashboard = () => {
               onClick={handleCopyLink}
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs min-h-[38px] cursor-pointer"
             >
-              {copiedLink ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+              {copiedLink ? <Check size={13} className="text-foreground" /> : <Copy size={13} />}
               <span>{copiedLink ? 'Copied Link' : 'Copy Partner Link'}</span>
             </Button>
           )}
@@ -253,7 +256,7 @@ const ReferralDashboard = () => {
         <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-xl max-h-[90dvh]">
           <form onSubmit={handleLeadSubmit} className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+            <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
               <div className="flex items-center gap-3.5 min-w-0">
                 <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
                   <Building2 className="h-5 w-5" />
@@ -351,7 +354,7 @@ const ReferralDashboard = () => {
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
               <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <Button

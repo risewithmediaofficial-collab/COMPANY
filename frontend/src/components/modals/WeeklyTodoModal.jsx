@@ -17,7 +17,7 @@ import {
   Sparkles,
   FileText,
   Flag,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   Dialog,
   DialogContent,
@@ -41,20 +41,20 @@ const DAYS_OF_WEEK = [
 ];
 
 const PRIORITIES = [
-  { value: 'low', label: 'Low', color: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
-  { value: 'medium', label: 'Medium', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-  { value: 'high', label: 'High', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  { value: 'urgent', label: 'Urgent', color: 'bg-rose-500/10 text-rose-600 border-rose-500/20' },
+  { value: 'low', label: 'Low', color: 'bg-muted text-muted-foreground border-border' },
+  { value: 'medium', label: 'Medium', color: 'bg-secondary text-foreground border-border' },
+  { value: 'high', label: 'High', color: 'bg-secondary text-foreground border-foreground/40 font-semibold' },
+  { value: 'urgent', label: 'Urgent', color: 'bg-primary text-primary-foreground border-primary font-bold' },
 ];
 
 const CATEGORIES = [
-  { value: 'general', label: 'General / Admin', icon: '📋' },
-  { value: 'client', label: 'Client Work', icon: '🏢' },
-  { value: 'dev', label: 'Development', icon: '💻' },
-  { value: 'content', label: 'Content & Design', icon: '🎨' },
-  { value: 'meeting', label: 'Call / Meeting', icon: '📞' },
-  { value: 'review', label: 'Review & QA', icon: '🔍' },
-  { value: 'urgent', label: 'High Priority', icon: '🔥' },
+  { value: 'general', label: 'General / Admin' },
+  { value: 'client', label: 'Client Work' },
+  { value: 'dev', label: 'Development' },
+  { value: 'content', label: 'Content & Design' },
+  { value: 'meeting', label: 'Call / Meeting' },
+  { value: 'review', label: 'Review & QA' },
+  { value: 'urgent', label: 'High Priority' },
 ];
 
 export function WeeklyTodoModal({
@@ -194,7 +194,7 @@ export function WeeklyTodoModal({
                     onChange={(e) => setAssignedTo(e.target.value)}
                     className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
                   >
-                    <option value={currentUser?._id}>👤 Myself ({currentUser?.name || 'Me'})</option>
+                    <option value={currentUser?._id}>Myself ({currentUser?.name || 'Me'})</option>
                     {assignableUsers
                       .filter((u) => u._id !== currentUser?._id)
                       .map((u) => (
@@ -216,7 +216,7 @@ export function WeeklyTodoModal({
               {/* Day of Week */}
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                  <Calendar size={15} className="text-primary" />
+                  <Calendar size={15} className="text-primary shrink-0" />
                   <span>Day of Week / Execution Target</span>
                 </label>
                 <select
@@ -226,7 +226,7 @@ export function WeeklyTodoModal({
                 >
                   {DAYS_OF_WEEK.map((day) => (
                     <option key={day} value={day}>
-                      {day === 'Weekly Target' ? '🎯 Whole Week Target' : `📅 ${day}`}
+                      {day === 'Weekly Target' ? 'Whole Week Target' : day}
                     </option>
                   ))}
                 </select>
@@ -271,7 +271,6 @@ export function WeeklyTodoModal({
                             : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border'
                         }`}
                       >
-                        <span>{c.icon}</span>
                         <span>{c.label}</span>
                       </button>
                     );
@@ -312,7 +311,7 @@ export function WeeklyTodoModal({
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
             <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
               <span>Press</span>
               <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -334,16 +333,16 @@ export function WeeklyTodoModal({
               <Button
                 type="submit"
                 disabled={isPending || !title.trim()}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all gap-2"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all gap-2"
               >
                 {isPending ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                     <span>Saving...</span>
                   </>
                 ) : (
                   <>
-                    <CheckSquare size={16} />
+                    <CheckSquare size={16} className="shrink-0" />
                     <span>{todo ? 'Save Changes' : isManagerOrAdmin ? 'Assign Todo' : 'Add Todo'}</span>
                   </>
                 )}

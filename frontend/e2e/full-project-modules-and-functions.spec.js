@@ -4,7 +4,7 @@ test.describe('Full Project Modules & Functions Verification Suite', () => {
 
   test.beforeEach(async ({ page }) => {
     // Authenticate
-    await page.goto('http://localhost:5173/login');
+    await page.goto('http://localhost:5175/login');
     await page.waitForLoadState('networkidle');
 
     const emailInput = page.locator('form input[type="email"]').first();
@@ -19,7 +19,7 @@ test.describe('Full Project Modules & Functions Verification Suite', () => {
   });
 
   test('Module 1: Dashboard / Command Center Overview', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:5175/');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('body')).toBeVisible();
@@ -35,7 +35,7 @@ test.describe('Full Project Modules & Functions Verification Suite', () => {
     ];
 
     for (const route of smmRoutes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('networkidle');
       await expect(page.locator('body')).toBeVisible();
       // Ensure page has no crash / uncaught error screen
@@ -47,7 +47,7 @@ test.describe('Full Project Modules & Functions Verification Suite', () => {
     const crmRoutes = ['/crm/leads', '/proposals', '/referral'];
 
     for (const route of crmRoutes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('networkidle');
       await expect(page.locator('body')).toBeVisible();
     }
@@ -57,7 +57,7 @@ test.describe('Full Project Modules & Functions Verification Suite', () => {
     const clientRoutes = ['/clients', '/clients/followups', '/clients/vault'];
 
     for (const route of clientRoutes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('networkidle');
       await expect(page.locator('body')).toBeVisible();
     }
@@ -67,20 +67,20 @@ test.describe('Full Project Modules & Functions Verification Suite', () => {
     const fulfillmentRoutes = ['/projects', '/tasks'];
 
     for (const route of fulfillmentRoutes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('networkidle');
       await expect(page.locator('body')).toBeVisible();
     }
   });
 
   test('Module 6: Finance & Accounting (Invoices, Expenses)', async ({ page }) => {
-    await page.goto('http://localhost:5173/finance');
+    await page.goto('http://localhost:5175/finance');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('Module 7: HR, Attendance, & Organization Management', async ({ page }) => {
-    await page.goto('http://localhost:5173/hr');
+    await page.goto('http://localhost:5175/hr');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toBeVisible();
   });
@@ -89,7 +89,7 @@ test.describe('Full Project Modules & Functions Verification Suite', () => {
     const opsRoutes = ['/sop', '/settings'];
 
     for (const route of opsRoutes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('networkidle');
       await expect(page.locator('body')).toBeVisible();
     }

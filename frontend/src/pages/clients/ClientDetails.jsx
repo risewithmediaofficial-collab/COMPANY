@@ -9,7 +9,7 @@ import {
   Briefcase, CheckCircle2, Clock, AlertCircle, Users,
   FileText, TrendingUp, Edit2, FolderOpen, Calendar,
   LockKeyhole, KeyRound, Eye, EyeOff, Copy, Check, ExternalLink, Plus, ChevronDown, ChevronUp, AtSign
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { motion } from 'framer-motion';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
@@ -23,18 +23,18 @@ import { formatINR } from '../../utils/currency';
 import { useCredential } from '../../hooks/useClientCredentials';
 
 const PLATFORM_MAP = {
-  instagram: { label: 'Instagram', emoji: '📸' },
-  facebook: { label: 'Facebook', emoji: '📘' },
-  x: { label: 'X (Twitter)', emoji: '🐦' },
-  youtube: { label: 'YouTube', emoji: '▶️' },
-  linkedin: { label: 'LinkedIn', emoji: '💼' },
-  threads: { label: 'Threads', emoji: '🧵' },
-  tiktok: { label: 'TikTok', emoji: '🎵' },
-  snapchat: { label: 'Snapchat', emoji: '👻' },
-  pinterest: { label: 'Pinterest', emoji: '📌' },
-  other: { label: 'Other', emoji: '🔗' },
+  instagram: { label: 'Instagram', code: 'IG' },
+  facebook: { label: 'Facebook', code: 'FB' },
+  x: { label: 'X (Twitter)', code: 'X' },
+  youtube: { label: 'YouTube', code: 'YT' },
+  linkedin: { label: 'LinkedIn', code: 'IN' },
+  threads: { label: 'Threads', code: 'TH' },
+  tiktok: { label: 'TikTok', code: 'TT' },
+  snapchat: { label: 'Snapchat', code: 'SC' },
+  pinterest: { label: 'Pinterest', code: 'PI' },
+  other: { label: 'Other', code: 'OT' },
 };
-const getPlatformMeta = (val) => PLATFORM_MAP[val] || { label: val || 'Account', emoji: '🔐' };
+const getPlatformMeta = (val) => PLATFORM_MAP[val] || { label: val || 'Account', code: 'AC' };
 
 const onboardingStepLabels = {
   welcomeEmailSent: 'Welcome Email Sent',
@@ -45,11 +45,11 @@ const onboardingStepLabels = {
 };
 
 const statusStyles = {
-  Active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
-  Prospect: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
-  Churned: 'bg-red-500/10 text-red-600 border-red-500/30',
+  Active: 'bg-primary text-primary-foreground border-primary',
+  Prospect: 'bg-secondary text-foreground border-foreground/40',
+  Churned: 'bg-muted text-muted-foreground border-border',
   Inactive: 'bg-secondary text-muted-foreground border-border',
-  Renew: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30',
+  Renew: 'bg-secondary text-foreground border-border font-bold',
 };
 
 const ClientDetails = () => {
@@ -208,7 +208,7 @@ const ClientDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
+      <div className="space-y-6">
         <div className="h-40 bg-card rounded-3xl border border-border" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => <div key={i} className="h-24 bg-card rounded-2xl border border-border" />)}
@@ -220,7 +220,7 @@ const ClientDetails = () => {
   if (!data?.client) {
     return (
       <div className="p-6 sm:p-10 text-center bg-card rounded-3xl border border-border/80 shadow-xs max-w-md mx-auto my-12 space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center mx-auto">
           <Building2 size={24} />
         </div>
         <div className="space-y-1">
@@ -265,13 +265,13 @@ const ClientDetails = () => {
 
   const stats = [
     ...(isFinanceVisible ? [
-      { label: 'Total Revenue', value: formatINR(totalRevenue), icon: IndianRupee, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+      { label: 'Total Revenue', value: formatINR(totalRevenue), icon: IndianRupee },
     ] : []),
-    { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length, icon: Briefcase, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'Account Created', value: client.createdAt ? new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-500/10' },
+    { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length, icon: Briefcase },
+    { label: 'Account Created', value: client.createdAt ? new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—', icon: Calendar },
     ...(isFinanceVisible ? [
-      { label: 'Paid Invoices', value: paidInvoices.length, icon: CheckCircle2, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-      { label: 'Pending Invoices', value: pendingInvoices.length, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+      { label: 'Paid Invoices', value: paidInvoices.length, icon: CheckCircle2 },
+      { label: 'Pending Invoices', value: pendingInvoices.length, icon: AlertCircle },
     ] : []),
   ];
 
@@ -311,18 +311,18 @@ const ClientDetails = () => {
               onClick={() => handleTabChange('vault')}
               className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
                 activeTab === 'vault'
-                  ? 'border-primary bg-primary text-white shadow-sm'
-                  : 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/20'
+                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                  : 'border-border bg-secondary text-foreground hover:bg-muted'
               }`}
             >
-              <LockKeyhole size={16} /> Client Vault
+              <LockKeyhole size={16} className="shrink-0" /> Client Vault
             </button>
             {client.email && (
               <a
                 href={`mailto:${client.email}`}
                 className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
               >
-                <Mail size={16} /> Email Client
+                <Mail size={16} className="shrink-0" /> Email Client
               </a>
             )}
             {client.driveLink && (
@@ -330,17 +330,17 @@ const ClientDetails = () => {
                 href={client.driveLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-600 transition-colors hover:bg-emerald-500/20"
+                className="flex items-center gap-2 rounded-xl border border-border bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
               >
-                <FolderOpen size={16} /> Drive Folder
+                <FolderOpen size={16} className="shrink-0" /> Drive Folder
               </a>
             )}
             {user?.role !== 'client' && (
               <button
                 onClick={() => setShowEditModal(true)}
-                className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
+                className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90"
               >
-                <Edit2 size={16} /> Edit Client
+                <Edit2 size={16} className="shrink-0" /> Edit Client
               </button>
             )}
           </>
@@ -353,14 +353,14 @@ const ClientDetails = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.07 }}
-              className="flex items-center gap-4 rounded-2xl border border-border/70 bg-secondary/20 p-4"
+              className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4"
             >
-              <div className={`rounded-2xl p-3 ${stat.bg} ${stat.color}`}>
+              <div className="rounded-2xl p-3 bg-secondary border border-border text-foreground shrink-0">
                 <stat.icon size={20} />
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
-                <p className="mt-0.5 text-xl font-bold">{stat.value}</p>
+                <p className="mt-0.5 text-xl font-bold text-foreground tabular-nums">{stat.value}</p>
               </div>
             </motion.div>
           ))}
@@ -418,9 +418,9 @@ const ClientDetails = () => {
                       href={client.driveLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:underline break-all"
+                      className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:underline break-all"
                     >
-                      <FolderOpen size={15} />
+                      <FolderOpen size={15} className="shrink-0" />
                       {client.driveLink}
                     </a>
                   ) : (
@@ -429,7 +429,7 @@ const ClientDetails = () => {
                       {user?.role !== 'client' && (
                         <button
                           onClick={() => setShowEditModal(true)}
-                          className="text-primary underline font-medium"
+                          className="text-foreground underline font-medium"
                         >
                           Add one
                         </button>
@@ -451,15 +451,15 @@ const ClientDetails = () => {
               <h2 className="font-bold text-lg mb-5">Onboarding Progress</h2>
               <div className="relative mb-6">
                 <div className="flex items-end justify-between mb-2">
-                  <span className="text-xs text-muted-foreground font-medium">{completedSteps}/{totalSteps} steps</span>
-                  <span className="text-2xl font-black text-primary">{onboardingPercent}%</span>
+                  <span className="text-xs text-muted-foreground font-medium tabular-nums">{completedSteps}/{totalSteps} steps</span>
+                  <span className="text-2xl font-black text-foreground tabular-nums">{onboardingPercent}%</span>
                 </div>
                 <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${onboardingPercent}%` }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
-                    className="h-full bg-gradient-to-r from-primary to-indigo-500 rounded-full"
+                    className="h-full bg-primary rounded-full"
                   />
                 </div>
               </div>
@@ -467,11 +467,11 @@ const ClientDetails = () => {
                 {Object.entries(onboardingStepLabels).map(([key, label]) => {
                   const done = onboardingSteps[key];
                   return (
-                    <div key={key} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${done ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-secondary/20'}`}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${done ? 'bg-emerald-500' : 'bg-secondary border-2 border-border'}`}>
-                        {done && <CheckCircle2 size={12} className="text-white" />}
+                    <div key={key} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${done ? 'border-foreground/30 bg-secondary/60' : 'border-border bg-background'}`}>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-primary text-primary-foreground' : 'bg-secondary border border-border'}`}>
+                        {done && <CheckCircle2 size={12} />}
                       </div>
-                      <span className={`text-xs font-semibold ${done ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'}`}>{label}</span>
+                      <span className={`text-xs font-semibold ${done ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>
                     </div>
                   );
                 })}
@@ -512,13 +512,13 @@ const ClientDetails = () => {
           {/* Header Banner */}
           <div className="bg-card rounded-3xl border border-border shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xl shadow-inner shrink-0">
+              <div className="h-12 w-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xl shrink-0">
                 <LockKeyhole size={24} />
               </div>
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">
                   Client Vault & Logins
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-secondary text-foreground">
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-secondary text-foreground tabular-nums">
                     {credentials.length} {credentials.length === 1 ? 'Record' : 'Records'}
                   </span>
                 </h2>
@@ -531,9 +531,9 @@ const ClientDetails = () => {
             {!isClientUser && (
               <Link
                 to="/client-vault"
-                className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20 border border-primary/30 px-3.5 py-2 rounded-xl transition-all shadow-2xs"
+                className="inline-flex items-center gap-2 text-xs font-bold text-foreground bg-secondary hover:bg-muted border border-border px-3.5 py-2 rounded-xl transition-all shadow-2xs"
               >
-                <KeyRound size={14} /> Open Full Vault Manager
+                <KeyRound size={14} className="shrink-0" /> Open Full Vault Manager
               </Link>
             )}
           </div>
@@ -553,9 +553,9 @@ const ClientDetails = () => {
               {!isClientUser && (
                 <Link
                   to="/client-vault"
-                  className="inline-flex items-center gap-2 text-xs font-bold bg-primary text-white px-4 py-2 rounded-xl shadow hover:bg-primary/90 transition-all mt-2"
+                  className="inline-flex items-center gap-2 text-xs font-bold bg-primary text-primary-foreground px-4 py-2 rounded-xl shadow hover:opacity-90 transition-all mt-2"
                 >
-                  <Plus size={14} /> Add Credential in Vault
+                  <Plus size={14} className="shrink-0" /> Add Credential in Vault
                 </Link>
               )}
             </div>
@@ -569,7 +569,7 @@ const ClientDetails = () => {
                 return (
                   <div
                     key={item._id}
-                    className="bg-card rounded-3xl border border-border shadow-sm p-5 space-y-4 flex flex-col justify-between hover:border-primary/40 transition-all"
+                    className="bg-card rounded-3xl border border-border shadow-sm p-5 space-y-4 flex flex-col justify-between hover:border-foreground/40 transition-all"
                   >
                     <div className="space-y-3.5">
                       {/* Top Bar */}
@@ -582,11 +582,11 @@ const ClientDetails = () => {
                             href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground hover:underline"
                             title="Open login URL"
                           >
                             <span>Login Portal</span>
-                            <ExternalLink size={11} />
+                            <ExternalLink size={11} className="shrink-0" />
                           </a>
                         )}
                       </div>
@@ -594,7 +594,7 @@ const ClientDetails = () => {
                       {/* Card Title */}
                       <div>
                         <h3 className="font-bold text-base text-foreground flex items-center gap-2">
-                          <LockKeyhole size={16} className="text-primary shrink-0" />
+                          <LockKeyhole size={16} className="text-foreground shrink-0" />
                           <span className="truncate">{item.credentialName}</span>
                         </h3>
                         {item.notes && (
@@ -607,7 +607,7 @@ const ClientDetails = () => {
                       {/* Primary Credential Box */}
                       <div className="p-3.5 rounded-2xl bg-secondary/35 border border-border/60 space-y-2 text-xs">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
-                          <KeyRound size={11} /> Primary Credential
+                          <KeyRound size={11} className="shrink-0" /> Primary Credential
                         </div>
 
                         {/* Username */}
@@ -625,7 +625,7 @@ const ClientDetails = () => {
                                 title="Copy username"
                               >
                                 {copiedId === `user-${item._id}` ? (
-                                  <Check size={12} className="text-emerald-500" />
+                                  <Check size={12} className="text-foreground" />
                                 ) : (
                                   <Copy size={12} />
                                 )}
@@ -657,7 +657,7 @@ const ClientDetails = () => {
                                 title="Copy password"
                               >
                                 {copiedId === `pass-${item._id}` ? (
-                                  <Check size={12} className="text-emerald-500" />
+                                  <Check size={12} className="text-foreground" />
                                 ) : (
                                   <Copy size={12} />
                                 )}
@@ -680,7 +680,7 @@ const ClientDetails = () => {
                                 className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
                               >
                                 {copiedId === `email-${item._id}` ? (
-                                  <Check size={12} className="text-emerald-500" />
+                                  <Check size={12} className="text-foreground" />
                                 ) : (
                                   <Copy size={12} />
                                 )}
@@ -694,14 +694,14 @@ const ClientDetails = () => {
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-muted-foreground text-[11px]">Mobile:</span>
                             <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="font-mono font-medium">{item.mobileNumber}</span>
+                              <span className="font-mono font-medium tabular-nums">{item.mobileNumber}</span>
                               <button
                                 type="button"
                                 onClick={() => handleCopy(item.mobileNumber, `mob-${item._id}`)}
                                 className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
                               >
                                 {copiedId === `mob-${item._id}` ? (
-                                  <Check size={12} className="text-emerald-500" />
+                                  <Check size={12} className="text-foreground" />
                                 ) : (
                                   <Copy size={12} />
                                 )}
@@ -723,10 +723,10 @@ const ClientDetails = () => {
                             className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-3 py-2 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/40 transition-all cursor-pointer"
                           >
                             <span className="flex items-center gap-1.5">
-                              <AtSign size={13} className="text-primary" />
-                              <span>{accounts.length} Platform Account{accounts.length > 1 ? 's' : ''}</span>
-                              <span className="text-muted-foreground font-normal text-[11px] ml-1">
-                                {accounts.map((a) => getPlatformMeta(a.platform).emoji).join(' ')}
+                              <AtSign size={13} className="text-foreground shrink-0" />
+                              <span className="tabular-nums">{accounts.length} Platform Account{accounts.length > 1 ? 's' : ''}</span>
+                              <span className="text-muted-foreground font-mono text-[10px] ml-1 uppercase">
+                                {accounts.map((a) => getPlatformMeta(a.platform).code).join(' · ')}
                               </span>
                             </span>
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -745,15 +745,15 @@ const ClientDetails = () => {
                                 return (
                                   <div
                                     key={accIdx}
-                                    className="rounded-2xl border border-border/80 bg-background/80 p-3 space-y-2 text-xs"
+                                    className="rounded-2xl border border-border/80 bg-background p-3 space-y-2 text-xs"
                                   >
                                     <div className="flex items-center justify-between font-bold text-foreground">
                                       <span className="flex items-center gap-1.5">
-                                        <span>{meta.emoji}</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[9px] font-mono">{meta.code}</span>
                                         <span>{acc.platformLabel || meta.label}</span>
                                       </span>
                                       {acc.pages && acc.pages.length > 0 && (
-                                        <span className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded bg-secondary">
+                                        <span className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded bg-secondary tabular-nums">
                                           {acc.pages.length} page{acc.pages.length > 1 ? 's' : ''}
                                         </span>
                                       )}
@@ -773,7 +773,7 @@ const ClientDetails = () => {
                                               className="cursor-pointer"
                                             >
                                               {copiedId === `hnd-${item._id}-${accIdx}` ? (
-                                                <Check size={10} className="text-emerald-500" />
+                                                <Check size={10} className="text-foreground" />
                                               ) : (
                                                 <Copy size={10} />
                                               )}
@@ -795,7 +795,7 @@ const ClientDetails = () => {
                                               className="cursor-pointer"
                                             >
                                               {copiedId === `aem-${item._id}-${accIdx}` ? (
-                                                <Check size={10} className="text-emerald-500" />
+                                                <Check size={10} className="text-foreground" />
                                               ) : (
                                                 <Copy size={10} />
                                               )}
@@ -808,7 +808,7 @@ const ClientDetails = () => {
                                         <div className="flex items-center justify-between">
                                           <span className="text-muted-foreground">Mobile:</span>
                                           <div className="flex items-center gap-1">
-                                            <span className="font-mono font-medium">
+                                            <span className="font-mono font-medium tabular-nums">
                                               {acc.mobileNumber}
                                             </span>
                                             <button
@@ -817,7 +817,7 @@ const ClientDetails = () => {
                                               className="cursor-pointer"
                                             >
                                               {copiedId === `amob-${item._id}-${accIdx}` ? (
-                                                <Check size={10} className="text-emerald-500" />
+                                                <Check size={10} className="text-foreground" />
                                               ) : (
                                                 <Copy size={10} />
                                               )}
@@ -839,7 +839,7 @@ const ClientDetails = () => {
                                               className="cursor-pointer"
                                             >
                                               {copiedId === `apass-${item._id}-${accIdx}` ? (
-                                                <Check size={10} className="text-emerald-500" />
+                                                <Check size={10} className="text-foreground" />
                                               ) : (
                                                 <Copy size={10} />
                                               )}
@@ -872,13 +872,13 @@ const ClientDetails = () => {
                                             <div className="min-w-0">
                                               <span className="font-semibold">{p.pageName || 'Page'}</span>
                                               {p.pageId && (
-                                                <span className="text-muted-foreground ml-1.5 text-[10px]">
+                                                <span className="text-muted-foreground ml-1.5 text-[10px] font-mono">
                                                   ID: {p.pageId}
                                                 </span>
                                               )}
                                             </div>
                                             <div className="flex items-center gap-1.5 shrink-0">
-                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-primary/10 text-primary">
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-secondary border border-border text-foreground">
                                                 {p.role || 'Admin'}
                                               </span>
                                               {p.pageUrl && (
@@ -886,7 +886,7 @@ const ClientDetails = () => {
                                                   href={p.pageUrl.startsWith('http') ? p.pageUrl : `https://${p.pageUrl}`}
                                                   target="_blank"
                                                   rel="noreferrer"
-                                                  className="text-primary hover:underline"
+                                                  className="text-foreground hover:underline"
                                                 >
                                                   <ExternalLink size={10} />
                                                 </a>
@@ -932,14 +932,14 @@ const ClientDetails = () => {
       {activeTab === 'invoices' && (
         <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
           <div className="p-5 border-b border-border bg-secondary/10">
-            <h2 className="font-bold flex items-center gap-2"><FileText size={18} className="text-primary"/>Invoices</h2>
+            <h2 className="font-bold flex items-center gap-2"><FileText size={18} className="text-foreground shrink-0"/>Invoices</h2>
           </div>
           <div className="overflow-x-auto responsive-table-container">
             <table className="w-full min-w-[540px] text-sm">
               <thead>
                 <tr className="text-muted-foreground font-medium border-b border-border text-left">
                   <th className="px-6 py-4">Invoice #</th>
-                  <th className="px-6 py-4">Amount</th>
+                  <th className="px-6 py-4 text-right">Amount</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Due Date</th>
                 </tr>
@@ -947,16 +947,16 @@ const ClientDetails = () => {
               <tbody className="divide-y divide-border">
                 {invoices.length > 0 ? invoices.map(inv => (
                   <tr key={inv._id} className="hover:bg-secondary/20 transition-colors">
-                    <td className="px-6 py-4 font-bold">{inv.invoiceNumber}</td>
-                    <td className="px-6 py-4 font-bold text-emerald-600">{formatINR(inv.total || inv.amount || 0)}</td>
+                    <td className="px-6 py-4 font-bold tabular-nums">{inv.invoiceNumber}</td>
+                    <td className="px-6 py-4 font-bold text-foreground text-right tabular-nums">{formatINR(inv.total || inv.amount || 0)}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        inv.status?.toLowerCase() === 'paid' ? 'bg-emerald-500/10 text-emerald-600' :
-                        inv.status?.toLowerCase() === 'overdue' ? 'bg-red-500/10 text-red-600' :
-                        'bg-amber-500/10 text-amber-600'
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                        inv.status?.toLowerCase() === 'paid' ? 'bg-primary text-primary-foreground border-primary' :
+                        inv.status?.toLowerCase() === 'overdue' ? 'bg-secondary border-foreground/40 text-foreground' :
+                        'bg-secondary border-border text-muted-foreground'
                       }`}>{inv.status}</span>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground">{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}</td>
+                    <td className="px-6 py-4 text-muted-foreground tabular-nums">{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}</td>
                   </tr>
                 )) : (
                   <tr><td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">No invoices yet.</td></tr>
@@ -976,28 +976,28 @@ const ClientDetails = () => {
                   <h3 className="text-lg font-bold">{record.serviceName}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{record.projectName || record.projectId?.name}</p>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                  record.paymentStatus === 'Paid' ? 'bg-emerald-500/10 text-emerald-600' :
-                  record.paymentStatus === 'Overdue' ? 'bg-red-500/10 text-red-600' :
-                  record.paymentStatus === 'Partially Paid' ? 'bg-amber-500/10 text-amber-600' :
-                  'bg-slate-500/10 text-slate-600'
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                  record.paymentStatus === 'Paid' ? 'bg-primary text-primary-foreground border-primary' :
+                  record.paymentStatus === 'Overdue' ? 'bg-secondary border-foreground/40 text-foreground' :
+                  record.paymentStatus === 'Partially Paid' ? 'bg-secondary border-border text-foreground' :
+                  'bg-muted border-border text-muted-foreground'
                 }`}>{record.paymentStatus}</span>
               </div>
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</p>
-                  <p className="mt-1 font-semibold">₹{Number(record.totalProjectAmount || 0).toLocaleString()}</p>
+                  <p className="mt-1 font-semibold tabular-nums">₹{Number(record.totalProjectAmount || 0).toLocaleString()}</p>
                 </div>
                 <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Paid</p>
-                  <p className="mt-1 font-semibold">₹{Number(record.totalPaidAmount || 0).toLocaleString()}</p>
+                  <p className="mt-1 font-semibold tabular-nums">₹{Number(record.totalPaidAmount || 0).toLocaleString()}</p>
                 </div>
                 <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Balance</p>
-                  <p className="mt-1 font-semibold">₹{Number(record.balanceAmount || 0).toLocaleString()}</p>
+                  <p className="mt-1 font-semibold tabular-nums">₹{Number(record.balanceAmount || 0).toLocaleString()}</p>
                 </div>
               </div>
-              <div className="mt-4 text-sm text-muted-foreground space-y-1">
+              <div className="mt-4 text-sm text-muted-foreground space-y-1 tabular-nums">
                 <p>Invoice Status: <span className="font-semibold text-foreground">{record.invoiceStatus}</span></p>
                 <p>Due Date: <span className="font-semibold text-foreground">{record.paymentDueDate ? new Date(record.paymentDueDate).toLocaleDateString() : '—'}</span></p>
                 <p>Next Follow-up: <span className="font-semibold text-foreground">{record.nextFollowUpDate ? new Date(record.nextFollowUpDate).toLocaleDateString() : '—'}</span></p>
@@ -1012,7 +1012,7 @@ const ClientDetails = () => {
       {activeTab === 'paymentNotes' && (
         <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
           <div className="p-5 border-b border-border bg-secondary/10">
-            <h2 className="font-bold flex items-center gap-2"><AlertCircle size={18} className="text-primary"/>Payment Notes</h2>
+            <h2 className="font-bold flex items-center gap-2"><AlertCircle size={18} className="text-foreground shrink-0"/>Payment Notes</h2>
           </div>
           <div className="divide-y divide-border">
             {paymentNotes.length > 0 ? paymentNotes.map((note, index) => (
@@ -1022,8 +1022,8 @@ const ClientDetails = () => {
                     <p className="font-semibold">{note.noteTitle || 'Payment note'}</p>
                     <p className="text-sm text-muted-foreground mt-1">{note.noteDescription || 'No description added'}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-emerald-600">₹{Number(note.amountPaid || 0).toLocaleString()}</p>
+                  <div className="text-right tabular-nums">
+                    <p className="font-bold text-foreground">₹{Number(note.amountPaid || 0).toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">{note.paymentDate ? new Date(note.paymentDate).toLocaleDateString() : '—'}</p>
                   </div>
                 </div>
@@ -1094,12 +1094,12 @@ const ClientDetails = () => {
               {Object.entries(onboardingStepLabels).map(([key, label]) => {
                 const done = onboardingSteps[key];
                 return (
-                  <div key={key} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${done ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-secondary/10'}`}>
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${done ? 'bg-emerald-500' : 'bg-secondary'}`}>
-                      {done ? <CheckCircle2 size={16} className="text-white" /> : <Clock size={16} className="text-muted-foreground" />}
+                  <div key={key} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${done ? 'border-foreground/30 bg-secondary/50' : 'border-border bg-background'}`}>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${done ? 'bg-primary text-primary-foreground' : 'bg-secondary border border-border'}`}>
+                      {done ? <CheckCircle2 size={16} /> : <Clock size={16} className="text-muted-foreground" />}
                     </div>
                     <div className="flex-1">
-                      <p className={`text-sm font-semibold ${done ? 'text-emerald-700 dark:text-emerald-400 line-through' : ''}`}>{label}</p>
+                      <p className={`text-sm font-semibold ${done ? 'text-foreground line-through' : 'text-foreground'}`}>{label}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{done ? 'Completed' : 'Pending'}</p>
                     </div>
                   </div>

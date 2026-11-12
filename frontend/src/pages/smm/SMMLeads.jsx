@@ -5,7 +5,7 @@ import { SMMFilterBar } from '../../components/smm/SMMFilterBar';
 import {
   Users, UserCheck, Award, TrendingUp, Plus, Trash2, Edit3, X,
   Phone, Mail, Target, DollarSign
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -189,7 +189,7 @@ export const SMMLeads = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all scale-[1.01]"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-colors cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Lead</span>
@@ -208,10 +208,10 @@ export const SMMLeads = () => {
         <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Total Leads</span>
-            <Users size={16} className="text-primary" />
+            <Users size={16} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground">{stats.totalLeads || 0}</div>
-          <span className="text-[11px] text-muted-foreground mt-1 block">
+          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.totalLeads || 0}</div>
+          <span className="text-[11px] text-muted-foreground mt-1 block tabular-nums">
             {stats.leadsToday || 0} leads today
           </span>
         </div>
@@ -219,19 +219,19 @@ export const SMMLeads = () => {
         <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Qualified Leads</span>
-            <UserCheck size={16} className="text-blue-500" />
+            <UserCheck size={16} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground">{stats.qualifiedLeads || 0}</div>
+          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.qualifiedLeads || 0}</div>
           <span className="text-[11px] text-muted-foreground mt-1 block">Verified prospect intent</span>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Converted Leads</span>
-            <Award size={16} className="text-emerald-500" />
+            <Award size={16} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground">{stats.convertedLeads || 0}</div>
-          <span className="text-[11px] text-emerald-600 font-semibold mt-1 block">
+          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.convertedLeads || 0}</div>
+          <span className="text-[11px] text-foreground font-semibold mt-1 block tabular-nums">
             {stats.conversionRate || 0}% Conversion Rate
           </span>
         </div>
@@ -239,18 +239,18 @@ export const SMMLeads = () => {
         <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Cost Per Lead</span>
-            <DollarSign size={16} className="text-amber-500" />
+            <DollarSign size={16} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground">₹{stats.costPerLead || 0}</div>
+          <div className="text-2xl font-extrabold text-foreground tabular-nums">₹{stats.costPerLead || 0}</div>
           <span className="text-[11px] text-muted-foreground mt-1 block">Ad spend / total leads</span>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">This Month</span>
-            <TrendingUp size={16} className="text-purple-500" />
+            <TrendingUp size={16} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground">{stats.leadsThisMonth || 0}</div>
+          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.leadsThisMonth || 0}</div>
           <span className="text-[11px] text-muted-foreground mt-1 block">Leads generated in 30 days</span>
         </div>
       </div>
@@ -307,14 +307,14 @@ export const SMMLeads = () => {
                       <select
                         value={item.status}
                         onChange={(e) => handleStatusChange(item._id, e.target.value)}
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full border border-border bg-background cursor-pointer ${
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full border cursor-pointer ${
                           item.status === 'Converted'
-                            ? 'text-emerald-600 border-emerald-300 bg-emerald-50'
+                            ? 'bg-primary text-primary-foreground border-primary'
                             : item.status === 'Qualified'
-                            ? 'text-blue-600 border-blue-300 bg-blue-50'
+                            ? 'bg-secondary text-foreground border-border'
                             : item.status === 'Lost'
-                            ? 'text-red-500 border-red-200 bg-red-50'
-                            : 'text-foreground'
+                            ? 'bg-card text-muted-foreground border-border'
+                            : 'bg-background text-foreground border-border'
                         }`}
                       >
                         <option value="New">New</option>
@@ -328,7 +328,7 @@ export const SMMLeads = () => {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => handleDelete(item._id)}
-                        className="p-1.5 text-red-500 hover:text-red-600 rounded-lg hover:bg-red-50"
+                        className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary cursor-pointer transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -500,7 +500,7 @@ export const SMMLeads = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -520,7 +520,7 @@ export const SMMLeads = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
                 >
                   Record Lead
                 </Button>

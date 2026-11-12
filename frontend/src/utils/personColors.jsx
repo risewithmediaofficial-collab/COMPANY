@@ -1,132 +1,51 @@
 import React from 'react';
-import { User } from 'lucide-react';
 import { getAssetUrl } from './assetUrl';
 
 export const PERSON_COLOR_PALETTES = [
   {
-    bg: 'bg-emerald-500/15 dark:bg-emerald-500/25',
-    text: 'text-emerald-800 dark:text-emerald-300',
-    border: 'border-emerald-500/35 dark:border-emerald-500/50',
-    avatarBg: 'bg-emerald-600 dark:bg-emerald-500',
-    accentBorder: 'border-l-emerald-500',
-    accentGlow: 'hover:border-emerald-500/60',
-    dot: 'bg-emerald-500',
-    name: 'emerald',
+    bg: 'bg-zinc-100 dark:bg-zinc-800/80',
+    text: 'text-zinc-900 dark:text-zinc-100',
+    border: 'border-zinc-300 dark:border-zinc-700',
+    avatarBg: 'bg-zinc-900 dark:bg-zinc-200 dark:text-zinc-950',
+    accentBorder: 'border-l-zinc-900 dark:border-l-zinc-100',
+    accentGlow: 'hover:border-zinc-500/60',
+    dot: 'bg-zinc-900 dark:bg-zinc-100',
+    name: 'zinc-900',
   },
   {
-    bg: 'bg-indigo-500/15 dark:bg-indigo-500/25',
-    text: 'text-indigo-800 dark:text-indigo-300',
-    border: 'border-indigo-500/35 dark:border-indigo-500/50',
-    avatarBg: 'bg-indigo-600 dark:bg-indigo-500',
-    accentBorder: 'border-l-indigo-500',
-    accentGlow: 'hover:border-indigo-500/60',
-    dot: 'bg-indigo-500',
-    name: 'indigo',
+    bg: 'bg-neutral-100 dark:bg-neutral-800/80',
+    text: 'text-neutral-800 dark:text-neutral-200',
+    border: 'border-neutral-300 dark:border-neutral-700',
+    avatarBg: 'bg-neutral-700 dark:bg-neutral-300 dark:text-neutral-950',
+    accentBorder: 'border-l-neutral-700 dark:border-l-neutral-300',
+    accentGlow: 'hover:border-neutral-500/60',
+    dot: 'bg-neutral-700 dark:bg-neutral-300',
+    name: 'neutral-700',
   },
   {
-    bg: 'bg-amber-500/15 dark:bg-amber-500/25',
-    text: 'text-amber-900 dark:text-amber-300',
-    border: 'border-amber-500/35 dark:border-amber-500/50',
-    avatarBg: 'bg-amber-600 dark:bg-amber-500',
-    accentBorder: 'border-l-amber-500',
-    accentGlow: 'hover:border-amber-500/60',
-    dot: 'bg-amber-500',
-    name: 'amber',
+    bg: 'bg-zinc-200/70 dark:bg-zinc-800',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    border: 'border-zinc-300 dark:border-zinc-700',
+    avatarBg: 'bg-zinc-700 dark:bg-zinc-300 dark:text-zinc-950',
+    accentBorder: 'border-l-zinc-600 dark:border-l-zinc-400',
+    accentGlow: 'hover:border-zinc-500/60',
+    dot: 'bg-zinc-600 dark:bg-zinc-400',
+    name: 'zinc-600',
   },
   {
-    bg: 'bg-violet-500/15 dark:bg-violet-500/25',
-    text: 'text-violet-800 dark:text-violet-300',
-    border: 'border-violet-500/35 dark:border-violet-500/50',
-    avatarBg: 'bg-violet-600 dark:bg-violet-500',
-    accentBorder: 'border-l-violet-500',
-    accentGlow: 'hover:border-violet-500/60',
-    dot: 'bg-violet-500',
-    name: 'violet',
-  },
-  {
-    bg: 'bg-rose-500/15 dark:bg-rose-500/25',
-    text: 'text-rose-800 dark:text-rose-300',
-    border: 'border-rose-500/35 dark:border-rose-500/50',
-    avatarBg: 'bg-rose-600 dark:bg-rose-500',
-    accentBorder: 'border-l-rose-500',
-    accentGlow: 'hover:border-rose-500/60',
-    dot: 'bg-rose-500',
-    name: 'rose',
-  },
-  {
-    bg: 'bg-cyan-500/15 dark:bg-cyan-500/25',
-    text: 'text-cyan-800 dark:text-cyan-300',
-    border: 'border-cyan-500/35 dark:border-cyan-500/50',
-    avatarBg: 'bg-cyan-600 dark:bg-cyan-500',
-    accentBorder: 'border-l-cyan-500',
-    accentGlow: 'hover:border-cyan-500/60',
-    dot: 'bg-cyan-500',
-    name: 'cyan',
-  },
-  {
-    bg: 'bg-fuchsia-500/15 dark:bg-fuchsia-500/25',
-    text: 'text-fuchsia-800 dark:text-fuchsia-300',
-    border: 'border-fuchsia-500/35 dark:border-fuchsia-500/50',
-    avatarBg: 'bg-fuchsia-600 dark:bg-fuchsia-500',
-    accentBorder: 'border-l-fuchsia-500',
-    accentGlow: 'hover:border-fuchsia-500/60',
-    dot: 'bg-fuchsia-500',
-    name: 'fuchsia',
-  },
-  {
-    bg: 'bg-teal-500/15 dark:bg-teal-500/25',
-    text: 'text-teal-800 dark:text-teal-300',
-    border: 'border-teal-500/35 dark:border-teal-500/50',
-    avatarBg: 'bg-teal-600 dark:bg-teal-500',
-    accentBorder: 'border-l-teal-500',
-    accentGlow: 'hover:border-teal-500/60',
-    dot: 'bg-teal-500',
-    name: 'teal',
-  },
-  {
-    bg: 'bg-orange-500/15 dark:bg-orange-500/25',
-    text: 'text-orange-800 dark:text-orange-300',
-    border: 'border-orange-500/35 dark:border-orange-500/50',
-    avatarBg: 'bg-orange-600 dark:bg-orange-500',
-    accentBorder: 'border-l-orange-500',
-    accentGlow: 'hover:border-orange-500/60',
-    dot: 'bg-orange-500',
-    name: 'orange',
-  },
-  {
-    bg: 'bg-blue-500/15 dark:bg-blue-500/25',
-    text: 'text-blue-800 dark:text-blue-300',
-    border: 'border-blue-500/35 dark:border-blue-500/50',
-    avatarBg: 'bg-blue-600 dark:bg-blue-500',
-    accentBorder: 'border-l-blue-500',
-    accentGlow: 'hover:border-blue-500/60',
-    dot: 'bg-blue-500',
-    name: 'blue',
-  },
-  {
-    bg: 'bg-lime-500/15 dark:bg-lime-500/25',
-    text: 'text-lime-900 dark:text-lime-300',
-    border: 'border-lime-500/35 dark:border-lime-500/50',
-    avatarBg: 'bg-lime-600 dark:bg-lime-500',
-    accentBorder: 'border-l-lime-500',
-    accentGlow: 'hover:border-lime-500/60',
-    dot: 'bg-lime-500',
-    name: 'lime',
-  },
-  {
-    bg: 'bg-pink-500/15 dark:bg-pink-500/25',
-    text: 'text-pink-800 dark:text-pink-300',
-    border: 'border-pink-500/35 dark:border-pink-500/50',
-    avatarBg: 'bg-pink-600 dark:bg-pink-500',
-    accentBorder: 'border-l-pink-500',
-    accentGlow: 'hover:border-pink-500/60',
-    dot: 'bg-pink-500',
-    name: 'pink',
+    bg: 'bg-stone-100 dark:bg-stone-800/80',
+    text: 'text-stone-800 dark:text-stone-200',
+    border: 'border-stone-300 dark:border-stone-700',
+    avatarBg: 'bg-stone-700 dark:bg-stone-300 dark:text-stone-950',
+    accentBorder: 'border-l-stone-600 dark:border-l-stone-400',
+    accentGlow: 'hover:border-stone-500/60',
+    dot: 'bg-stone-600 dark:bg-stone-400',
+    name: 'stone',
   },
 ];
 
 /**
- * Returns a deterministic color palette based on person's name or ID
+ * Returns a deterministic monochrome palette based on person's name or ID
  */
 export const getPersonColor = (nameOrId = '') => {
   const str = String(nameOrId || 'unassigned').trim().toLowerCase();
@@ -181,7 +100,7 @@ export const extractTaskAssignees = (task = {}) => {
 };
 
 /**
- * Renders a color-coded person badge with avatar/initials and name
+ * Renders a monochrome assignee badge with avatar/initials and name
  */
 export const PersonAssigneeBadge = ({ person, size = 'sm', showRole = false }) => {
   if (!person) return null;
@@ -211,13 +130,13 @@ export const PersonAssigneeBadge = ({ person, size = 'sm', showRole = false }) =
         <img
           src={getAssetUrl(avatar)}
           alt=""
-          className={`${isSmall ? 'w-3.5 h-3.5' : 'w-4 h-4'} rounded-full object-cover shrink-0 ring-1 ring-white/20`}
+          className={`${isSmall ? 'w-3.5 h-3.5' : 'w-4 h-4'} rounded-full object-cover shrink-0 ring-1 ring-border`}
         />
       ) : (
         <span
           className={`${
             isSmall ? 'w-3.5 h-3.5 text-[8px]' : 'w-4 h-4 text-[9px]'
-          } rounded-full ${color.avatarBg} text-white flex items-center justify-center font-black shrink-0 shadow-xs`}
+          } rounded-full ${color.avatarBg} text-white dark:text-zinc-950 flex items-center justify-center font-black shrink-0`}
         >
           {initials}
         </span>

@@ -33,10 +33,7 @@ const ClientVault = lazy(() => import('./pages/clients/ClientVault'));
 const ClientFollowups = lazy(() => import('./pages/clients/ClientFollowups'));
 const Tasks = lazy(() => import('./pages/tasks/Tasks'));
 const ContentCalendar = lazy(() => import('./pages/tasks/ContentCalendar'));
-const DMCalendar = lazy(() => import('./pages/dmCalendar/DMCalendar'));
 const InfluencersDashboard = lazy(() => import('./pages/influencers/InfluencersDashboard'));
-const PendingNotes = lazy(() => import('./pages/tasks/PendingNotes'));
-const ManagerBoard = lazy(() => import('./pages/tasks/ManagerBoard'));
 const Finance = lazy(() => import('./pages/finance/Finance'));
 const CallHistoryDashboard = lazy(() => import('./pages/finance/CallHistoryDashboard'));
 const HR = lazy(() => import('./pages/hr/HR'));
@@ -46,7 +43,6 @@ const MyEODReports = lazy(() => import('./pages/employee/MyEODReports'));
 const ReferralDashboard = lazy(() => import('./pages/referral/ReferralDashboard'));
 const Users = lazy(() => import('./pages/admin/Users'));
 const DomainRenewals = lazy(() => import('./pages/admin/DomainRenewals'));
-const ManagerTaskAssignments = lazy(() => import('./pages/admin/ManagerTaskAssignments'));
 const AuditLogs = lazy(() => import('./pages/admin/AuditLogs'));
 const RecycleBin = lazy(() => import('./pages/admin/RecycleBin'));
 const AssetsLibrary = lazy(() => import('./pages/assets/AssetsLibrary'));
@@ -88,16 +84,15 @@ const DevelopmentReleases = lazy(() => import('./pages/development/DevelopmentRe
 
 // ─── Shared Loading Screen ────────────────────────────────────────────────────
 const LoadingScreen = () => (
-  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0a0a0a] text-white">
+  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0d0d0d] text-white">
     <div className="relative flex items-center justify-center">
-      <div className="h-16 w-16 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500 border-r-indigo-500" />
-      <div className="absolute h-10 w-10 animate-ping rounded-full bg-indigo-500/25" />
-      <div className="absolute h-4 w-4 rounded-full bg-indigo-500" />
+      <div className="h-14 w-14 animate-spin rounded-full border-4 border-zinc-800 border-t-zinc-200 border-r-zinc-400" />
+      <div className="absolute h-3.5 w-3.5 rounded-full bg-zinc-200" />
     </div>
-    <p className="mt-6 text-sm font-bold tracking-widest uppercase text-indigo-400/80 animate-pulse">
+    <p className="mt-6 text-sm font-bold tracking-widest uppercase text-zinc-200">
       Rise With Media
     </p>
-    <span className="mt-1 text-[10px] text-slate-500 tracking-wider">Connecting Hub…</span>
+    <span className="mt-1 text-[10px] text-zinc-500 tracking-wider">Connecting Hub…</span>
   </div>
 );
 
@@ -168,8 +163,20 @@ const App = () => {
         <LoadingScreen />
       ) : (
         <Router future={{ v7_relativeSplatPath: true }}>
-      <HotToaster position="top-right" reverseOrder={false} />
-      <SonnerToaster position="top-right" richColors closeButton />
+      <HotToaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{
+          className: '!bg-card !text-foreground !border !border-border !shadow-md !rounded-xl !text-xs !font-semibold',
+        }}
+      />
+      <SonnerToaster
+        position="top-right"
+        closeButton
+        toastOptions={{
+          className: 'bg-card text-foreground border border-border shadow-md rounded-xl',
+        }}
+      />
       <BannerNotificationHost />
       <Suspense fallback={null}>
         <Routes>
@@ -304,11 +311,6 @@ const App = () => {
               <ContentCalendar />
             </ProtectedRoute>
           } />
-          <Route path="/dm-calendar" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee', 'editor', 'designer', 'adsManager', 'intern']}>
-              <DMCalendar />
-            </ProtectedRoute>
-          } />
           <Route path="/influencers" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
               <InfluencersDashboard />
@@ -320,28 +322,6 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/daily_tasks" element={<Navigate to="/daily-tasks" replace />} />
-
-          {/* Task Change Notes & Ideas Hub */}
-          <Route path="/pending-notes" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee']}>
-              <PendingNotes />
-            </ProtectedRoute>
-          } />
-          <Route path="/pending notes" element={<Navigate to="/pending-notes" replace />} />
-          <Route path="/pending%20notes" element={<Navigate to="/pending-notes" replace />} />
-          <Route path="/task-notes" element={<Navigate to="/pending-notes" replace />} />
-          <Route path="/notes" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee']}>
-              <PendingNotes />
-            </ProtectedRoute>
-          } />
-
-          {/* Manager Board – manager reviews & assigns notes */}
-          <Route path="/manager-board" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
-              <ManagerBoard />
-            </ProtectedRoute>
-          } />
 
           {/* Finance OS */}
           <Route path="/finance" element={
@@ -411,11 +391,6 @@ const App = () => {
           <Route path="/admin/users" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin']}>
               <Users />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/manager-assignments" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin']}>
-              <ManagerTaskAssignments />
             </ProtectedRoute>
           } />
 

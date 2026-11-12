@@ -105,9 +105,9 @@ npm install
 
 Create a `.env` file in the `backend/` directory:
 ```env
-PORT=5000
+PORT=5005
 NODE_ENV=development
-CLIENT_URL=http://localhost:5173
+CLIENT_URL=http://localhost:5175
 MONGO_URI=mongodb://localhost:27017/agency_crm
 JWT_SECRET=super-secret-jwt-key-for-development-32char
 JWT_REFRESH_SECRET=super-secret-refresh-key-for-development
@@ -125,7 +125,7 @@ npm run seed
 Start the backend server:
 ```bash
 npm run dev
-# Server will start on http://localhost:5000
+# Server will start on http://localhost:5005
 ```
 
 ---
@@ -136,7 +136,7 @@ Open a new terminal window:
 cd frontend
 npm install
 npm run dev
-# Client will be live on http://localhost:5173
+# Client will be live on http://localhost:5175
 ```
 
 ---
@@ -159,7 +159,7 @@ This project includes **100% automated test coverage** across both API and brows
 ### 1. Postman API Suite (via Newman)
 A complete 12-request integration test suite verifying authentication, auto-provisioning, SMM hierarchy CRUD, budget calculations, and CSV reports:
 ```bash
-# Run against local backend (http://localhost:5000)
+# Run against local backend (http://localhost:5005)
 npx newman run "backend/tests/postman/SMM_AdBudget_API.postman_collection.json"
 ```
 - **Total Assertions**: 27

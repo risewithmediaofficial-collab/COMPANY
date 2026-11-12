@@ -28,7 +28,7 @@ test.describe('Admin Targeted Logout Flow Verification', () => {
     await expect(page.locator('body')).toBeVisible();
 
     // Find change password button for Sathish Kumar V (or first non-admin)
-    const keyButtons = page.locator('button[title*="Password"], button:has(svg.lucide-key-round)');
+    const keyButtons = page.locator('button[title*="Password"], button:has([data-testid="VpnKeyOutlinedIcon"])');
     if (await keyButtons.first().isVisible({ timeout: 5000 }).catch(() => false)) {
       await keyButtons.first().click();
 

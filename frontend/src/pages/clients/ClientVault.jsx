@@ -19,7 +19,9 @@ import {
   PlusCircle,
   Minus,
   X,
-} from 'lucide-react';
+  Building2,
+  FileText,
+} from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
 import { useClients } from '../../hooks/useClients';
 import {
@@ -49,16 +51,16 @@ import {
 
 // ─── Platform config ──────────────────────────────────────────────────────────
 const PLATFORMS = [
-  { value: 'instagram', label: 'Instagram', emoji: '📸' },
-  { value: 'facebook', label: 'Facebook', emoji: '📘' },
-  { value: 'x', label: 'X (Twitter)', emoji: '🐦' },
-  { value: 'youtube', label: 'YouTube', emoji: '▶️' },
-  { value: 'linkedin', label: 'LinkedIn', emoji: '💼' },
-  { value: 'threads', label: 'Threads', emoji: '🧵' },
-  { value: 'tiktok', label: 'TikTok', emoji: '🎵' },
-  { value: 'snapchat', label: 'Snapchat', emoji: '👻' },
-  { value: 'pinterest', label: 'Pinterest', emoji: '📌' },
-  { value: 'other', label: 'Other', emoji: '🔗' },
+  { value: 'instagram', label: 'Instagram', code: 'IG' },
+  { value: 'facebook', label: 'Facebook', code: 'FB' },
+  { value: 'x', label: 'X (Twitter)', code: 'X' },
+  { value: 'youtube', label: 'YouTube', code: 'YT' },
+  { value: 'linkedin', label: 'LinkedIn', code: 'IN' },
+  { value: 'threads', label: 'Threads', code: 'TH' },
+  { value: 'tiktok', label: 'TikTok', code: 'TT' },
+  { value: 'snapchat', label: 'Snapchat', code: 'SC' },
+  { value: 'pinterest', label: 'Pinterest', code: 'PN' },
+  { value: 'other', label: 'Other', code: 'OT' },
 ];
 
 const getPlatform = (value) => PLATFORMS.find((p) => p.value === value) || PLATFORMS[PLATFORMS.length - 1];
@@ -144,8 +146,8 @@ const SocialAccountRow = ({
       {/* Row header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-secondary/25">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-background border border-border text-base leading-none shadow-2xs shrink-0">
-            {platform.emoji}
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-secondary border border-border text-[11px] font-bold text-foreground leading-none shadow-2xs shrink-0">
+            {platform.code}
           </span>
           <div className="w-48 sm:w-56 shrink-0">
             <SelectDropdown
@@ -153,7 +155,7 @@ const SocialAccountRow = ({
               onChange={(val) => onChange(index, 'platform', val || 'instagram')}
               options={PLATFORMS.map((p) => ({
                 value: p.value,
-                label: `${p.emoji} ${p.label}`,
+                label: p.label,
               }))}
               placeholder="Select platform..."
               searchPlaceholder="Search platform (Instagram, Facebook...)"
@@ -175,7 +177,7 @@ const SocialAccountRow = ({
         <button
           type="button"
           onClick={() => onRemove(index)}
-          className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer shrink-0 ml-2"
+          className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer shrink-0 ml-2"
           title="Remove this account"
         >
           <Minus size={15} />
@@ -243,7 +245,7 @@ const SocialAccountRow = ({
                 onChange(index, 'password', masterPassword);
                 toast.success(`Copied master password to ${platform.label}!`);
               }}
-              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/20 border border-primary/25 px-2.5 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-foreground bg-secondary hover:bg-muted border border-border px-2.5 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
               title="Use password from Primary / Master Credential"
             >
               <Copy size={11} /> Same as Master / Email Password
@@ -292,14 +294,14 @@ const SocialAccountRow = ({
         <div className="border-t border-border/60 px-3 pb-3 pt-2.5 space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
-              <span>{platform.emoji}</span>
-              {account.platform === 'facebook' ? 'Facebook Pages' : 'Instagram Profiles / Pages'}
-              <span className="text-muted-foreground font-normal">({(account.pages || []).length})</span>
+              <span className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[9px] font-bold">{platform.code}</span>
+              <span>{account.platform === 'facebook' ? 'Facebook Pages' : 'Instagram Profiles / Pages'}</span>
+              <span className="text-muted-foreground font-normal tabular-nums">({(account.pages || []).length})</span>
             </p>
             <button
               type="button"
               onClick={addPage}
-              className="flex items-center gap-1 text-[11px] font-semibold text-primary px-2 py-1 rounded-lg border border-primary/30 hover:bg-primary/5 transition-all"
+              className="flex items-center gap-1 text-[11px] font-semibold text-foreground px-2 py-1 rounded-lg border border-border hover:bg-secondary transition-all cursor-pointer"
             >
               <PlusCircle size={11} />
               Add Page
@@ -309,7 +311,7 @@ const SocialAccountRow = ({
           {(account.pages || []).length === 0 && (
             <div className="rounded-lg border border-dashed border-border py-3 text-center text-[11px] text-muted-foreground">
               No pages added.{' '}
-              <button type="button" onClick={addPage} className="text-primary font-semibold hover:underline">
+              <button type="button" onClick={addPage} className="text-foreground font-semibold hover:underline cursor-pointer">
                 Add a {account.platform === 'facebook' ? 'Facebook Page' : 'Profile/Page'}
               </button>
             </div>
@@ -319,8 +321,8 @@ const SocialAccountRow = ({
             <div key={pi} className="rounded-lg border border-border bg-background/70 p-2.5 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
-                  <span className="text-base">{account.platform === 'facebook' ? '📄' : '📋'}</span>
-                  <span>Page {pi + 1}</span>
+                  <FileText size={13} className="text-muted-foreground shrink-0" />
+                  <span className="tabular-nums">Page {pi + 1}</span>
                   {page.pageName && (
                     <span className="text-muted-foreground font-normal">— {page.pageName}</span>
                   )}
@@ -328,7 +330,7 @@ const SocialAccountRow = ({
                 <button
                   type="button"
                   onClick={() => removePage(pi)}
-                  className="flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                  className="flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
                 >
                   <Minus size={12} />
                 </button>
@@ -385,12 +387,12 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
   const platform = getPlatform(account.platform);
 
   return (
-    <div className="rounded-lg border border-border/50 bg-background/60 p-2.5 space-y-2 text-xs">
+    <div className="rounded-lg border border-border bg-background/60 p-2.5 space-y-2 text-xs">
       <div className="flex items-center gap-1.5 font-bold text-foreground">
-        <span>{platform.emoji}</span>
+        <span className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[9px] font-bold">{platform.code}</span>
         <span>{account.platformLabel || platform.label}</span>
         {account.pages && account.pages.length > 0 && (
-          <span className="ml-auto text-[10px] font-normal text-muted-foreground">
+          <span className="ml-auto text-[10px] font-normal text-muted-foreground tabular-nums">
             {account.pages.length} page{account.pages.length > 1 ? 's' : ''}
           </span>
         )}
@@ -402,7 +404,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
             <div className="flex items-center gap-1 font-mono font-medium">
               <span className="truncate max-w-[110px]">{account.accountHandle}</span>
               <button onClick={() => onCopy(account.accountHandle, `handle-${account._id}`)}>
-                {copiedId === `handle-${account._id}` ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                {copiedId === `handle-${account._id}` ? <Check size={10} className="text-foreground" /> : <Copy size={10} />}
               </button>
             </div>
           </>
@@ -413,7 +415,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
             <div className="flex items-center gap-1 font-mono font-medium">
               <span className="truncate max-w-[110px]">{account.email}</span>
               <button onClick={() => onCopy(account.email, `aemail-${account._id}`)}>
-                {copiedId === `aemail-${account._id}` ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                {copiedId === `aemail-${account._id}` ? <Check size={10} className="text-foreground" /> : <Copy size={10} />}
               </button>
             </div>
           </>
@@ -424,7 +426,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
             <div className="flex items-center gap-1 font-mono font-medium">
               <span>{account.mobileNumber}</span>
               <button onClick={() => onCopy(account.mobileNumber, `amob-${account._id}`)}>
-                {copiedId === `amob-${account._id}` ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                {copiedId === `amob-${account._id}` ? <Check size={10} className="text-foreground" /> : <Copy size={10} />}
               </button>
             </div>
           </>
@@ -439,7 +441,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
                   <button onClick={() => setShowPass((v) => !v)}>{showPass ? <EyeOff size={10} /> : <Eye size={10} />}</button>
                   {showPass && (
                     <button onClick={() => onCopy(account.password, `apass-${account._id}`)}>
-                      {copiedId === `apass-${account._id}` ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                      {copiedId === `apass-${account._id}` ? <Check size={10} className="text-foreground" /> : <Copy size={10} />}
                     </button>
                   )}
                 </>
@@ -467,14 +469,14 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
       {account.pages && account.pages.length > 0 && (
         <div className="mt-2 space-y-1.5 pt-2 border-t border-border/40">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-            {platform.emoji} {platform.label === 'Facebook' ? 'Facebook Pages' : 'Pages / Profiles'}
+            {platform.label === 'Facebook' ? 'Facebook Pages' : 'Pages / Profiles'}
           </p>
           {account.pages.map((page, pi) => (
             <div key={pi} className="flex items-start justify-between gap-2 rounded-md bg-secondary/40 px-2 py-1.5 text-[11px]">
               <div className="space-y-0.5 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-foreground truncate">{page.pageName || '—'}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">{page.role}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-medium shrink-0">{page.role}</span>
                 </div>
                 {page.pageId && <p className="text-muted-foreground font-mono">ID: {page.pageId}</p>}
               </div>
@@ -483,7 +485,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
                   href={page.pageUrl.startsWith('http') ? page.pageUrl : `https://${page.pageUrl}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="shrink-0 text-primary hover:underline flex items-center gap-0.5"
+                  className="shrink-0 text-foreground hover:underline flex items-center gap-0.5"
                 >
                   <ExternalLink size={10} />
                 </a>
@@ -577,7 +579,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
       <DialogContent size="lg" noPadding hideCloseButton className="w-[calc(100vw-24px)] max-w-2xl bg-card border border-border p-0 overflow-hidden flex flex-col max-h-[90dvh] shadow-2xl">
         <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 sm:gap-4 m-0 pr-4 sm:pr-6 space-y-0">
           <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
               <LockKeyhole size={20} />
             </div>
             <div className="min-w-0">
@@ -653,7 +655,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
             {/* ── Primary Credential Card (Linear Flow) ── */}
             <div className="rounded-2xl border border-border/80 bg-secondary/15 p-5 sm:p-6 space-y-5 shadow-2xs">
               <p className="text-sm font-bold text-foreground flex items-center gap-2">
-                <LockKeyhole size={16} className="text-primary" /> Primary / Master Credential
+                <LockKeyhole size={16} className="text-foreground shrink-0" /> Primary / Master Credential
               </p>
               <div className="space-y-5">
                 <FormField label="Username / Email / Account ID">
@@ -746,7 +748,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
             <div className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <p className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <AtSign size={16} className="text-primary" /> Platform Accounts
+                  <AtSign size={16} className="text-foreground shrink-0" /> Platform Accounts
                   <span className="ml-1 text-xs font-normal text-muted-foreground">
                     (Instagram, Facebook, X, YouTube, etc.)
                   </span>
@@ -765,7 +767,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                         }));
                         toast.success('Applied master password to all platform accounts!');
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground bg-secondary hover:bg-muted border border-border transition-all px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs"
                       title="Fill all platform accounts with the master password entered above"
                     >
                       <Copy size={13} />
@@ -775,7 +777,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                   <button
                     type="button"
                     onClick={addAccount}
-                    className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-all px-3 py-1.5 rounded-xl border border-primary/30 hover:bg-primary/5 cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1.5 text-xs font-bold text-foreground hover:bg-secondary transition-all px-3 py-1.5 rounded-xl border border-border cursor-pointer shadow-2xs"
                   >
                     <PlusCircle size={14} />
                     Add Platform
@@ -786,7 +788,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
               {form.socialAccounts.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-border py-6 text-center text-xs text-muted-foreground bg-secondary/10">
                   No platform accounts added yet.{' '}
-                  <button type="button" onClick={addAccount} className="text-primary font-bold hover:underline cursor-pointer">
+                  <button type="button" onClick={addAccount} className="text-foreground font-bold hover:underline cursor-pointer">
                     Add one
                   </button>{' '}
                   to store Instagram, Facebook, X, YouTube passwords.
@@ -809,7 +811,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
           </div>
 
           {/* Modern Pinned Sticky Bottom Action Bar */}
-          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-end gap-2.5 z-10 shadow-xs select-none">
+          <div className="shrink-0 border-t border-border bg-card px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-end gap-2.5 z-10 shadow-xs select-none">
             <Button
               type="button"
               variant="secondary"
@@ -821,7 +823,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
             <Button
               type="submit"
               disabled={saving}
-              className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all flex-1 sm:flex-initial"
+              className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all flex-1 sm:flex-initial"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Store Securely'}
             </Button>
@@ -905,12 +907,15 @@ export default function ClientVault() {
       label: 'Account / Title',
       render: (item) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             <LockKeyhole size={14} />
           </div>
           <div>
             <p className="font-bold text-foreground">{item.credentialName}</p>
-            <p className="text-[11px] text-muted-foreground">🏢 {getClientName(item)}</p>
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+              <Building2 size={11} className="shrink-0" />
+              <span>{getClientName(item)}</span>
+            </p>
           </div>
         </div>
       ),
@@ -919,7 +924,7 @@ export default function ClientVault() {
       key: 'credentialType',
       label: 'Category',
       render: (item) => (
-        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground capitalize">
+        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary border border-border text-foreground capitalize">
           {typeLabels[item.credentialType] || item.credentialType}
         </span>
       ),
@@ -933,12 +938,16 @@ export default function ClientVault() {
         return (
           <div className="flex items-center gap-1 flex-wrap">
             {accounts.slice(0, 5).map((acc, i) => (
-              <span key={i} className="text-sm" title={getPlatform(acc.platform).label}>
-                {getPlatform(acc.platform).emoji}
+              <span
+                key={i}
+                className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px] font-bold text-foreground"
+                title={getPlatform(acc.platform).label}
+              >
+                {getPlatform(acc.platform).code}
               </span>
             ))}
             {accounts.length > 5 && (
-              <span className="text-[10px] text-muted-foreground">+{accounts.length - 5}</span>
+              <span className="text-[10px] text-muted-foreground tabular-nums">+{accounts.length - 5}</span>
             )}
           </div>
         );
@@ -951,14 +960,14 @@ export default function ClientVault() {
         <div className="text-xs text-muted-foreground space-y-0.5">
           {item.email && (
             <div className="flex items-center gap-1">
-              <Mail size={10} />
+              <Mail size={10} className="shrink-0" />
               <span>{item.email}</span>
             </div>
           )}
           {item.mobileNumber && (
             <div className="flex items-center gap-1">
-              <Phone size={10} />
-              <span>{item.mobileNumber}</span>
+              <Phone size={10} className="shrink-0" />
+              <span className="tabular-nums">{item.mobileNumber}</span>
             </div>
           )}
           {!item.email && !item.mobileNumber && <span>—</span>}
@@ -974,10 +983,10 @@ export default function ClientVault() {
           {item.username && (
             <button
               onClick={() => handleCopy(item.username, `user-${item._id}`)}
-              className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+              className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
               title="Copy username"
             >
-              {copiedId === `user-${item._id}` ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+              {copiedId === `user-${item._id}` ? <Check size={12} className="text-foreground" /> : <Copy size={12} />}
             </button>
           )}
         </div>
@@ -994,7 +1003,7 @@ export default function ClientVault() {
             <span className="font-mono text-xs text-foreground font-semibold">{passText}</span>
             <button
               onClick={() => setActivePasswordId(activePasswordId === item._id ? null : item._id)}
-              className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+              className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
               title={isRevealed ? 'Hide' : 'Reveal'}
             >
               {isRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
@@ -1002,10 +1011,10 @@ export default function ClientVault() {
             {isRevealed && (
               <button
                 onClick={() => handleCopy(revealedCredential.password, `pass-${item._id}`)}
-                className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+                className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
                 title="Copy Password"
               >
-                {copiedId === `pass-${item._id}` ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                {copiedId === `pass-${item._id}` ? <Check size={12} className="text-foreground" /> : <Copy size={12} />}
               </button>
             )}
           </div>
@@ -1021,7 +1030,7 @@ export default function ClientVault() {
             href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-foreground hover:underline font-medium"
           >
             <span>Open Link</span>
             <ExternalLink size={11} />
@@ -1034,7 +1043,7 @@ export default function ClientVault() {
       key: 'createdAt',
       label: 'Created Date',
       render: (item) => (
-        <span className="text-xs text-muted-foreground whitespace-nowrap">
+        <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
           {item.createdAt ? new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
         </span>
       ),
@@ -1051,14 +1060,14 @@ export default function ClientVault() {
                     setSelectedCredential(item);
                     setOpenDialog(true);
                   }}
-                  className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+                  className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
                   title="Edit"
                 >
                   <Pencil size={14} />
                 </button>
                 <button
                   onClick={() => setDeleteId(item._id)}
-                  className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+                  className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
                   title="Delete"
                 >
                   <Trash2 size={14} />
@@ -1079,7 +1088,7 @@ export default function ClientVault() {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border uppercase tracking-wider">
             {typeLabels[item.credentialType] || item.credentialType}
           </span>
           {!isClientUser && (
@@ -1089,14 +1098,14 @@ export default function ClientVault() {
                   setSelectedCredential(item);
                   setOpenDialog(true);
                 }}
-                className="p-1 rounded hover:bg-secondary text-muted-foreground"
+                className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
                 title="Edit"
               >
                 <Pencil size={13} />
               </button>
               <button
                 onClick={() => setDeleteId(item._id)}
-                className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+                className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
                 title="Delete"
               >
                 <Trash2 size={13} />
@@ -1107,7 +1116,10 @@ export default function ClientVault() {
 
         <div>
           <h4 className="font-bold text-sm text-foreground">{item.credentialName}</h4>
-          <p className="text-xs text-muted-foreground mt-0.5">🏢 {getClientName(item)}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+            <Building2 size={11} className="shrink-0" />
+            <span>{getClientName(item)}</span>
+          </p>
         </div>
 
         {/* Primary credential */}
@@ -1117,8 +1129,8 @@ export default function ClientVault() {
             <div className="flex items-center gap-1.5">
               <span className="font-mono font-medium">{item.username || '—'}</span>
               {item.username && (
-                <button onClick={() => handleCopy(item.username, `user-${item._id}`)}>
-                  {copiedId === `user-${item._id}` ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                <button onClick={() => handleCopy(item.username, `user-${item._id}`)} className="cursor-pointer">
+                  {copiedId === `user-${item._id}` ? <Check size={11} className="text-foreground" /> : <Copy size={11} />}
                 </button>
               )}
             </div>
@@ -1128,12 +1140,12 @@ export default function ClientVault() {
             <span className="text-muted-foreground">Pass:</span>
             <div className="flex items-center gap-1.5">
               <span className="font-mono font-medium">{isRevealed ? revealedCredential.password : '••••••••'}</span>
-              <button onClick={() => setActivePasswordId(activePasswordId === item._id ? null : item._id)}>
+              <button onClick={() => setActivePasswordId(activePasswordId === item._id ? null : item._id)} className="cursor-pointer">
                 {isRevealed ? <EyeOff size={11} /> : <Eye size={11} />}
               </button>
               {isRevealed && (
-                <button onClick={() => handleCopy(revealedCredential.password, `pass-${item._id}`)}>
-                  {copiedId === `pass-${item._id}` ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                <button onClick={() => handleCopy(revealedCredential.password, `pass-${item._id}`)} className="cursor-pointer">
+                  {copiedId === `pass-${item._id}` ? <Check size={11} className="text-foreground" /> : <Copy size={11} />}
                 </button>
               )}
             </div>
@@ -1144,8 +1156,8 @@ export default function ClientVault() {
               <span className="text-muted-foreground">Email:</span>
               <div className="flex items-center gap-1.5">
                 <span className="font-mono font-medium truncate max-w-[130px]">{item.email}</span>
-                <button onClick={() => handleCopy(item.email, `cemail-${item._id}`)}>
-                  {copiedId === `cemail-${item._id}` ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                <button onClick={() => handleCopy(item.email, `cemail-${item._id}`)} className="cursor-pointer">
+                  {copiedId === `cemail-${item._id}` ? <Check size={11} className="text-foreground" /> : <Copy size={11} />}
                 </button>
               </div>
             </div>
@@ -1155,9 +1167,9 @@ export default function ClientVault() {
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Mobile:</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-mono font-medium">{item.mobileNumber}</span>
-                <button onClick={() => handleCopy(item.mobileNumber, `cmob-${item._id}`)}>
-                  {copiedId === `cmob-${item._id}` ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                <span className="font-mono font-medium tabular-nums">{item.mobileNumber}</span>
+                <button onClick={() => handleCopy(item.mobileNumber, `cmob-${item._id}`)} className="cursor-pointer">
+                  {copiedId === `cmob-${item._id}` ? <Check size={11} className="text-foreground" /> : <Copy size={11} />}
                 </button>
               </div>
             </div>
@@ -1172,13 +1184,13 @@ export default function ClientVault() {
                 setActivePasswordId(item._id);
                 toggleCard(item._id);
               }}
-              className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-2.5 py-2 rounded-lg border border-border hover:bg-secondary transition-all"
+              className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-2.5 py-2 rounded-lg border border-border hover:bg-secondary transition-all cursor-pointer"
             >
               <span className="flex items-center gap-1.5">
                 <AtSign size={12} />
-                {accounts.length} Platform Account{accounts.length > 1 ? 's' : ''}
-                <span className="text-muted-foreground font-normal text-[10px]">
-                  {accounts.map((a) => getPlatform(a.platform).emoji).join(' ')}
+                <span className="tabular-nums">{accounts.length} Platform Account{accounts.length > 1 ? 's' : ''}</span>
+                <span className="text-muted-foreground font-mono text-[10px]">
+                  ({accounts.map((a) => getPlatform(a.platform).code).join(', ')})
                 </span>
               </span>
               {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
@@ -1205,7 +1217,7 @@ export default function ClientVault() {
             href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-xs text-primary hover:bg-secondary transition-all font-semibold"
+            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-xs text-foreground hover:bg-secondary transition-all font-semibold"
           >
             <span>Open Login Portal</span>
             <ExternalLink size={12} />
@@ -1228,7 +1240,7 @@ export default function ClientVault() {
           ? "Encrypted credential repository for your brand's social media accounts, CMS, domain hosting, and ad managers."
           : 'Encrypted credential repository for client social media accounts, CMS, domain hosting, ad managers, and brand assets.'
       }
-      icon="🔐"
+      icon={LockKeyhole}
       properties={[
         { label: 'Total Vault Items', value: total, icon: LockKeyhole },
         { label: 'Social Logins', value: socialCount, tone: 'info' },

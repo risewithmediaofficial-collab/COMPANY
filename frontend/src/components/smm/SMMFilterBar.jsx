@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { smmApi } from '../../api/smm';
-import { Building2, FolderKanban, Calendar as CalendarIcon, Share2, Filter, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, FolderKanban, Calendar as CalendarIcon, Share2, Filter, RefreshCw, ChevronDown, ChevronUp } from '@/components/ui/muiIcons';
 
 export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
   const [clients, setClients] = useState([]);

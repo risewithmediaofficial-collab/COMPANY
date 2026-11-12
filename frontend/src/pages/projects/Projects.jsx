@@ -41,7 +41,7 @@ import {
   Wrench,
   FileText,
   Edit2,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useProjects, useDeleteProject, useUpdateProject } from '../../hooks/useProjects';
 import { useClients } from '../../hooks/useClients';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -92,25 +92,25 @@ const STATUS_COLUMNS = ['Planning', 'In Progress', 'On Hold', 'Completed', 'Canc
 
 export const PROJECT_PERIOD_OPTIONS = [
   { key: 'all', label: 'All Projects' },
-  { key: 'today', label: '⚡ Today' },
-  { key: 'weekly', label: '📅 This Week' },
-  { key: 'this_month', label: '🗓️ This Month' },
-  { key: 'overdue', label: '🚨 Overdue' },
+  { key: 'today', label: 'Today' },
+  { key: 'weekly', label: 'This Week' },
+  { key: 'this_month', label: 'This Month' },
+  { key: 'overdue', label: 'Overdue' },
 ];
 
 export const PROJECT_SORT_OPTIONS = [
-  { value: 'dueDate_asc', label: '📅 Due Date: Earliest First' },
-  { value: 'dueDate_desc', label: '📅 Due Date: Latest First' },
-  { value: 'priority_desc', label: '⚡ Priority: High to Low' },
-  { value: 'priority_asc', label: '⚡ Priority: Low to High' },
-  { value: 'name_asc', label: '📁 Project: A to Z' },
-  { value: 'name_desc', label: '📁 Project: Z to A' },
-  { value: 'budget_desc', label: '💰 Budget: High to Low' },
-  { value: 'budget_asc', label: '💰 Budget: Low to High' },
-  { value: 'progress_desc', label: '📊 Progress: High to Low' },
-  { value: 'progress_asc', label: '📊 Progress: Low to High' },
-  { value: 'newest', label: '🕒 Recently Created' },
-  { value: 'oldest', label: '🕒 Oldest Created' },
+  { value: 'dueDate_asc', label: 'Due Date: Earliest First' },
+  { value: 'dueDate_desc', label: 'Due Date: Latest First' },
+  { value: 'priority_desc', label: 'Priority: High to Low' },
+  { value: 'priority_asc', label: 'Priority: Low to High' },
+  { value: 'name_asc', label: 'Project: A to Z' },
+  { value: 'name_desc', label: 'Project: Z to A' },
+  { value: 'budget_desc', label: 'Budget: High to Low' },
+  { value: 'budget_asc', label: 'Budget: Low to High' },
+  { value: 'progress_desc', label: 'Progress: High to Low' },
+  { value: 'progress_asc', label: 'Progress: Low to High' },
+  { value: 'newest', label: 'Recently Created' },
+  { value: 'oldest', label: 'Oldest Created' },
 ];
 
 const Projects = () => {
@@ -442,7 +442,7 @@ const Projects = () => {
               <div className="font-bold text-foreground text-xs hover:text-primary transition-colors cursor-pointer flex items-center gap-1.5">
                 <span className="truncate">{row.name}</span>
                 {row.priority === 'Critical' && (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-rose-500/15 text-rose-600 border border-rose-500/30 shrink-0 uppercase tracking-wider animate-pulse">
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-foreground text-background border border-foreground shrink-0 uppercase tracking-wider">
                     Urgent
                   </span>
                 )}
@@ -450,13 +450,19 @@ const Projects = () => {
               <div className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1.5 truncate">
                 {row.client?.name ? (
                   <span className="flex items-center gap-1">
-                    <Building2 size={11} className="text-muted-foreground/70" />
+                    <Building2 size={11} className="text-muted-foreground/70 shrink-0" />
                     <span>{row.client.name}</span>
                   </span>
                 ) : row.category === 'saas_product' || row.isInternal ? (
-                  <span className="font-semibold text-indigo-500">🚀 SaaS / Internal Product</span>
+                  <span className="flex items-center gap-1 font-semibold text-foreground">
+                    <Rocket size={11} className="text-muted-foreground shrink-0" />
+                    <span>SaaS / Internal Product</span>
+                  </span>
                 ) : (
-                  <span>🏢 Internal Workspace</span>
+                  <span className="flex items-center gap-1">
+                    <Building2 size={11} className="text-muted-foreground/70 shrink-0" />
+                    <span>Internal Workspace</span>
+                  </span>
                 )}
               </div>
             </div>
@@ -505,18 +511,16 @@ const Projects = () => {
       key: 'progress',
       label: 'Progress & Tasks',
       render: (row) => (
-        <div className="w-32 space-y-1.5">
+        <div className="w-32 space-y-1.5 tabular-nums">
           <div className="flex items-center justify-between text-[10px] font-bold">
             <span className="text-muted-foreground">
               {row.totalTasks ? `${row.doneTasks || 0}/${row.totalTasks} tasks` : `${row.progress || 0}%`}
             </span>
             <span
               className={
-                (row.progress || 0) >= 100
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : (row.progress || 0) >= 50
-                  ? 'text-primary'
-                  : 'text-foreground'
+                (row.progress || 0) >= 50
+                  ? 'text-foreground font-extrabold'
+                  : 'text-muted-foreground'
               }
             >
               {row.progress || 0}%
@@ -526,10 +530,10 @@ const Projects = () => {
             <div
               className={`h-full rounded-full transition-all duration-300 ${
                 (row.progress || 0) >= 100
-                  ? 'bg-emerald-500'
+                  ? 'bg-foreground'
                   : (row.progress || 0) >= 50
-                  ? 'bg-primary'
-                  : 'bg-amber-500'
+                  ? 'bg-foreground/80'
+                  : 'bg-muted-foreground/60'
               }`}
               style={{ width: `${Math.min(row.progress || 0, 100)}%` }}
             />
@@ -543,7 +547,7 @@ const Projects = () => {
       render: (row) => {
         const val = row.budget || row.budgetDetails?.totalBudget || row.budgetDetails?.quotedAmount || 0;
         return (
-          <div className="text-xs font-bold text-foreground">
+          <div className="text-xs font-bold text-foreground tabular-nums">
             {val > 0 ? formatINR(val) : <span className="text-muted-foreground font-normal">—</span>}
           </div>
         );
@@ -556,16 +560,16 @@ const Projects = () => {
         const isOverdue = row.endDate && new Date(row.endDate) < new Date() && row.status !== 'Completed';
 
         return (
-          <div className="text-[11px] space-y-0.5">
+          <div className="text-[11px] space-y-0.5 tabular-nums">
             {row.endDate ? (
               <div
                 className={`flex items-center gap-1 font-semibold ${
-                  isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-foreground/90'
+                  isOverdue ? 'text-foreground font-bold' : 'text-foreground/90'
                 }`}
               >
                 <Calendar size={11} className="shrink-0" />
                 <span>Due {new Date(row.endDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-                {isOverdue && <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/15 font-black">LATE</span>}
+                {isOverdue && <span className="text-[9px] px-1 py-0.2 rounded bg-foreground text-background font-black">LATE</span>}
               </div>
             ) : (
               <span className="text-muted-foreground">Ongoing</span>
@@ -624,7 +628,7 @@ const Projects = () => {
 
   // Client dropdown options
   const clientOptions = useMemo(() => {
-    const list = [{ value: '', label: 'All Clients' }, { value: 'internal', label: '🚀 SaaS & Internal (No Client)' }];
+    const list = [{ value: '', label: 'All Clients' }, { value: 'internal', label: 'SaaS & Internal (No Client)' }];
     clients.forEach((c) => {
       list.push({
         value: c._id,
@@ -657,12 +661,12 @@ const Projects = () => {
     >
       <div className="space-y-5">
         {/* TOP EXECUTIVE METRICS CARDS WITH ACCURATE NUMBERS */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 tabular-nums">
           {/* Total Projects Card */}
-          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-primary/40 transition-all">
+          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-foreground/30 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Total Projects</span>
-              <div className="h-7 w-7 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
+              <div className="h-7 w-7 rounded-xl bg-secondary text-foreground border border-border flex items-center justify-center shrink-0">
                 <FolderKanban size={14} />
               </div>
             </div>
@@ -670,21 +674,21 @@ const Projects = () => {
               <div className="text-2xl font-black text-foreground tracking-tight">{totalProjectsCount}</div>
               <div className="text-[11px] text-muted-foreground mt-0.5 font-medium flex items-center justify-between">
                 <span>Avg Progress</span>
-                <span className="font-bold text-primary">{avgProgress}%</span>
+                <span className="font-bold text-foreground">{avgProgress}%</span>
               </div>
             </div>
           </div>
 
           {/* In Delivery Card */}
-          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-blue-500/40 transition-all">
+          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-foreground/30 transition-all">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">In Delivery</span>
-              <div className="h-7 w-7 rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/20 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">In Delivery</span>
+              <div className="h-7 w-7 rounded-xl bg-secondary text-foreground border border-border flex items-center justify-center shrink-0">
                 <Clock size={14} />
               </div>
             </div>
             <div>
-              <div className="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">{inProgressCount}</div>
+              <div className="text-2xl font-black text-foreground tracking-tight">{inProgressCount}</div>
               <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                 {totalProjectsCount > 0 ? `${Math.round((inProgressCount / totalProjectsCount) * 100)}% of pipeline` : '0%'}
               </div>
@@ -692,15 +696,15 @@ const Projects = () => {
           </div>
 
           {/* Planning Card */}
-          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-indigo-500/40 transition-all">
+          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-foreground/30 transition-all">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Planning</span>
-              <div className="h-7 w-7 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Planning</span>
+              <div className="h-7 w-7 rounded-xl bg-secondary text-foreground border border-border flex items-center justify-center shrink-0">
                 <Target size={14} />
               </div>
             </div>
             <div>
-              <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">{planningCount}</div>
+              <div className="text-2xl font-black text-foreground tracking-tight">{planningCount}</div>
               <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                 In kick-off / scoping
               </div>
@@ -708,15 +712,15 @@ const Projects = () => {
           </div>
 
           {/* On Hold Card */}
-          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-amber-500/40 transition-all">
+          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-foreground/30 transition-all">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">On Hold</span>
-              <div className="h-7 w-7 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">On Hold</span>
+              <div className="h-7 w-7 rounded-xl bg-secondary text-foreground border border-border flex items-center justify-center shrink-0">
                 <AlertTriangle size={14} />
               </div>
             </div>
             <div>
-              <div className="text-2xl font-black text-amber-600 dark:text-amber-400 tracking-tight">{onHoldCount}</div>
+              <div className="text-2xl font-black text-foreground tracking-tight">{onHoldCount}</div>
               <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                 Needs attention
               </div>
@@ -724,15 +728,15 @@ const Projects = () => {
           </div>
 
           {/* Completed Card */}
-          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-foreground/30 transition-all">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Completed</span>
-              <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Completed</span>
+              <div className="h-7 w-7 rounded-xl bg-secondary text-foreground border border-border flex items-center justify-center shrink-0">
                 <CheckCircle2 size={14} />
               </div>
             </div>
             <div>
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{completedCount}</div>
+              <div className="text-2xl font-black text-foreground tracking-tight">{completedCount}</div>
               <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                 {totalProjectsCount > 0 ? `${Math.round((completedCount / totalProjectsCount) * 100)}% completion rate` : '0%'}
               </div>
@@ -741,15 +745,15 @@ const Projects = () => {
 
           {/* Total Budget / Pipeline Value Card (Agency Staff Only) */}
           {user?.role !== 'client' && (
-            <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-purple-500/40 transition-all">
+            <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-foreground/30 transition-all">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Pipeline Value</span>
-                <div className="h-7 w-7 rounded-xl bg-purple-500/10 text-purple-600 border border-purple-500/20 flex items-center justify-center">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Pipeline Value</span>
+                <div className="h-7 w-7 rounded-xl bg-secondary text-foreground border border-border flex items-center justify-center shrink-0">
                   <DollarSign size={14} />
                 </div>
               </div>
               <div>
-                <div className="text-xl font-black text-purple-600 dark:text-purple-400 tracking-tight truncate">
+                <div className="text-xl font-black text-foreground tracking-tight truncate">
                   {formatINR(totalBudget)}
                 </div>
                 <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
@@ -873,11 +877,11 @@ const Projects = () => {
                     size="sm"
                     variant="ghost"
                     onClick={clearAllFilters}
-                    className="h-8 px-2.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
+                    className="h-8 px-2.5 text-xs text-foreground hover:text-foreground bg-secondary hover:bg-muted border border-border flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
                     title="Clear all active filters"
                   >
-                    <RotateCcw size={12} />
-                    <span>Reset ({activeFiltersCount})</span>
+                    <RotateCcw size={12} className="shrink-0" />
+                    <span className="tabular-nums">Reset ({activeFiltersCount})</span>
                   </Button>
                 )}
               </div>
@@ -983,7 +987,7 @@ const Projects = () => {
                             {col.label}
                           </span>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-card border border-border text-foreground shadow-xs">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-card border border-border text-foreground shadow-xs tabular-nums">
                           {colProjects.length}
                         </span>
                       </div>
@@ -1000,7 +1004,7 @@ const Projects = () => {
                           return (
                             <React.Fragment key={project._id}>
                               {showDropIndicatorBefore && (
-                                <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                                <div className="h-1.5 rounded-full bg-primary/70 my-1 shadow-xs" />
                               )}
                               <div
                                 draggable
@@ -1056,9 +1060,9 @@ const Projects = () => {
                                     <span
                                       className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider ${
                                         project.priority === 'Critical'
-                                          ? 'bg-rose-500/15 text-rose-600 border border-rose-500/30'
+                                          ? 'bg-foreground text-background border border-foreground'
                                           : project.priority === 'High'
-                                          ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                                          ? 'bg-muted text-foreground border border-border'
                                           : 'bg-secondary text-muted-foreground'
                                       }`}
                                     >
@@ -1093,26 +1097,30 @@ const Projects = () => {
                                         <span className="truncate">{project.client.name}</span>
                                       </>
                                     ) : project.category === 'saas_product' || project.isInternal ? (
-                                      <span className="font-semibold text-indigo-500 truncate">🚀 SaaS / Platform</span>
+                                      <span className="font-semibold text-foreground truncate flex items-center gap-1">
+                                        <Rocket size={11} className="text-muted-foreground shrink-0" />
+                                        <span className="truncate">SaaS / Platform</span>
+                                      </span>
                                     ) : (
-                                      <span className="truncate">🏢 Internal Project</span>
+                                      <span className="truncate flex items-center gap-1">
+                                        <Building2 size={11} className="text-muted-foreground/70 shrink-0" />
+                                        <span className="truncate">Internal Project</span>
+                                      </span>
                                     )}
                                   </p>
                                 </div>
 
                                 {/* Progress Bar & Task Completion */}
-                                <div className="space-y-1.5 pt-0.5">
+                                <div className="space-y-1.5 pt-0.5 tabular-nums">
                                   <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
                                     <span>
                                       {project.totalTasks ? `${project.doneTasks || 0}/${project.totalTasks} tasks` : 'Progress'}
                                     </span>
                                     <span
                                       className={`font-bold ${
-                                        (project.progress || 0) >= 100
-                                          ? 'text-emerald-600 dark:text-emerald-400'
-                                          : (project.progress || 0) >= 50
-                                          ? 'text-primary'
-                                          : 'text-foreground'
+                                        (project.progress || 0) >= 50
+                                          ? 'text-foreground'
+                                          : 'text-muted-foreground'
                                       }`}
                                     >
                                       {project.progress || 0}%
@@ -1122,11 +1130,11 @@ const Projects = () => {
                                     <div
                                       className={`h-full rounded-full transition-all duration-300 ${
                                         (project.progress || 0) >= 100
-                                          ? 'bg-emerald-500'
+                                          ? 'bg-foreground'
                                           : (project.progress || 0) >= 50
-                                          ? 'bg-primary'
+                                          ? 'bg-foreground/80'
                                           : (project.progress || 0) > 0
-                                          ? 'bg-amber-500'
+                                          ? 'bg-muted-foreground/60'
                                           : 'bg-muted-foreground/30'
                                       }`}
                                       style={{ width: `${Math.max(0, Math.min(project.progress || 0, 100))}%` }}
@@ -1135,21 +1143,21 @@ const Projects = () => {
                                 </div>
 
                                 {/* Footer: Timeline & Open Link */}
-                                <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
+                                <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground tabular-nums">
                                   <div className="flex items-center gap-1.5 truncate">
                                     {project.endDate ? (
                                       <span
                                         className={`flex items-center gap-1 font-semibold ${
-                                          isOverdue ? 'text-rose-600 font-bold' : ''
+                                          isOverdue ? 'text-foreground font-bold' : ''
                                         }`}
                                       >
                                         <Calendar size={11} className="shrink-0 text-muted-foreground/70" />
                                         <span>Due {new Date(project.endDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-                                        {isOverdue && <span className="text-[8px] px-1 py-0.2 rounded bg-rose-500/15 text-rose-600 font-black">LATE</span>}
+                                        {isOverdue && <span className="text-[8px] px-1 py-0.2 rounded bg-foreground text-background font-black">LATE</span>}
                                       </span>
                                     ) : (
                                       <span className="flex items-center gap-1 text-muted-foreground">
-                                        <Calendar size={11} />
+                                        <Calendar size={11} className="shrink-0" />
                                         <span>Ongoing</span>
                                       </span>
                                     )}
@@ -1166,7 +1174,7 @@ const Projects = () => {
 
                         {/* Drop indicator at bottom */}
                         {isColActive && dragOverProjectIndex >= colProjects.length && (
-                          <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                          <div className="h-1.5 rounded-full bg-primary/70 my-1 shadow-xs" />
                         )}
 
                         {colProjects.length === 0 && (

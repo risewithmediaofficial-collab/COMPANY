@@ -520,7 +520,7 @@ export const activatePortal = async (req, res) => {
       await sendEmail({
         to: client.email,
         subject: 'Your Client Portal is Ready - RISE WITH MEDIA',
-        html: `<h2>Welcome ${client.name}!</h2><p>Your portal is now active.</p><p>Username / Email: <strong>${client.email}</strong></p><p>Password (Phone number): <strong>${portalPassword}</strong></p><p>Login at: ${process.env.CLIENT_URL || 'http://localhost:5173'}/login</p>`,
+        html: `<h2>Welcome ${client.name}!</h2><p>Your portal is now active.</p><p>Username / Email: <strong>${client.email}</strong></p><p>Password (Phone number): <strong>${portalPassword}</strong></p><p>Login at: ${process.env.CLIENT_URL || 'http://localhost:5175'}/login</p>`,
       });
     } catch (emailErr) {
       console.warn('⚠️ Could not send portal activation email:', emailErr.message);

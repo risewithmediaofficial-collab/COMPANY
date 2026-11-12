@@ -12,7 +12,7 @@ import {
   UserCheck,
   Send,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   useClockIn,
   useClockOut,
@@ -302,17 +302,14 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
 
   return (
     <div className="bg-card p-6 rounded-3xl border border-border shadow-md relative overflow-hidden space-y-6">
-      {/* Background Accent */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
-
       {/* Header Info */}
       <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
         <div className="min-w-0">
           <h3 className="font-extrabold text-base sm:text-lg tracking-tight flex items-center text-foreground">
-            <Clock className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary animate-pulse shrink-0" />
+            <Clock className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-foreground shrink-0" />
             <span className="truncate">Daily Shift &amp; Attendance</span>
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+          <p className="text-xs text-muted-foreground mt-0.5 truncate tabular-nums">
             Today: {time.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
@@ -327,26 +324,26 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
       {isLeave ? (
         <div className={`p-3.5 rounded-2xl border flex items-center justify-between gap-2 transition-all ${
           approvalStatus === 'approved'
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+            ? 'bg-primary text-primary-foreground border-primary'
             : approvalStatus === 'rejected'
-            ? 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400'
-            : 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400'
+            ? 'bg-secondary border-border text-muted-foreground'
+            : 'bg-secondary border-border text-foreground'
         }`}>
           <div className="flex items-center gap-2">
             {approvalStatus === 'approved' ? (
-              <CheckCircle2 size={18} className="text-emerald-600" />
+              <CheckCircle2 size={18} className="shrink-0" />
             ) : approvalStatus === 'rejected' ? (
-              <XCircle size={18} className="text-rose-600" />
+              <XCircle size={18} className="shrink-0" />
             ) : (
-              <AlertCircle size={18} className="text-amber-600 animate-pulse" />
+              <AlertCircle size={18} className="shrink-0" />
             )}
             <div>
               <span className="text-xs font-black uppercase tracking-wider block">
                 {approvalStatus === 'approved'
-                  ? 'Leave Approved ✅'
+                  ? 'Leave Approved'
                   : approvalStatus === 'rejected'
-                  ? 'Leave Rejected ❌'
-                  : 'Leave Pending Approval ⏳'}
+                  ? 'Leave Rejected'
+                  : 'Leave Pending Approval'}
               </span>
               <p className="text-[11px] opacity-90 font-medium">
                 {approvalStatus === 'approved'
@@ -367,15 +364,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
         <div className="p-3.5 rounded-2xl bg-secondary/30 border border-border space-y-2">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Today&apos;s Status</span>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase ${
-                status === 'absent'
-                  ? 'bg-destructive/15 text-destructive border border-destructive/30'
-                  : status === 'work_from_home'
-                  ? 'bg-purple-500/15 text-purple-600 border border-purple-500/30'
-                  : 'bg-blue-500/15 text-blue-600 border border-blue-500/30'
-              }`}
-            >
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase bg-secondary text-foreground border border-border">
               {status.replace(/_/g, ' ')}
             </span>
           </div>
@@ -392,23 +381,22 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
       <div className="space-y-4">
         {/* Active Session Timer Indicator if Clocked In */}
         {isClockedIn && (
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+          <div className="p-3.5 rounded-2xl bg-secondary/60 border border-border flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-foreground" />
               </span>
               <div>
-                <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block">
+                <span className="text-xs font-black text-foreground uppercase tracking-wider block">
                   Active Shift in Progress
                 </span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[11px] text-muted-foreground tabular-nums">
                   Clocked In at {formatTime(todayRecord?.clockIn)}
                 </span>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-lg font-black text-emerald-600 font-mono">
+              <span className="text-lg font-black text-foreground font-mono tabular-nums">
                 {liveElapsedStr}
               </span>
             </div>
@@ -425,7 +413,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               <button
                 type="button"
                 onClick={handleSelectPresent}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 font-extrabold text-sm hover:bg-emerald-500/20 transition-all shadow-sm active:scale-95"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-primary border border-primary text-primary-foreground font-extrabold text-sm hover:bg-primary/90 transition-all shadow-sm active:scale-95 cursor-pointer"
               >
                 <CheckCircle2 size={18} />
                 Present
@@ -433,7 +421,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               <button
                 type="button"
                 onClick={() => setShowAbsentModal(true)}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive font-extrabold text-sm hover:bg-destructive/20 transition-all shadow-sm active:scale-95"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-secondary border border-border text-foreground font-extrabold text-sm hover:bg-muted transition-all shadow-sm active:scale-95 cursor-pointer"
               >
                 <XCircle size={18} />
                 Mark Absent
@@ -441,7 +429,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               <button
                 type="button"
                 onClick={() => setShowLeaveModal(true)}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 font-extrabold text-sm hover:bg-rose-500/20 transition-all shadow-sm active:scale-95"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-secondary border border-border text-foreground font-extrabold text-sm hover:bg-muted transition-all shadow-sm active:scale-95 cursor-pointer"
               >
                 <Calendar size={18} />
                 Apply for Leave
@@ -458,7 +446,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 type="button"
                 onClick={handleClockOutClick}
                 disabled={clockOut.isPending}
-                className="w-full py-4 rounded-2xl bg-destructive text-white font-black text-base shadow-lg shadow-destructive/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-4 rounded-2xl bg-secondary border border-border text-foreground hover:bg-muted font-black text-base shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Timer size={20} className={clockOut.isPending ? 'animate-spin' : ''} />
                 {clockOut.isPending ? 'Clocking Out...' : 'Clock Out (End Shift / Take Break)'}
@@ -468,7 +456,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 type="button"
                 onClick={handleClockInClick}
                 disabled={clockIn.isPending || isGettingLocation}
-                className="w-full py-4 rounded-2xl bg-primary text-white font-black text-base shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-black text-base shadow-md hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Timer size={20} className={clockIn.isPending || isGettingLocation ? 'animate-spin' : ''} />
                 {isGettingLocation
@@ -490,7 +478,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 <button
                   type="button"
                   onClick={() => setShowAbsentModal(true)}
-                  className="text-destructive font-bold hover:underline"
+                  className="text-foreground font-bold hover:underline cursor-pointer"
                 >
                   Mark Absent
                 </button>
@@ -498,7 +486,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 <button
                   type="button"
                   onClick={() => setShowLeaveModal(true)}
-                  className="text-rose-600 font-bold hover:underline"
+                  className="text-foreground font-bold hover:underline cursor-pointer"
                 >
                   Apply for Leave
                 </button>
@@ -512,7 +500,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           <div className="p-4 rounded-2xl bg-secondary/30 border border-border space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <span className={`h-2 w-2 rounded-full shrink-0 ${isAbsent ? 'bg-destructive' : 'bg-rose-500'}`} />
+                <span className="h-2 w-2 rounded-full shrink-0 bg-foreground" />
                 Recorded as {isAbsent ? 'Absent' : 'On Leave'}
               </span>
               <button
@@ -534,22 +522,22 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
         )}
 
         {/* Timings Summary Row */}
-        <div className="grid grid-cols-3 gap-2 text-center border-t border-border pt-3">
+        <div className="grid grid-cols-3 gap-2 text-center border-t border-border pt-3 tabular-nums">
           <div className="p-2.5 rounded-2xl bg-secondary/30 border border-border">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">First In</span>
-            <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-1 block tabular-nums">
+            <span className="text-xs font-mono font-bold text-foreground mt-1 block tabular-nums">
               {formatTime(todayRecord?.clockIn)}
             </span>
           </div>
           <div className="p-2.5 rounded-2xl bg-secondary/30 border border-border">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Last Out</span>
-            <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-1 block tabular-nums">
+            <span className="text-xs font-mono font-bold text-foreground mt-1 block tabular-nums">
               {formatTime(todayRecord?.clockOut)}
             </span>
           </div>
           <div className="p-2.5 rounded-2xl bg-secondary/30 border border-border">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Hours</span>
-            <span className="text-xs font-mono font-bold text-primary mt-1 block tabular-nums">
+            <span className="text-xs font-mono font-bold text-foreground mt-1 block tabular-nums">
               {Number(todayRecord?.totalHours || 0).toFixed(2)} hrs
             </span>
           </div>
@@ -557,10 +545,10 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
 
         {/* Today's Login & Logout Sessions Log */}
         {todayRecord?.sessions && todayRecord.sessions.length > 0 && (
-          <div className="p-3.5 rounded-2xl bg-secondary/25 border border-border space-y-2">
+          <div className="p-3.5 rounded-2xl bg-secondary/25 border border-border space-y-2 tabular-nums">
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
-                <Clock size={12} className="text-primary" /> Today&apos;s Login &amp; Logout Log ({todayRecord.sessions.length} session{todayRecord.sessions.length > 1 ? 's' : ''})
+                <Clock size={12} className="text-foreground shrink-0" /> Today&apos;s Login &amp; Logout Log ({todayRecord.sessions.length} session{todayRecord.sessions.length > 1 ? 's' : ''})
               </span>
               <span className="text-foreground text-[11px] font-extrabold">{Number(todayRecord.totalHours || 0).toFixed(2)} hrs total</span>
             </div>
@@ -569,10 +557,10 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 <div key={idx} className="flex items-center justify-between text-xs p-2 rounded-xl bg-card border border-border/60">
                   <span className="font-bold text-foreground/80 text-[11px]">Session #{idx + 1}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">{formatTime(s.clockIn)}</span>
+                    <span className="text-foreground font-bold">{formatTime(s.clockIn)}</span>
                     <span className="text-muted-foreground">→</span>
-                    <span className="text-amber-600 font-bold">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
-                    <span className="text-primary font-bold text-[11px] bg-secondary px-1.5 py-0.5 rounded">
+                    <span className="text-muted-foreground font-bold">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
+                    <span className="text-foreground font-bold text-[11px] bg-secondary px-1.5 py-0.5 rounded">
                       {s.durationHours ? `${s.durationHours.toFixed(2)}h` : s.clockOut ? '0.00h' : 'Active'}
                     </span>
                   </div>
@@ -595,7 +583,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-destructive/10 border border-destructive/20 text-destructive shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
                   <XCircle size={20} />
                 </div>
                 <div>
@@ -603,7 +591,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                     Mark Absent
                   </DialogTitle>
                   <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                    Record your absence in the system for HR & Management
+                    Record your absence in the system for HR &amp; Management
                   </DialogDescription>
                 </div>
               </div>
@@ -650,7 +638,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <button
@@ -663,7 +651,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 <button
                   type="submit"
                   disabled={submitAbsent.isPending}
-                  className="h-11 px-6 rounded-xl bg-destructive text-destructive-foreground font-bold text-sm shadow-sm hover:bg-destructive/90 disabled:opacity-50 transition-all cursor-pointer"
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {submitAbsent.isPending ? 'Submitting...' : 'Confirm Mark Absent'}
                 </button>
@@ -685,7 +673,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
                   <Calendar size={20} />
                 </div>
                 <div>
@@ -761,13 +749,13 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               </div>
 
               <div className="p-4 rounded-2xl bg-secondary/40 border border-border text-xs text-muted-foreground flex items-center gap-2.5">
-                <Info size={16} className="text-primary shrink-0" />
+                <Info size={16} className="text-foreground shrink-0" />
                 <span>This request will be sent to Super Admin and Admin. Once approved, your attendance status will update to <strong>Leave Approved</strong>.</span>
               </div>
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <button

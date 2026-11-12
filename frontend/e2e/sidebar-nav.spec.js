@@ -44,5 +44,5 @@ test('Sidebar navigation updates page content and URL', async ({ page }) => {
   console.log('URL after /:', page.url());
   const newOverviewText = await page.locator('main').innerText();
   console.log('Main text after overview:', newOverviewText.substring(0, 100).replace(/\n/g, ' '));
-  expect(page.url()).toBe('http://localhost:5173/');
+  expect(page.url()).toBe('http://localhost:5175/');
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Play, Pause, CheckCircle, SlidersHorizontal, CheckSquare, Trash2, Edit2, Layers, Calendar, Target, DollarSign, TrendingUp, AlertTriangle, Video, Sparkles, ArrowRight, Check, Film } from 'lucide-react';
+import { Plus, Play, Pause, CheckCircle, SlidersHorizontal, CheckSquare, Trash2, Edit2, Layers, Calendar, Target, DollarSign, TrendingUp, AlertTriangle, Video, Sparkles, ArrowRight, Check, Film, MapPin, Flame } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import api from '../../api/index';
 import { DataTable } from '../../components/ui/DataTable';
@@ -534,19 +534,21 @@ export default function Campaigns() {
           ? `${comp} - ${name}`
           : (comp || name || 'No Client');
         return (
-          <div>
-            <span className="font-bold text-foreground block">{row.name}</span>
+          <div className="min-w-0">
+            <span className="font-semibold text-foreground block truncate">{row.name}</span>
             <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-              <span className="text-[11px] font-semibold text-primary/80">{clientDisplay}</span>
-              <span className="text-[10px] text-muted-foreground">• {row.objective}</span>
+              <span className="text-[11px] font-semibold text-foreground/80">{clientDisplay}</span>
+              <span className="text-[10px] text-muted-foreground">· {row.objective}</span>
               {row.destination && (
-                <span className="px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold">
-                  📍 {row.destination}
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border text-[10px] font-semibold">
+                  <MapPin size={9} className="shrink-0" />
+                  {row.destination}
                 </span>
               )}
               {row.sourceContentId && (
-                <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold">
-                  🎥 Video Ad
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border text-[10px] font-semibold">
+                  <Video size={9} className="shrink-0" />
+                  Video Ad
                 </span>
               )}
             </div>
@@ -564,14 +566,14 @@ export default function Campaigns() {
           ? `${format(new Date(row.startDate), 'dd MMM')} - ${format(new Date(row.endDate), 'dd MMM')}`
           : (row.startDate ? `From ${format(new Date(row.startDate), 'dd MMM')}` : '');
         return (
-          <div>
-            <span className="font-mono font-bold text-xs text-foreground block">₹{Number(aBudget).toLocaleString()}</span>
+          <div className="tabular-nums">
+            <span className="font-bold text-xs text-foreground block">₹{Number(aBudget).toLocaleString()}</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               {dBudget > 0 && (
-                <span className="text-[10px] text-muted-foreground font-mono">₹{Number(dBudget).toLocaleString()}/day</span>
+                <span className="text-[10px] text-muted-foreground">₹{Number(dBudget).toLocaleString()}/day</span>
               )}
               {dateRangeStr && (
-                <span className="text-[10px] text-primary/80 font-medium">({dateRangeStr})</span>
+                <span className="text-[10px] text-muted-foreground font-medium">({dateRangeStr})</span>
               )}
             </div>
           </div>
@@ -588,20 +590,22 @@ export default function Campaigns() {
         const depCount = row.deposits?.length || (deposited > 0 ? 1 : 0);
         const pending = aBudget > 0 ? Math.max(0, aBudget - deposited) : 0;
         return (
-          <div>
+          <div className="tabular-nums">
             <div className="flex items-center gap-1.5">
-              <span className="font-mono font-bold text-xs text-blue-500 block">₹{Number(deposited).toLocaleString()}</span>
+              <span className="font-bold text-xs text-foreground block">₹{Number(deposited).toLocaleString()}</span>
               {depCount > 1 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold">
+                <span className="px-1.5 py-0.5 rounded-full bg-secondary border border-border text-foreground text-[9px] font-semibold">
                   {depCount} deposits
                 </span>
               )}
             </div>
             <div className="text-[10px] text-muted-foreground mt-0.5 space-y-0.5">
               {aBudget > 0 && pending > 0 ? (
-                <span className="text-amber-500 block font-medium">₹{pending.toLocaleString()} pending from assigned</span>
+                <span className="text-muted-foreground block font-medium">₹{pending.toLocaleString()} pending from assigned</span>
               ) : aBudget > 0 && deposited >= aBudget ? (
-                <span className="text-emerald-500 block font-medium">✓ Fully deposited</span>
+                <span className="text-foreground inline-flex items-center gap-1 font-medium">
+                  <Check size={10} className="shrink-0" /> Fully deposited
+                </span>
               ) : (
                 <span>{depositDateStr ? `Deposited on ${depositDateStr}` : 'Deposited'}</span>
               )}
@@ -620,16 +624,16 @@ export default function Campaigns() {
         const balance = aBudget > 0 ? Math.max(0, aBudget - deposited) : Math.max(0, deposited - spent);
         const percent = aBudget > 0 ? (deposited > 0 ? Math.min(100, Math.round((deposited / aBudget) * 100)) : 0) : (deposited > 0 ? Math.min(100, Math.round((spent / deposited) * 100)) : 0);
         return (
-          <div className="w-36 space-y-1">
+          <div className="w-36 space-y-1 tabular-nums">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{balance.toLocaleString()}</span>
+              <span className="font-bold text-foreground">₹{balance.toLocaleString()}</span>
               <span className="text-[10px] text-muted-foreground">
                 {aBudget > 0 ? (balance === 0 ? 'Fully Deposited' : 'Remaining') : `Spent ₹${spent.toLocaleString()}`}
               </span>
             </div>
             <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
               <div
-                className={`h-full rounded-full ${percent >= 100 ? 'bg-emerald-500' : percent >= 75 ? 'bg-amber-500' : 'bg-primary'}`}
+                className="h-full rounded-full bg-foreground"
                 style={{ width: `${percent}%` }}
               />
             </div>
@@ -641,9 +645,9 @@ export default function Campaigns() {
       key: 'leads',
       label: 'Leads & CPL',
       render: (row) => (
-        <div>
-          <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 block">{row.performance?.leads || 0} Leads</span>
-          <span className="text-[10px] text-muted-foreground font-mono">₹{row.performance?.costPerLead || 0} / Lead</span>
+        <div className="tabular-nums">
+          <span className="text-xs font-bold text-foreground block">{row.performance?.leads || 0} Leads</span>
+          <span className="text-[10px] text-muted-foreground">₹{row.performance?.costPerLead || 0} / Lead</span>
         </div>
       ),
     },
@@ -663,9 +667,10 @@ export default function Campaigns() {
       render: (row) => (
         <button
           onClick={() => openDailyLog(row)}
-          className="px-2.5 py-1 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-xs font-bold flex items-center gap-1 border border-primary/20"
+          className="px-2.5 py-1 bg-secondary text-foreground hover:bg-secondary/80 rounded-lg text-xs font-semibold inline-flex items-center gap-1 border border-border transition-colors"
         >
-          <Calendar size={13} /> Log Spend/Leads
+          <Calendar size={13} className="shrink-0" />
+          <span>Log Spend/Leads</span>
         </button>
       ),
     },
@@ -677,9 +682,9 @@ export default function Campaigns() {
         title="Campaigns & Money Ledger"
         subtitle="Manage assigned & daily budgets, track Deposited vs Amount Spent, and monitor balance"
         actions={
-          <button onClick={openAdd} className="bg-primary text-primary-foreground font-bold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
-            <Plus size={18} />
-            Create Campaign
+          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-xs hover:bg-primary/90 transition-colors">
+            <Plus size={18} className="shrink-0" />
+            <span>Create Campaign</span>
           </button>
         }
       />
@@ -711,10 +716,10 @@ export default function Campaigns() {
         </div>
 
         {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 bg-secondary/80 px-3 py-1.5 rounded-xl border border-border">
-            <span className="text-xs font-bold text-foreground">{selectedIds.length} Selected</span>
-            <button onClick={() => handleBulkStatus('Active')} className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 rounded-lg text-xs font-semibold hover:bg-emerald-500/20">Set Active</button>
-            <button onClick={() => handleBulkStatus('Paused')} className="px-2.5 py-1 bg-orange-500/10 text-orange-600 rounded-lg text-xs font-semibold hover:bg-orange-500/20">Pause</button>
+          <div className="flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-xl border border-border">
+            <span className="text-xs font-bold text-foreground tabular-nums">{selectedIds.length} Selected</span>
+            <button onClick={() => handleBulkStatus('Active')} className="px-2.5 py-1 bg-primary text-primary-foreground rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors">Set Active</button>
+            <button onClick={() => handleBulkStatus('Paused')} className="px-2.5 py-1 bg-card border border-border text-foreground rounded-lg text-xs font-semibold hover:bg-secondary/80 transition-colors">Pause</button>
           </div>
         )}
       </div>
@@ -740,12 +745,12 @@ export default function Campaigns() {
       >
         <form onSubmit={handleAddDailyLog} className="space-y-4 text-xs">
           {/* Campaign Money Summary */}
-          <div className="p-3.5 bg-secondary/40 border border-border rounded-2xl space-y-1">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Budget & Ledger Summary</span>
-            <div className="flex items-center justify-between font-bold text-xs pt-1">
-              <span className="text-blue-500">Deposited: ₹{(activeCampaignForLog?.amountAdded || 0).toLocaleString()}</span>
-              <span className="text-rose-500">Spent: ₹{(activeCampaignForLog?.amountSpent || 0).toLocaleString()}</span>
-              <span className="text-emerald-500">Balance: ₹{(activeCampaignForLog?.remainingBalance || 0).toLocaleString()}</span>
+          <div className="p-3.5 bg-secondary/50 border border-border rounded-2xl space-y-1 tabular-nums">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Budget &amp; Ledger Summary</span>
+            <div className="flex items-center justify-between font-bold text-xs pt-1 text-foreground">
+              <span>Deposited: ₹{(activeCampaignForLog?.amountAdded || 0).toLocaleString()}</span>
+              <span className="text-muted-foreground">Spent: ₹{(activeCampaignForLog?.amountSpent || 0).toLocaleString()}</span>
+              <span>Balance: ₹{(activeCampaignForLog?.remainingBalance || 0).toLocaleString()}</span>
             </div>
           </div>
 
@@ -761,12 +766,12 @@ export default function Campaigns() {
                 <option value="">-- All Videos / Entire Campaign Level --</option>
                 {(activeCampaignForLog.sourceContentIds || []).map(v => (
                   <option key={v._id || v} value={v._id || v}>
-                    🎥 {v.name || 'Video'} ({v.contentType || 'Video'})
+                    {v.name || 'Video'} ({v.contentType || 'Video'})
                   </option>
                 ))}
                 {activeCampaignForLog.sourceContentId && !activeCampaignForLog.sourceContentIds?.length && (
                   <option value={activeCampaignForLog.sourceContentId._id || activeCampaignForLog.sourceContentId}>
-                    🎥 {activeCampaignForLog.sourceContentId.name || 'Campaign Video'}
+                    {activeCampaignForLog.sourceContentId.name || 'Campaign Video'}
                   </option>
                 )}
               </select>
@@ -785,38 +790,38 @@ export default function Campaigns() {
               />
             </div>
             <div>
-              <label className="font-semibold text-blue-500 block mb-1">Deposited Funds (₹)</label>
+              <label className="font-semibold text-foreground block mb-1">Deposited Funds (₹)</label>
               <input
                 type="number"
                 placeholder="0"
                 value={dailyLogForm.amountAdded}
                 onChange={e => setDailyLogForm({...dailyLogForm, amountAdded: Number(e.target.value)})}
                 onWheel={e => e.currentTarget.blur()}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none"
+                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none tabular-nums"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-semibold text-rose-500 block mb-1">Today's Spend (₹) *</label>
+              <label className="font-semibold text-foreground block mb-1">Today&apos;s Spend (₹) *</label>
               <input
                 type="number"
                 required
                 value={dailyLogForm.spend}
                 onChange={e => setDailyLogForm({...dailyLogForm, spend: Number(e.target.value)})}
                 onWheel={e => e.currentTarget.blur()}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none"
+                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none tabular-nums"
               />
             </div>
             <div>
-              <label className="font-semibold text-emerald-500 block mb-1">Leads Generated</label>
+              <label className="font-semibold text-foreground block mb-1">Leads Generated</label>
               <input
                 type="number"
                 value={dailyLogForm.leads}
                 onChange={e => setDailyLogForm({...dailyLogForm, leads: Number(e.target.value)})}
                 onWheel={e => e.currentTarget.blur()}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none"
+                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none tabular-nums"
               />
             </div>
           </div>
@@ -959,19 +964,20 @@ export default function Campaigns() {
           />
 
           {/* Step 5: Multi-Video Selector from Database */}
-          <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                <Sparkles size={14} /> Select Videos to Run Ads (Multiple Allowed)
+          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <label className="font-bold text-foreground inline-flex items-center gap-1.5">
+                <Sparkles size={14} className="shrink-0" />
+                <span>Select Videos to Run Ads (Multiple Allowed)</span>
               </label>
-              <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/20 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-foreground bg-card border border-border px-2 py-0.5 rounded-full tabular-nums shrink-0">
                 {formData.sourceContentIds?.length || 0} Selected
               </span>
             </div>
 
             {!formData.client ? (
               <p className="text-[11px] text-muted-foreground italic py-2 text-center">
-                👉 Please select a Client above to view their available videos and reels.
+                Please select a Client above to view their available videos and reels.
               </p>
             ) : clientVideos.length === 0 ? (
               <p className="text-[11px] text-muted-foreground italic py-2 text-center">
@@ -985,24 +991,26 @@ export default function Campaigns() {
                     <div
                       key={v._id}
                       onClick={() => toggleVideoSelection(v._id)}
-                      className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-all ${
+                      className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-colors ${
                         isChecked
-                          ? 'bg-purple-500/20 border-purple-500 text-purple-900 dark:text-purple-100 font-semibold'
+                          ? 'bg-card border-foreground text-foreground font-semibold'
                           : 'bg-background/80 hover:bg-background border-border text-foreground'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`w-4 h-4 rounded flex items-center justify-center border ${isChecked ? 'bg-purple-600 border-purple-600 text-white' : 'border-border'}`}>
-                          {isChecked && <Check size={12} strokeWidth={3} />}
+                        <div className={`w-4 h-4 rounded flex items-center justify-center border shrink-0 ${isChecked ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
+                          {isChecked && <Check size={12} />}
                         </div>
                         <div className="min-w-0">
                           <span className="text-xs font-medium truncate block">{v.name}</span>
-                          <span className="text-[10px] text-muted-foreground block">{v.contentType || 'Video'} • {v.platforms?.join(', ') || 'Meta'}</span>
+                          <span className="text-[10px] text-muted-foreground block">{v.contentType || 'Video'} · {v.platforms?.join(', ') || 'Meta'}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {v.adRecommendation === '🔥 HIGH POTENTIAL' && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600">🔥 Hot</span>
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
+                            <Flame size={9} className="shrink-0" /> Hot
+                          </span>
                         )}
                         <span className="text-[10px] text-muted-foreground uppercase">{v.status || 'Ready'}</span>
                       </div>
@@ -1013,11 +1021,12 @@ export default function Campaigns() {
             )}
           </div>
 
-          {/* Step 6: Campaign Dates, Assigned Budget & Daily Deposited Budget (Moved below Campaign Name, Platform, Destination, Videos) */}
-          <div className="bg-secondary/30 p-3.5 rounded-2xl border border-border space-y-3.5">
-            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          {/* Step 6: Campaign Dates, Assigned Budget & Daily Deposited Budget */}
+          <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border space-y-3.5">
+            <div className="flex items-center justify-between border-b border-border pb-2">
               <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar size={13} className="text-primary" /> Campaign Dates & Assigned Budget
+                <Calendar size={13} className="text-foreground shrink-0" />
+                <span>Campaign Dates &amp; Assigned Budget</span>
               </h4>
               <span className="text-[10px] text-muted-foreground font-medium">Independent manual entry</span>
             </div>
@@ -1047,7 +1056,7 @@ export default function Campaigns() {
             </div>
 
             {/* Assigned & Daily Budget Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border">
               <div>
                 <label className="font-semibold text-foreground block mb-1">Assigned Budget (₹) *</label>
                 <input
@@ -1056,7 +1065,7 @@ export default function Campaigns() {
                   value={formData.totalBudget ?? ''}
                   onChange={e => handleTotalBudgetChange(e.target.value)}
                   onWheel={e => e.currentTarget.blur()}
-                  className="app-input font-bold text-foreground"
+                  className="app-input font-bold text-foreground tabular-nums"
                   placeholder="e.g. 800"
                 />
                 <span className="text-[10px] text-muted-foreground block mt-0.5">Total budget assigned for date range</span>
@@ -1069,31 +1078,33 @@ export default function Campaigns() {
                   value={formData.dailyBudget ?? ''}
                   onChange={e => handleDailyBudgetChange(e.target.value)}
                   onWheel={e => e.currentTarget.blur()}
-                  className="app-input font-medium"
+                  className="app-input font-medium tabular-nums"
                   placeholder="e.g. 100"
                 />
                 <span className="text-[10px] text-muted-foreground block mt-0.5">Manual daily budget (no auto-calc)</span>
               </div>
             </div>
 
-            {/* Daily Deposited Budget & Tranches (Moved up here into unified budget details) */}
+            {/* Daily Deposited Budget & Tranches */}
             <div className="p-3 bg-card rounded-xl border border-border space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <h5 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
-                    <DollarSign size={13} className="text-primary" /> Daily Deposited Budget
+                    <DollarSign size={13} className="text-foreground shrink-0" />
+                    <span>Daily Deposited Budget</span>
                   </h5>
-                  <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
+                  <span className="px-2 py-0.5 rounded-full bg-secondary border border-border text-foreground font-semibold text-[10px] tabular-nums shrink-0">
                     {(formData.deposits || []).length} tranche{(formData.deposits || []).length !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleAddDeposit}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground font-bold rounded-lg text-[11px] shadow-xs hover:opacity-90 transition-all"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground font-semibold rounded-lg text-[11px] shadow-xs hover:bg-primary/90 transition-colors shrink-0"
                   title="Add another daily deposit tranche"
                 >
-                  <Plus size={13} strokeWidth={2.5} /> Add Deposit
+                  <Plus size={13} className="shrink-0" />
+                  <span>Add Deposit</span>
                 </button>
               </div>
 
@@ -1103,10 +1114,10 @@ export default function Campaigns() {
 
               <div className="space-y-2.5">
                 {(formData.deposits || []).map((dep, idx) => (
-                  <div key={idx} className="p-2.5 bg-secondary/30 rounded-xl border border-border space-y-2">
-                    <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                  <div key={idx} className="p-2.5 bg-secondary/40 rounded-xl border border-border space-y-2">
+                    <div className="flex items-center justify-between border-b border-border pb-1.5">
                       <span className="font-bold text-foreground text-[11px] flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[9px] font-black">
+                        <span className="w-4 h-4 rounded-full bg-secondary border border-border text-foreground flex items-center justify-center text-[9px] font-bold tabular-nums">
                           {idx + 1}
                         </span>
                         Deposit #{idx + 1}
@@ -1115,7 +1126,7 @@ export default function Campaigns() {
                         <button
                           type="button"
                           onClick={() => handleRemoveDeposit(idx)}
-                          className="text-muted-foreground hover:text-rose-500 p-0.5 rounded transition-colors"
+                          className="text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
                           title="Remove deposit"
                         >
                           <Trash2 size={12} />
@@ -1134,7 +1145,7 @@ export default function Campaigns() {
                         />
                       </div>
                       <div>
-                        <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-0.5 text-[10px]">
+                        <label className="font-semibold text-foreground block mb-0.5 text-[10px]">
                           Deposited Amount (₹) *
                         </label>
                         <input
@@ -1143,7 +1154,7 @@ export default function Campaigns() {
                           value={dep.amount ?? ''}
                           onChange={e => handleDepositChange(idx, 'amount', e.target.value)}
                           onWheel={e => e.currentTarget.blur()}
-                          className="app-input font-bold text-blue-600 dark:text-blue-400 border-blue-500/30 text-xs"
+                          className="app-input font-bold text-foreground text-xs tabular-nums"
                           placeholder="e.g. 800"
                         />
                       </div>
@@ -1166,9 +1177,10 @@ export default function Campaigns() {
               <button
                 type="button"
                 onClick={handleAddDeposit}
-                className="w-full py-2 border-2 border-dashed border-primary/30 rounded-xl text-[11px] font-bold text-primary hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-2 border-2 border-dashed border-border rounded-xl text-[11px] font-semibold text-foreground hover:border-foreground/40 hover:bg-secondary/60 transition-colors flex items-center justify-center gap-1.5"
               >
-                <Plus size={13} strokeWidth={2.5} /> Add Another Deposit Tranche
+                <Plus size={13} className="shrink-0" />
+                <span>Add Another Deposit Tranche</span>
               </button>
             </div>
 
@@ -1177,16 +1189,15 @@ export default function Campaigns() {
               const liveDeposited = (formData.deposits || []).reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
               const liveAssigned = Number(formData.totalBudget) || 0;
               const remainingFromAssigned = liveAssigned - liveDeposited;
-              const spent = Number(editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0);
-              const balance = Math.max(0, liveDeposited - spent);
 
               return (
-                <div className="p-3 bg-card rounded-xl border border-border space-y-2 shadow-xs">
-                  <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
+                <div className="p-3 bg-card rounded-xl border border-border space-y-2 shadow-xs tabular-nums">
+                  <div className="flex items-center justify-between text-[11px] border-b border-border pb-1.5">
                     <span className="font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <TrendingUp size={12} className="text-primary" /> Budget & Deposit Ledger Summary
+                      <TrendingUp size={12} className="text-foreground shrink-0" />
+                      <span>Budget &amp; Deposit Ledger Summary</span>
                     </span>
-                    <span className="font-bold text-foreground font-mono">
+                    <span className="font-bold text-foreground">
                       {(formData.deposits || []).length} Tranche{(formData.deposits || []).length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -1194,20 +1205,20 @@ export default function Campaigns() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="p-2 rounded-lg bg-secondary/50 border border-border">
                       <span className="text-[10px] text-muted-foreground block font-medium">Assigned Budget</span>
-                      <span className="text-sm font-bold font-mono text-foreground block mt-0.5">
+                      <span className="text-sm font-bold text-foreground block mt-0.5">
                         ₹{liveAssigned.toLocaleString()}
                       </span>
                     </div>
-                    <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                      <span className="text-[10px] text-blue-600 dark:text-blue-400 block font-medium">Total Deposited</span>
-                      <span className="text-sm font-bold font-mono text-blue-600 dark:text-blue-400 block mt-0.5">
+                    <div className="p-2 rounded-lg bg-secondary/50 border border-border">
+                      <span className="text-[10px] text-muted-foreground block font-medium">Total Deposited</span>
+                      <span className="text-sm font-bold text-foreground block mt-0.5">
                         ₹{liveDeposited.toLocaleString()}
                       </span>
                     </div>
                   </div>
 
                   {/* Balance Amount: Assigned Budget MINUS Deposited Amount */}
-                  <div className="p-3 rounded-xl bg-card border border-border flex items-center justify-between shadow-xs">
+                  <div className="p-3 rounded-xl bg-secondary/35 border border-border flex items-center justify-between gap-2">
                     <div>
                       <span className="font-bold text-foreground text-xs block">
                         Balance Amount
@@ -1218,19 +1229,19 @@ export default function Campaigns() {
                     </div>
                     <div className="text-right">
                       {liveAssigned > 0 && remainingFromAssigned > 0 ? (
-                        <span className="text-sm font-black font-mono px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                        <span className="text-sm font-bold px-2.5 py-1 rounded-lg bg-secondary border border-border text-foreground">
                           ₹{remainingFromAssigned.toLocaleString()}
                         </span>
                       ) : liveAssigned > 0 && remainingFromAssigned === 0 ? (
-                        <span className="text-sm font-black font-mono px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                          ✓ ₹0 (100% Fully Deposited)
+                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-primary text-primary-foreground">
+                          <Check size={12} className="shrink-0" /> ₹0 (100% Deposited)
                         </span>
                       ) : remainingFromAssigned < 0 ? (
-                        <span className="text-sm font-black font-mono px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400">
+                        <span className="text-sm font-bold px-2.5 py-1 rounded-lg bg-secondary border border-border text-foreground">
                           +₹{Math.abs(remainingFromAssigned).toLocaleString()} Extra Deposited
                         </span>
                       ) : (
-                        <span className="text-sm font-bold font-mono text-muted-foreground">₹0</span>
+                        <span className="text-sm font-bold text-muted-foreground">₹0</span>
                       )}
                     </div>
                   </div>
@@ -1248,38 +1259,38 @@ export default function Campaigns() {
 
       {/* Post-Creation Prompt Modal: Campaign Created -> Create Ad Set */}
       {createdCampaignForNextStep && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-card border border-border max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in">
+          <div className="bg-card border border-border max-w-md w-full p-6 rounded-2xl shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center mx-auto">
               <CheckCircle size={28} />
             </div>
             <div className="text-center space-y-1">
               <h3 className="text-base font-bold text-foreground">Campaign Created Successfully!</h3>
               <p className="text-xs text-muted-foreground">
-                <strong>{createdCampaignForNextStep.name}</strong> is now configured in your ledger. Would you like to create the Ad Set & set audience targeting now?
+                <strong className="text-foreground">{createdCampaignForNextStep.name}</strong> is now configured in your ledger. Would you like to create the Ad Set &amp; set audience targeting now?
               </p>
             </div>
 
-            <div className="p-3 bg-secondary/50 rounded-2xl border border-border text-xs space-y-1.5">
+            <div className="p-3 bg-secondary/50 rounded-xl border border-border text-xs space-y-1.5 tabular-nums">
               <div className="flex justify-between text-muted-foreground">
                 <span>Client:</span>
                 <span className="font-semibold text-foreground">{createdCampaignForNextStep.client?.company || createdCampaignForNextStep.client?.name}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>Videos Attached:</span>
-                <span className="font-semibold text-purple-600 dark:text-purple-400">
+                <span className="font-semibold text-foreground">
                   {createdCampaignForNextStep.sourceContentIds?.length || (createdCampaignForNextStep.sourceContentId ? 1 : 0)} Videos
                 </span>
               </div>
               <div className="flex justify-between text-muted-foreground">
-                <span>Objective & Destination:</span>
-                <span className="font-semibold text-primary">
-                  {createdCampaignForNextStep.objective} • {createdCampaignForNextStep.destination || 'Message Destination'}
+                <span>Objective &amp; Destination:</span>
+                <span className="font-semibold text-foreground">
+                  {createdCampaignForNextStep.objective} · {createdCampaignForNextStep.destination || 'Message Destination'}
                 </span>
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>Campaign Budget:</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹{(createdCampaignForNextStep.lifetimeBudget || createdCampaignForNextStep.amountAdded || 0).toLocaleString()}</span>
+                <span className="font-semibold text-foreground">₹{(createdCampaignForNextStep.lifetimeBudget || createdCampaignForNextStep.amountAdded || 0).toLocaleString()}</span>
               </div>
             </div>
 
@@ -1296,13 +1307,15 @@ export default function Campaigns() {
                     }
                   });
                 }}
-                className="flex-1 py-2.5 px-4 bg-primary text-primary-foreground font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                className="flex-1 py-2.5 px-4 bg-primary text-primary-foreground font-semibold rounded-xl text-xs inline-flex items-center justify-center gap-1.5 shadow-xs hover:bg-primary/90 transition-colors"
               >
-                <Layers size={14} /> Create Ad Set & Targeting <ArrowRight size={14} />
+                <Layers size={14} className="shrink-0" />
+                <span>Create Ad Set &amp; Targeting</span>
+                <ArrowRight size={14} className="shrink-0" />
               </button>
               <button
                 onClick={() => setCreatedCampaignForNextStep(null)}
-                className="py-2.5 px-4 bg-secondary text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80"
+                className="py-2.5 px-4 bg-secondary border border-border text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80 transition-colors"
               >
                 View Campaigns
               </button>

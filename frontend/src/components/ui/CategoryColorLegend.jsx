@@ -23,7 +23,7 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 
 export const BOARD_CATEGORY_DEFINITIONS = [
   {
@@ -32,10 +32,10 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'Website / Web Dev',
     description: 'Web development, redesigns, landing pages & CMS',
     icon: Globe,
-    dotColor: 'bg-blue-500',
-    borderClass: 'border-l-blue-500',
-    badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
-    swatchClass: 'bg-blue-500',
+    dotColor: 'bg-zinc-900 dark:bg-zinc-100',
+    borderClass: 'border-l-zinc-900 dark:border-l-zinc-100',
+    badgeClass: 'bg-zinc-900/10 text-zinc-900 dark:text-zinc-100 border-zinc-900/25 dark:border-zinc-200/25',
+    swatchClass: 'bg-zinc-900 dark:bg-zinc-100',
   },
   {
     key: 'social_media',
@@ -43,10 +43,10 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'Social Media / SMM',
     description: 'Instagram, Reels, Carousel posts & content calendar',
     icon: Share2,
-    dotColor: 'bg-purple-500',
-    borderClass: 'border-l-purple-500',
-    badgeClass: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30',
-    swatchClass: 'bg-purple-500',
+    dotColor: 'bg-zinc-700 dark:bg-zinc-300',
+    borderClass: 'border-l-zinc-700 dark:border-l-zinc-300',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/30',
+    swatchClass: 'bg-zinc-700 dark:bg-zinc-300',
   },
   {
     key: 'video_content',
@@ -54,10 +54,10 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'Video Production',
     description: 'Shooting, reels editing, YouTube & promo videos',
     icon: Video,
-    dotColor: 'bg-rose-500',
-    borderClass: 'border-l-rose-500',
-    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
-    swatchClass: 'bg-rose-500',
+    dotColor: 'bg-zinc-600 dark:bg-zinc-400',
+    borderClass: 'border-l-zinc-600 dark:border-l-zinc-400',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/30',
+    swatchClass: 'bg-zinc-600 dark:bg-zinc-400',
   },
   {
     key: 'branding',
@@ -65,10 +65,10 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'Branding & Design',
     description: 'Logos, brand identities, graphic designs & posters',
     icon: Palette,
-    dotColor: 'bg-pink-500',
-    borderClass: 'border-l-pink-500',
-    badgeClass: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/30',
-    swatchClass: 'bg-pink-500',
+    dotColor: 'bg-zinc-500 dark:bg-zinc-400',
+    borderClass: 'border-l-zinc-500 dark:border-l-zinc-400',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/30',
+    swatchClass: 'bg-zinc-500 dark:bg-zinc-400',
   },
   {
     key: 'paid_ads',
@@ -76,10 +76,10 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'Paid Ads / Meta & Google',
     description: 'Meta Ads, PPC campaigns, creatives & lead gen',
     icon: Megaphone,
-    dotColor: 'bg-red-500',
-    borderClass: 'border-l-red-500',
-    badgeClass: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30',
-    swatchClass: 'bg-red-500',
+    dotColor: 'bg-neutral-800 dark:bg-neutral-200',
+    borderClass: 'border-l-neutral-800 dark:border-l-neutral-200',
+    badgeClass: 'bg-neutral-500/10 text-neutral-800 dark:text-neutral-200 border-neutral-500/30',
+    swatchClass: 'bg-neutral-800 dark:bg-neutral-200',
   },
   {
     key: 'seo',
@@ -87,10 +87,10 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'SEO & Search Optimization',
     description: 'Keywords, backlinks, audits & Google search rankings',
     icon: Search,
-    dotColor: 'bg-amber-500',
-    borderClass: 'border-l-amber-500',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
-    swatchClass: 'bg-amber-500',
+    dotColor: 'bg-neutral-600 dark:bg-neutral-400',
+    borderClass: 'border-l-neutral-600 dark:border-l-neutral-400',
+    badgeClass: 'bg-neutral-500/10 text-neutral-800 dark:text-neutral-200 border-neutral-500/30',
+    swatchClass: 'bg-neutral-600 dark:bg-neutral-400',
   },
   {
     key: 'saas_product',
@@ -98,10 +98,10 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'SaaS Platform / Software',
     description: 'In-house SaaS products, web portals & engineering',
     icon: Rocket,
-    dotColor: 'bg-indigo-500',
-    borderClass: 'border-l-indigo-500',
-    badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30',
-    swatchClass: 'bg-indigo-500',
+    dotColor: 'bg-zinc-800 dark:bg-zinc-200',
+    borderClass: 'border-l-zinc-800 dark:border-l-zinc-200',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/30',
+    swatchClass: 'bg-zinc-800 dark:bg-zinc-200',
   },
   {
     key: 'content',
@@ -109,22 +109,22 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     label: 'Content Writing & Scripts',
     description: 'Scriptwriting, blogs, copy & caption drafting',
     icon: FileText,
-    dotColor: 'bg-sky-500',
-    borderClass: 'border-l-sky-500',
-    badgeClass: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30',
-    swatchClass: 'bg-sky-500',
+    dotColor: 'bg-zinc-400 dark:bg-zinc-500',
+    borderClass: 'border-l-zinc-400 dark:border-l-zinc-500',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/30',
+    swatchClass: 'bg-zinc-400 dark:bg-zinc-500',
   },
 ];
 
 /**
  * CategoryColorLegend Component
- * Renders a rich, interactive guide defining each board category color
+ * Renders a rich, interactive guide defining each board category code
  */
 export const CategoryColorLegend = ({
   selectedCategory = 'all',
   onSelectCategory,
-  title = 'Board Color Code Guide',
-  description = 'Card left-border color accents identify deliverable & project categories at a glance',
+  title = 'Board Category Guide',
+  description = 'Left-border shades identify deliverable & project categories at a glance',
   className = '',
   collapsible = true,
   defaultExpanded = true,
@@ -132,12 +132,12 @@ export const CategoryColorLegend = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={`rounded-2xl border border-border/80 bg-card/80 backdrop-blur-sm p-3 sm:p-3.5 shadow-xs space-y-2.5 transition-all ${className}`}>
+    <div className={`rounded-2xl border border-border bg-card p-3 sm:p-3.5 shadow-xs space-y-2.5 transition-all ${className}`}>
       {/* Header Bar */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-            🎨
+          <div className="h-6 w-6 rounded-lg bg-secondary text-foreground flex items-center justify-center border border-border">
+            <Palette size={13} />
           </div>
           <div>
             <div className="flex items-center gap-2">

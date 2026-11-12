@@ -24,14 +24,11 @@ import {
   KeyRound,
   PhoneCall,
   Globe2,
-  ClipboardList,
   Sparkles,
-  StickyNote,
   Share2,
   Star,
   Search,
   UserCheck,
-  Video,
   X,
   Kanban,
   GitPullRequest,
@@ -42,7 +39,7 @@ import {
   Rocket,
   ShieldCheck,
   Trash2,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
@@ -161,7 +158,6 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
       const employeeDelivery = [
         { name: 'My Tasks', icon: CheckSquare, path: '/tasks' },
         { name: 'Daily Calendar', icon: Calendar, path: '/daily-tasks' },
-        { name: 'Task Notes & Logs', icon: StickyNote, path: '/pending-notes' },
         { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
       ];
       if (p.canAccessSmm) {
@@ -247,14 +243,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         items: [
           { name: 'Projects', icon: Briefcase, path: '/projects' },
           { name: role === 'manager' ? 'Manager Tasks' : 'Tasks Database', icon: CheckSquare, path: role === 'manager' ? '/manager-tasks' : '/tasks' },
-          ...(role === 'superAdmin' || role === 'admin' ? [
-            { name: 'Manager Assignments', icon: CheckSquare, path: '/admin/manager-assignments' },
-          ] : []),
           { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
-          { name: 'Shoots & DM Calendar', icon: Video, path: '/dm-calendar' },
           { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
-          { name: 'Manager Board', icon: ClipboardList, path: '/manager-board' },
-          { name: 'Task Notes & Logs', icon: StickyNote, path: '/pending-notes' },
         ],
       },
       {
@@ -357,7 +347,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
       {isMobile && sidebarOpen && (
         <div
           onClick={() => dispatch(toggleSidebar())}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/60 z-40 transition-opacity duration-300"
         />
       )}
 
@@ -419,8 +409,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           {/* Pinned / Favorites Section */}
           {pinnedItems.length > 0 && (
             <div className="space-y-0.5">
-              <div className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/70 flex items-center gap-1.5 font-sans">
-                <Star size={11} className="fill-amber-400 text-amber-400" />
+              <div className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/80 flex items-center gap-1.5 font-sans">
+                <Star size={11} className="fill-current text-zinc-600 dark:text-zinc-400" />
                 <span>Favorites</span>
               </div>
               {pinnedItems.map((item) => {
@@ -448,11 +438,13 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                     <button
                       type="button"
                       onClick={(e) => togglePin(e, item.path)}
-                      className="mr-2 p-1 opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                      className={`mr-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity ${
+                        isActive ? 'text-primary-foreground hover:opacity-75' : 'text-zinc-700 dark:text-zinc-300 hover:text-destructive'
+                      }`}
                       title="Unpin from favorites"
                       aria-label="Unpin from favorites"
                     >
-                      <Star size={12} className="fill-amber-400 text-amber-400" />
+                      <Star size={12} className="fill-current" />
                     </button>
                   </div>
                 );
@@ -516,8 +508,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
 
                           {/* Badge count if pending */}
                           {count > 0 && (
-                            <span className={`ml-2 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                              isActive ? 'bg-white/20 text-white' : 'bg-red-500 text-white'
+                            <span className={`ml-2 px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
+                              isActive ? 'bg-primary-foreground/15 text-primary-foreground' : 'bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900'
                             }`}>
                               {count}
                             </span>
@@ -529,12 +521,18 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                           type="button"
                           onClick={(e) => togglePin(e, item.path)}
                           className={`mr-2 p-1 transition-opacity ${
-                            isPinned ? 'opacity-100 text-amber-400' : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-amber-400'
+                            isPinned
+                              ? isActive
+                                ? 'opacity-100 text-primary-foreground'
+                                : 'opacity-100 text-zinc-700 dark:text-zinc-300'
+                              : isActive
+                                ? 'opacity-0 group-hover:opacity-100 text-primary-foreground/80 hover:text-primary-foreground'
+                                : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground'
                           }`}
                           title={isPinned ? 'Unpin from favorites' : 'Pin to favorites'}
                           aria-label={isPinned ? 'Unpin from favorites' : 'Pin to favorites'}
                         >
-                          <Star size={12} className={isPinned ? 'fill-amber-400' : ''} />
+                          <Star size={12} className={isPinned ? 'fill-current' : ''} />
                         </button>
                       </div>
                     );

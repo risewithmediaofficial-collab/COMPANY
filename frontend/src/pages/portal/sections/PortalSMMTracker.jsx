@@ -5,7 +5,7 @@ import {
   Calendar, Film, Layers, Sparkles, CheckCircle2, Clock, AlertCircle,
   ChevronLeft, ChevronRight, RefreshCw, Filter, Share2, Check,
   TrendingUp, Activity, BarChart2
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { motion } from 'framer-motion';
 
 const MONTHS = [
@@ -189,21 +189,21 @@ export default function PortalSMMTracker() {
     const s = String(status || 'todo').toLowerCase();
     if (s === 'done') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 size={11} /> DONE
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-primary text-primary-foreground">
+          <CheckCircle2 size={11} className="shrink-0" /> DONE
         </span>
       );
     }
     if (s === 'pending') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400">
-          <Clock size={11} /> PENDING
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-secondary text-foreground border border-border">
+          <Clock size={11} className="shrink-0" /> PENDING
         </span>
       );
     }
     if (s === 'skip') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-500">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/60 text-muted-foreground border border-border">
           SKIP
         </span>
       );
@@ -221,14 +221,14 @@ export default function PortalSMMTracker() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border/60">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="p-2.5 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400">
+            <span className="p-2.5 rounded-2xl bg-secondary text-foreground border border-border shrink-0">
               <Calendar size={22} />
             </span>
             <div>
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
                 SMM Tracker Sheet
                 {clientRow?.client?.companyName && (
-                  <span className="text-xs px-2.5 py-0.5 rounded-lg bg-primary/10 text-primary font-bold">
+                  <span className="text-xs px-2.5 py-0.5 rounded-lg bg-secondary text-foreground border border-border font-bold">
                     {clientRow.client.companyName}
                   </span>
                 )}
@@ -251,7 +251,7 @@ export default function PortalSMMTracker() {
             <ChevronLeft size={16} />
           </button>
 
-          <span className="px-3 text-xs font-bold text-foreground min-w-[120px] text-center">
+          <span className="px-3 text-xs font-bold text-foreground min-w-[120px] text-center tabular-nums">
             {MONTHS[selectedMonth - 1]} {selectedYear}
           </span>
 
@@ -277,16 +277,16 @@ export default function PortalSMMTracker() {
       {/* ── Deliverables Overview Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Deliverables */}
-        <div className="p-4 rounded-2xl bg-card border border-border/60 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Overall Progress</span>
-            <span className="text-xs font-black text-primary">{metrics.completionRate}%</span>
+            <span className="text-xs font-black text-foreground tabular-nums">{metrics.completionRate}%</span>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-2xl font-black text-foreground">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-2xl font-black text-foreground tabular-nums">
               {metrics.totalDone} <span className="text-xs font-semibold text-muted-foreground">/ {metrics.totalPlanned} posted</span>
             </p>
-            <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+            <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
               {metrics.totalPending} pending
             </span>
           </div>
@@ -299,27 +299,27 @@ export default function PortalSMMTracker() {
         </div>
 
         {/* Reels / Videos */}
-        <div className="p-4 rounded-2xl bg-purple-50/40 dark:bg-purple-950/20 border border-purple-200/50 dark:border-purple-900/30 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-purple-700 dark:text-purple-300">
-              <Film size={15} />
-              <span className="text-xs font-bold uppercase tracking-wider">Reels / Shorts</span>
+            <div className="flex items-center gap-1.5 text-foreground">
+              <Film size={15} className="shrink-0 text-muted-foreground" />
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Reels / Shorts</span>
             </div>
-            <span className="text-xs font-black text-purple-600 dark:text-purple-400">
+            <span className="text-xs font-black text-foreground tabular-nums">
               {metrics.reelsPlanned > 0 ? Math.round((metrics.reelsDone / metrics.reelsPlanned) * 100) : 0}%
             </span>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-2xl font-black text-purple-800 dark:text-purple-200">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-2xl font-black text-foreground tabular-nums">
               {metrics.reelsDone} <span className="text-xs font-semibold text-muted-foreground">/ {metrics.reelsPlanned} posted</span>
             </p>
-            <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400">
+            <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
               {metrics.reelsPending} to post
             </span>
           </div>
-          <div className="w-full h-2 rounded-full bg-purple-200/50 dark:bg-purple-900/40 overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
             <div
-              className="h-full rounded-full bg-purple-600 transition-all duration-500"
+              className="h-full rounded-full bg-primary transition-all duration-500"
               style={{
                 width: `${metrics.reelsPlanned > 0 ? Math.min(100, Math.round((metrics.reelsDone / metrics.reelsPlanned) * 100)) : 0}%`,
               }}
@@ -328,27 +328,27 @@ export default function PortalSMMTracker() {
         </div>
 
         {/* Feed Posts */}
-        <div className="p-4 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/30 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300">
-              <Layers size={15} />
-              <span className="text-xs font-bold uppercase tracking-wider">Feed Posts</span>
+            <div className="flex items-center gap-1.5 text-foreground">
+              <Layers size={15} className="shrink-0 text-muted-foreground" />
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Feed Posts</span>
             </div>
-            <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs font-black text-foreground tabular-nums">
               {metrics.postsPlanned > 0 ? Math.round((metrics.postsDone / metrics.postsPlanned) * 100) : 0}%
             </span>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-2xl font-black text-indigo-800 dark:text-indigo-200">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-2xl font-black text-foreground tabular-nums">
               {metrics.postsDone} <span className="text-xs font-semibold text-muted-foreground">/ {metrics.postsPlanned} posted</span>
             </p>
-            <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
+            <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
               {metrics.postsPending} to post
             </span>
           </div>
-          <div className="w-full h-2 rounded-full bg-indigo-200/50 dark:bg-indigo-900/40 overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
             <div
-              className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+              className="h-full rounded-full bg-primary transition-all duration-500"
               style={{
                 width: `${metrics.postsPlanned > 0 ? Math.min(100, Math.round((metrics.postsDone / metrics.postsPlanned) * 100)) : 0}%`,
               }}
@@ -357,27 +357,27 @@ export default function PortalSMMTracker() {
         </div>
 
         {/* Daily Stories */}
-        <div className="p-4 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
-              <Sparkles size={15} />
-              <span className="text-xs font-bold uppercase tracking-wider">Daily Stories</span>
+            <div className="flex items-center gap-1.5 text-foreground">
+              <Sparkles size={15} className="shrink-0 text-muted-foreground" />
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Daily Stories</span>
             </div>
-            <span className="text-xs font-black text-amber-600 dark:text-amber-400">
+            <span className="text-xs font-black text-foreground tabular-nums">
               {metrics.storiesPlanned > 0 ? Math.round((metrics.storiesDone / metrics.storiesPlanned) * 100) : 0}%
             </span>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-2xl font-black text-amber-800 dark:text-amber-200">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-2xl font-black text-foreground tabular-nums">
               {metrics.storiesDone} <span className="text-xs font-semibold text-muted-foreground">/ {metrics.storiesPlanned} posted</span>
             </p>
-            <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+            <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
               {metrics.storiesPending} to post
             </span>
           </div>
-          <div className="w-full h-2 rounded-full bg-amber-200/50 dark:bg-amber-900/40 overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
             <div
-              className="h-full rounded-full bg-amber-500 transition-all duration-500"
+              className="h-full rounded-full bg-primary transition-all duration-500"
               style={{
                 width: `${metrics.storiesPlanned > 0 ? Math.min(100, Math.round((metrics.storiesDone / metrics.storiesPlanned) * 100)) : 0}%`,
               }}
@@ -393,7 +393,7 @@ export default function PortalSMMTracker() {
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <span>{MONTHS[selectedMonth - 1]} Content Calendar</span>
               {clientRow?.plan && (
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 font-bold">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-secondary text-foreground border border-border font-bold">
                   {clientRow.plan}
                 </span>
               )}
@@ -459,9 +459,9 @@ export default function PortalSMMTracker() {
                       key={day.day}
                       className={`transition-colors ${
                         today
-                          ? 'bg-blue-500/10 font-medium'
+                          ? 'bg-muted/70 font-medium'
                           : sunday
-                          ? 'bg-amber-500/5'
+                          ? 'bg-muted/30'
                           : 'hover:bg-secondary/30'
                       }`}
                     >
@@ -469,11 +469,11 @@ export default function PortalSMMTracker() {
                       <td className="py-3 px-4 font-bold">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black tabular-nums ${
                               today
-                                ? 'bg-blue-600 text-white shadow-sm'
+                                ? 'bg-primary text-primary-foreground shadow-sm'
                                 : sunday
-                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                                ? 'bg-secondary text-foreground border border-border'
                                 : 'bg-secondary text-foreground'
                             }`}
                           >
@@ -481,7 +481,7 @@ export default function PortalSMMTracker() {
                           </span>
                           <span className="text-[11px] text-muted-foreground">
                             {getWeekday(day.day)}
-                            {today && <span className="ml-1 text-[10px] text-blue-600 font-black">(Today)</span>}
+                            {today && <span className="ml-1 text-[10px] text-foreground font-black">(Today)</span>}
                           </span>
                         </div>
                       </td>
@@ -491,11 +491,11 @@ export default function PortalSMMTracker() {
                         {day.postLabel ? (
                           <div className="flex items-center gap-2">
                             {/R/i.test(day.postLabel) ? (
-                              <span className="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-600 font-bold text-[10px]">
+                              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px] shrink-0">
                                 Reel
                               </span>
                             ) : (
-                              <span className="px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-600 font-bold text-[10px]">
+                              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px] shrink-0">
                                 Post
                               </span>
                             )}

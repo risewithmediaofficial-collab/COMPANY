@@ -4,7 +4,7 @@ test.describe('All Functions & Instant Page Transitions Test Suite', () => {
 
   test.beforeEach(async ({ page }) => {
     // Authenticate
-    await page.goto('http://localhost:5173/login');
+    await page.goto('http://localhost:5175/login');
     await page.waitForLoadState('networkidle');
 
     const emailInput = page.locator('form input[type="email"]').first();
@@ -21,7 +21,7 @@ test.describe('All Functions & Instant Page Transitions Test Suite', () => {
   test('1. Instant Route Switching (No Loading Screen Flash)', async ({ page }) => {
     const routes = ['/', '/clients', '/calendar', '/tasks', '/projects', '/crm/leads', '/finance', '/reports', '/sop', '/hr', '/settings'];
     for (const r of routes) {
-      await page.goto(`http://localhost:5173${r}`);
+      await page.goto(`http://localhost:5175${r}`);
       // Verify no LoadingScreen spinner is visible
       await expect(page.getByText('Connecting Hub…')).not.toBeVisible();
       await expect(page.locator('body')).toBeVisible();
@@ -30,7 +30,7 @@ test.describe('All Functions & Instant Page Transitions Test Suite', () => {
 
   test('2. Page Functions, Search & Filter State Interactions', async ({ page }) => {
     // Clients search & select filter
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     const searchInput = page.locator('.mt-5 input[placeholder*="Search"]').first();
@@ -41,7 +41,7 @@ test.describe('All Functions & Instant Page Transitions Test Suite', () => {
     }
 
     // Task Calendar Collapsible filter toggle
-    await page.goto('http://localhost:5173/calendar');
+    await page.goto('http://localhost:5175/calendar');
     await page.waitForLoadState('networkidle');
 
     const filterBtn = page.getByRole('button', { name: /Filters/i }).first();
@@ -54,7 +54,7 @@ test.describe('All Functions & Instant Page Transitions Test Suite', () => {
 
   test('3. Modals Trigger & Close Functions', async ({ page }) => {
     // Add Client modal
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     const addClientBtn = page.getByRole('button', { name: /Add Client/i }).first();
@@ -66,7 +66,7 @@ test.describe('All Functions & Instant Page Transitions Test Suite', () => {
     }
 
     // Add Invoice modal
-    await page.goto('http://localhost:5173/finance');
+    await page.goto('http://localhost:5175/finance');
     await page.waitForLoadState('networkidle');
 
     const invoiceBtn = page.getByRole('button', { name: /Invoice/i }).first();

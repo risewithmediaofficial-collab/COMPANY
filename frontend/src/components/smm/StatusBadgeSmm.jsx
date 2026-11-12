@@ -1,16 +1,16 @@
 import React from 'react';
 
 const statusStyles = {
-  Active: 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
-  Draft: 'bg-slate-500/10 text-slate-600 border-slate-200',
-  'Pending Approval': 'bg-amber-500/10 text-amber-600 border-amber-200',
-  Pending: 'bg-amber-500/10 text-amber-600 border-amber-200',
-  Scheduled: 'bg-purple-500/10 text-purple-600 border-purple-200',
-  Paused: 'bg-orange-500/10 text-orange-600 border-orange-200',
-  Completed: 'bg-blue-500/10 text-blue-600 border-blue-200',
-  Approved: 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
-  Rejected: 'bg-rose-500/10 text-rose-600 border-rose-200',
-  'Changes Requested': 'bg-violet-500/10 text-violet-600 border-violet-200',
+  Active: 'bg-primary text-primary-foreground border-primary',
+  Draft: 'bg-secondary text-muted-foreground border-border',
+  'Pending Approval': 'bg-card text-foreground border-foreground/40',
+  Pending: 'bg-secondary text-foreground border-border',
+  Scheduled: 'bg-secondary/70 text-foreground border-border',
+  Paused: 'bg-card text-muted-foreground border-border',
+  Completed: 'bg-primary text-primary-foreground border-primary',
+  Approved: 'bg-primary text-primary-foreground border-primary',
+  Rejected: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border-border',
+  'Changes Requested': 'bg-secondary text-foreground border-border',
 };
 
 export const StatusBadgeSmm = ({ status }) => {

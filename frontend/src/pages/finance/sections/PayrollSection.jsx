@@ -19,7 +19,7 @@ import {
   Sparkles,
   Loader2,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   Dialog,
   DialogContent,
@@ -298,66 +298,66 @@ export default function PayrollSection() {
     <div className="space-y-6">
       {/* ── TOP KPI SUMMARY CARDS ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-            <span>TOTAL BASE SALARIES</span>
-            <div className="h-7 w-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+            <span>Total Base Salaries</span>
+            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center font-bold shrink-0">
               ₹
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{formatINR(totalGross)}</div>
-          <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+          <div className="text-2xl font-extrabold text-foreground tracking-tight tabular-nums">{formatINR(totalGross)}</div>
+          <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1 tabular-nums">
             <span>Monthly salary commitments for {records.length} staff</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-            <span>NET APPROVED PAYROLL</span>
-            <div className="h-7 w-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+            <span>Net Approved Payroll</span>
+            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
               <Clock className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-blue-600 tracking-tight">{formatINR(totalNet)}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Net take-home after additions/deductions</div>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight tabular-nums">{formatINR(totalNet)}</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Net take-home after additions/deductions</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-            <span>DISBURSED SALARIES</span>
-            <div className="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+            <span>Disbursed Salaries</span>
+            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-emerald-600 tracking-tight">{formatINR(totalPaid)}</div>
-          <div className="text-[11px] text-slate-500 mt-1">
-            <span className="font-semibold text-emerald-700">{paidCount}</span> of {records.length} employees paid
+          <div className="text-2xl font-extrabold text-foreground tracking-tight tabular-nums">{formatINR(totalPaid)}</div>
+          <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">
+            <span className="font-semibold text-foreground">{paidCount}</span> of {records.length} employees paid
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-            <span>PENDING APPROVALS</span>
-            <div className="h-7 w-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+            <span>Pending Approvals</span>
+            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
               <AlertCircle className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-amber-600 tracking-tight">{pendingCount} Employees</div>
-          <div className="text-[11px] text-slate-500 mt-1">Awaiting manager authorization</div>
+          <div className="text-2xl font-extrabold text-foreground tracking-tight tabular-nums">{pendingCount} Employees</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Awaiting manager authorization</div>
         </div>
       </div>
 
       {/* ── ACTION & FILTER TOOLBAR ─────────────────────────────────────── */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
+      <div className="bg-card p-4 rounded-xl border border-border shadow-2xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Period Selector & Primary Add Action */}
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg p-1">
-              <Calendar className="h-3.5 w-3.5 text-slate-400 ml-1.5" />
+            <div className="flex items-center gap-1.5 bg-secondary/60 border border-border rounded-lg p-1">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground ml-1.5 shrink-0" />
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent border-0 py-1 pl-1 pr-6 font-semibold text-xs text-slate-800 focus:ring-0 cursor-pointer"
+                className="bg-transparent border-0 py-1 pl-1 pr-6 font-semibold text-xs text-foreground focus:ring-0 cursor-pointer"
               >
                 {MONTHS.map((m) => (
                   <option key={m} value={m}>
@@ -369,7 +369,7 @@ export default function PayrollSection() {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="bg-transparent border-0 py-1 pl-1 pr-6 font-semibold text-xs text-slate-800 focus:ring-0 cursor-pointer"
+                className="bg-transparent border-0 py-1 pl-1 pr-6 font-semibold text-xs text-foreground tabular-nums focus:ring-0 cursor-pointer"
               >
                 <option value="2025">2025</option>
                 <option value="2026">2026</option>
@@ -380,9 +380,9 @@ export default function PayrollSection() {
             {/* PRIMARY BUTTON: Manual Entry by Employee Selection */}
             <button
               onClick={handleOpenAdd}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg shadow-xs hover:shadow transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-lg shadow-xs transition-all cursor-pointer"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 shrink-0" />
               <span>Enter Employee Payroll</span>
             </button>
           </div>
@@ -390,28 +390,28 @@ export default function PayrollSection() {
           {/* Search & Export Buttons */}
           <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
             <div className="relative w-full sm:w-56">
-              <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="h-3.5 w-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search employee or role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full sm:w-56"
+                className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring w-full sm:w-56"
               />
             </div>
 
             <button
               onClick={handleExport}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-foreground font-semibold text-xs hover:bg-secondary transition-colors cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5" />
+              <Download className="h-3.5 w-3.5 shrink-0" />
               <span className="hidden sm:inline">Export</span>
             </button>
           </div>
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1 pt-2 border-t border-slate-100 overflow-x-auto text-xs">
+        <div className="flex items-center gap-1 pt-2 border-t border-border overflow-x-auto text-xs">
           {[
             { id: 'all', label: 'All Records', count: records.length },
             { id: 'pending', label: 'Pending Approval', count: pendingCount },
@@ -421,16 +421,16 @@ export default function PayrollSection() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-3 py-1.5 rounded-md font-medium text-xs transition-colors flex items-center gap-1.5 shrink-0 min-h-[36px] ${
+              className={`px-3 py-1.5 rounded-md font-medium text-xs transition-colors flex items-center gap-1.5 shrink-0 min-h-[36px] cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-slate-900 text-white font-semibold shadow-2xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  statusFilter === tab.id ? 'bg-slate-800 text-slate-200' : 'bg-slate-200/80 text-slate-700'
+                className={`text-[10px] px-1.5 py-0.5 rounded-full tabular-nums ${
+                  statusFilter === tab.id ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-foreground border border-border'
                 }`}
               >
                 {tab.count}
@@ -441,16 +441,16 @@ export default function PayrollSection() {
       </div>
 
       {/* ── PAYROLL REGISTER TABLE ───────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
+        <div className="p-4 border-b border-border flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2 tabular-nums">
               <span>Payroll Register: {selectedMonth} {selectedYear}</span>
-              <span className="text-xs font-normal text-slate-500">
+              <span className="text-xs font-normal text-muted-foreground">
                 ({filteredRecords.length} {filteredRecords.length === 1 ? 'employee' : 'employees'})
               </span>
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Enter employee salary, bonuses, and approved deductions manually. Approving books the salary expense; disbursing records bank outflow.
             </p>
           </div>
@@ -458,21 +458,21 @@ export default function PayrollSection() {
 
         <div className="responsive-table-container overflow-y-auto max-h-[580px] text-xs">
           <table className="w-full min-w-[700px] text-left">
-            <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="sticky top-0 z-10 bg-secondary border-b border-border shadow-2xs text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3.5">Employee</th>
-                <th className="p-3.5">Base Salary</th>
-                <th className="p-3.5">Additions / Bonus</th>
-                <th className="p-3.5">Deductions</th>
-                <th className="p-3.5 font-bold text-slate-700">Net Payable</th>
+                <th className="p-3.5 text-right">Base Salary</th>
+                <th className="p-3.5 text-right">Additions / Bonus</th>
+                <th className="p-3.5 text-right">Deductions</th>
+                <th className="p-3.5 text-right font-bold text-foreground">Net Payable</th>
                 <th className="p-3.5 text-center">Status</th>
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-slate-400">
+                  <td colSpan="7" className="p-8 text-center text-muted-foreground">
                     Loading payroll records...
                   </td>
                 </tr>
@@ -480,20 +480,20 @@ export default function PayrollSection() {
                 <tr>
                   <td colSpan="7" className="p-12 text-center">
                     <div className="max-w-sm mx-auto space-y-3">
-                      <div className="h-10 w-10 mx-auto rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                      <div className="h-10 w-10 mx-auto rounded-full bg-secondary border border-border text-foreground flex items-center justify-center font-bold">
                         <Users className="h-5 w-5" />
                       </div>
-                      <div className="font-semibold text-slate-800 text-sm">
+                      <div className="font-semibold text-foreground text-sm">
                         No payroll entries found for {selectedMonth} {selectedYear}
                       </div>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         Click "Enter Employee Payroll" above to select an employee and input their salary, allowances, and deductions manually.
                       </p>
                       <button
                         onClick={handleOpenAdd}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white font-semibold text-xs rounded-lg shadow-xs hover:bg-indigo-700"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-lg shadow-xs hover:bg-primary/90 cursor-pointer"
                       >
-                        <Plus className="h-4 w-4" /> Add First Entry
+                        <Plus className="h-4 w-4 shrink-0" /> Add First Entry
                       </button>
                     </div>
                   </td>
@@ -504,59 +504,59 @@ export default function PayrollSection() {
                   const deductions = Number(rec.deductions || 0);
 
                   return (
-                    <tr key={rec._id} className="hover:bg-slate-50/60 transition-colors">
+                    <tr key={rec._id} className="hover:bg-secondary/40 transition-colors">
                       {/* Employee Info */}
                       <td className="p-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-bold text-xs uppercase shadow-2xs">
+                          <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs uppercase shadow-2xs shrink-0">
                             {rec.employee?.name ? rec.employee.name.charAt(0) : 'E'}
                           </div>
-                          <div>
-                            <div className="font-bold text-slate-900">{rec.employee?.name || 'Employee'}</div>
-                            <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                          <div className="min-w-0">
+                            <div className="font-bold text-foreground truncate">{rec.employee?.name || 'Employee'}</div>
+                            <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                               <span>{rec.employee?.department || rec.employee?.position || 'Staff'}</span>
-                              {rec.employee?.email && <span className="text-slate-300">·</span>}
-                              <span className="text-slate-400">{rec.employee?.email}</span>
+                              {rec.employee?.email && <span>·</span>}
+                              <span className="truncate">{rec.employee?.email}</span>
                             </div>
                           </div>
                         </div>
                       </td>
 
                       {/* Base Salary */}
-                      <td className="p-3.5 font-semibold text-slate-800">
+                      <td className="p-3.5 text-right font-semibold text-foreground tabular-nums whitespace-nowrap">
                         {formatINR(rec.baseSalary)}
                       </td>
 
                       {/* Additions */}
-                      <td className="p-3.5">
+                      <td className="p-3.5 text-right tabular-nums whitespace-nowrap">
                         {additions > 0 ? (
                           <div>
-                            <span className="font-semibold text-emerald-600">+{formatINR(additions)}</span>
+                            <span className="font-semibold text-foreground">+{formatINR(additions)}</span>
                             {rec.additionReason && (
-                              <div className="text-[10px] text-slate-500 truncate max-w-[140px]">{rec.additionReason}</div>
+                              <div className="text-[10px] text-muted-foreground truncate max-w-[140px] ml-auto">{rec.additionReason}</div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-slate-400">₹0.00</span>
+                          <span className="text-muted-foreground">₹0.00</span>
                         )}
                       </td>
 
                       {/* Deductions */}
-                      <td className="p-3.5">
+                      <td className="p-3.5 text-right tabular-nums whitespace-nowrap">
                         {deductions > 0 ? (
                           <div>
-                            <span className="font-semibold text-rose-600">-{formatINR(deductions)}</span>
+                            <span className="font-semibold text-foreground">-{formatINR(deductions)}</span>
                             {rec.deductionReason && (
-                              <div className="text-[10px] text-slate-500 truncate max-w-[140px]">{rec.deductionReason}</div>
+                              <div className="text-[10px] text-muted-foreground truncate max-w-[140px] ml-auto">{rec.deductionReason}</div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-slate-400">₹0.00</span>
+                          <span className="text-muted-foreground">₹0.00</span>
                         )}
                       </td>
 
                       {/* Net Payable */}
-                      <td className="p-3.5 font-bold text-slate-900 text-sm">
+                      <td className="p-3.5 text-right font-bold text-foreground text-sm tabular-nums whitespace-nowrap">
                         {formatINR(rec.netSalary)}
                       </td>
 
@@ -565,13 +565,13 @@ export default function PayrollSection() {
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             rec.status === 'paid'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              ? 'bg-primary text-primary-foreground'
                               : rec.status === 'approved'
-                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              ? 'bg-secondary text-foreground border border-border'
+                              : 'bg-muted text-muted-foreground border border-border'
                           }`}
                         >
-                          {rec.status === 'paid' && <Check className="h-3 w-3" />}
+                          {rec.status === 'paid' && <Check className="h-3 w-3 shrink-0" />}
                           {rec.status}
                         </span>
                       </td>
@@ -583,7 +583,7 @@ export default function PayrollSection() {
                             <button
                               onClick={() => approvePayroll.mutate(rec._id)}
                               disabled={approvePayroll.isPending}
-                              className="px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] transition-colors border border-blue-200"
+                              className="px-2.5 py-1 rounded-md bg-secondary hover:bg-muted text-foreground font-semibold text-[11px] transition-colors border border-border cursor-pointer"
                             >
                               Approve
                             </button>
@@ -595,15 +595,15 @@ export default function PayrollSection() {
                                 setPayModalRecord(rec);
                                 setFundingAccount(accounts[0]?._id || '');
                               }}
-                              className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] transition-colors shadow-2xs"
+                              className="px-2.5 py-1 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[11px] transition-colors shadow-2xs cursor-pointer"
                             >
                               Disburse
                             </button>
                           )}
 
                           {rec.status === 'paid' && (
-                            <span className="text-emerald-600 font-semibold text-[11px] flex items-center gap-1 mr-1">
-                              <Check className="h-3 w-3" /> Paid
+                            <span className="text-muted-foreground font-semibold text-[11px] flex items-center gap-1 mr-1">
+                              <Check className="h-3 w-3 shrink-0" /> Paid
                             </span>
                           )}
 
@@ -611,7 +611,7 @@ export default function PayrollSection() {
                           <button
                             onClick={() => handleOpenEdit(rec)}
                             title="Edit payroll entry"
-                            className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
@@ -621,7 +621,7 @@ export default function PayrollSection() {
                             <button
                               onClick={() => handleDeleteRecord(rec)}
                               title="Delete entry"
-                              className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -649,23 +649,23 @@ export default function PayrollSection() {
           <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
                   <Banknote size={20} />
                 </div>
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
                     {editingRecord ? 'Edit Employee Payroll' : 'Manual Employee Payroll Entry'}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 tabular-nums">
                     Period: <strong className="text-foreground">{selectedMonth} {selectedYear}</strong> · Base salary, bonus & deductions
                   </DialogDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary border border-border rounded-md">
                   ESC
                 </span>
-                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer">
                   <X className="h-4 w-4" />
                 </DialogClose>
               </div>
@@ -683,7 +683,7 @@ export default function PayrollSection() {
                   onChange={(e) => handleEmployeeSelect(e.target.value)}
                   disabled={Boolean(editingRecord)}
                   required
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
                 >
                   <option value="">-- Choose Employee --</option>
                   {employees.map((emp) => (
@@ -704,7 +704,7 @@ export default function PayrollSection() {
                   placeholder="e.g. 30000"
                   required
                   min="0"
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-bold text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-bold text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
                 />
               </div>
 
@@ -714,7 +714,7 @@ export default function PayrollSection() {
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-semibold text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-semibold text-foreground bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
                 >
                   <option value="pending">Pending Approval (Draft)</option>
                   <option value="approved">Approved (Expense Recognized)</option>
@@ -723,74 +723,74 @@ export default function PayrollSection() {
               </div>
 
               {/* Additions / Incentives */}
-              <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-2xl border border-emerald-100 dark:border-emerald-800 space-y-3">
-                <div className="font-semibold text-emerald-900 dark:text-emerald-300 text-xs sm:text-sm flex items-center justify-between">
+              <div className="p-4 bg-secondary/40 rounded-2xl border border-border space-y-3">
+                <div className="font-semibold text-foreground text-xs sm:text-sm flex items-center justify-between">
                   <span>Additions / Incentives / OTS (+)</span>
-                  <span className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-mono font-bold">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
+                  <span className="text-xs sm:text-sm text-foreground font-mono font-bold tabular-nums">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-semibold text-emerald-900 dark:text-emerald-300 mb-1 block">Addition Amount (₹)</label>
+                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Addition Amount (₹)</label>
                     <input
                       type="number"
                       value={form.additions}
                       onChange={(e) => handleAdditionsChange(e.target.value)}
                       placeholder="e.g. 2000"
                       min="0"
-                      className="w-full h-11 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-4 text-sm font-semibold text-emerald-700 dark:text-emerald-400 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-emerald-900 dark:text-emerald-300 mb-1 block">Reason for Addition</label>
+                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Reason for Addition</label>
                     <input
                       type="text"
                       value={form.additionReason}
                       onChange={(e) => setForm({ ...form, additionReason: e.target.value })}
                       placeholder="e.g. Performance Bonus / Overtime"
-                      className="w-full h-11 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Deductions */}
-              <div className="p-4 bg-rose-50/60 dark:bg-rose-950/30 rounded-2xl border border-rose-100 dark:border-rose-800 space-y-3">
-                <div className="font-semibold text-rose-900 dark:text-rose-300 text-xs sm:text-sm flex items-center justify-between">
+              <div className="p-4 bg-secondary/40 rounded-2xl border border-border space-y-3">
+                <div className="font-semibold text-foreground text-xs sm:text-sm flex items-center justify-between">
                   <span>Deductions / TDS / Advances (-)</span>
-                  <span className="text-xs sm:text-sm text-rose-700 dark:text-rose-400 font-mono font-bold">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
+                  <span className="text-xs sm:text-sm text-foreground font-mono font-bold tabular-nums">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-semibold text-rose-900 dark:text-rose-300 mb-1 block">Deduction Amount (₹)</label>
+                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Deduction Amount (₹)</label>
                     <input
                       type="number"
                       value={form.deductions}
                       onChange={(e) => handleDeductionsChange(e.target.value)}
                       placeholder="e.g. 1500"
                       min="0"
-                      className="w-full h-11 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-4 text-sm font-semibold text-rose-700 dark:text-rose-400 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-rose-900 dark:text-rose-300 mb-1 block">Reason for Deduction</label>
+                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Reason for Deduction</label>
                     <input
                       type="text"
                       value={form.deductionReason}
                       onChange={(e) => setForm({ ...form, deductionReason: e.target.value })}
                       placeholder="e.g. Leave / TDS / Salary Advance"
-                      className="w-full h-11 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Net Take-Home Salary Display */}
-              <div className="p-4 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-800 flex items-center justify-between">
+              <div className="p-4 bg-secondary rounded-2xl border border-border flex items-center justify-between gap-3">
                 <div>
-                  <span className="text-indigo-950 dark:text-indigo-200 font-bold block text-xs sm:text-sm">Calculated Net Payable:</span>
-                  <span className="text-xs text-indigo-700 dark:text-indigo-400">Base (₹{form.baseSalary || 0}) + Add (₹{form.additions || 0}) − Ded (₹{form.deductions || 0})</span>
+                  <span className="text-foreground font-bold block text-xs sm:text-sm">Calculated Net Payable:</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">Base (₹{form.baseSalary || 0}) + Add (₹{form.additions || 0}) − Ded (₹{form.deductions || 0})</span>
                 </div>
-                <div className="text-xl sm:text-2xl font-extrabold text-indigo-700 dark:text-indigo-400 tracking-tight">
+                <div className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight tabular-nums shrink-0">
                   {formatINR(Number(form.netSalary || 0))}
                 </div>
               </div>
@@ -803,26 +803,26 @@ export default function PayrollSection() {
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   placeholder="e.g. Verified by Accounts"
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
                 />
               </div>
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <button
                   type="button"
                   onClick={() => setEntryModalOpen(false)}
-                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-sm transition-colors cursor-pointer"
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createPayroll.isPending || updatePayroll.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-primary-foreground font-bold text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {createPayroll.isPending || updatePayroll.isPending ? (
                     <>
@@ -854,23 +854,23 @@ export default function PayrollSection() {
           <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
                   <CheckCircle2 size={20} />
                 </div>
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
                     Disburse Salary
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 tabular-nums">
                     {payModalRecord?.employee?.name} · {payModalRecord?.month} {payModalRecord?.year}
                   </DialogDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary border border-border rounded-md">
                   ESC
                 </span>
-                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer">
                   <X className="h-4 w-4" />
                 </DialogClose>
               </div>
@@ -880,12 +880,12 @@ export default function PayrollSection() {
           {/* Form with Body and Pinned Footer */}
           <form onSubmit={handleExecutePayment} className="flex flex-col min-h-0 flex-1 overflow-hidden">
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-              <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl text-emerald-800 dark:text-emerald-300 text-sm border border-emerald-100 dark:border-emerald-800 space-y-1.5">
-                <div>
-                  Confirming will record salary payout of <strong className="text-emerald-900 dark:text-emerald-200">{formatINR(payModalRecord?.netSalary || 0)}</strong> for <strong>{payModalRecord?.employee?.name}</strong>.
+              <div className="p-4 bg-secondary/50 rounded-2xl text-foreground text-sm border border-border space-y-1.5">
+                <div className="tabular-nums">
+                  Confirming will record salary payout of <strong>{formatINR(payModalRecord?.netSalary || 0)}</strong> for <strong>{payModalRecord?.employee?.name}</strong>.
                 </div>
-                <div className="text-xs text-emerald-700/80 dark:text-emerald-400">
-                  Status will update to <strong>Paid</strong> for {payModalRecord?.month} {payModalRecord?.year}.
+                <div className="text-xs text-muted-foreground">
+                  Status will update to <strong className="text-foreground">Paid</strong> for {payModalRecord?.month} {payModalRecord?.year}.
                 </div>
               </div>
 
@@ -894,7 +894,7 @@ export default function PayrollSection() {
                 <select
                   value={fundingAccount}
                   onChange={(e) => setFundingAccount(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs cursor-pointer"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 shadow-2xs cursor-pointer"
                 >
                   <option value="">Select Account (Optional)</option>
                   {accounts.map((acc) => (
@@ -910,20 +910,20 @@ export default function PayrollSection() {
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <button
                   type="button"
                   onClick={() => setPayModalRecord(null)}
-                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-sm transition-colors cursor-pointer"
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={payPayroll.isPending}
-                  className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {payPayroll.isPending ? (
                     <>

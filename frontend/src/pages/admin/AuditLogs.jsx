@@ -26,7 +26,7 @@ import {
   ChevronRight,
   Eye,
   Info,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import api from '../../api';
 import { useSocket } from '../../context/SocketContext';
 import { toast } from 'sonner';
@@ -47,10 +47,10 @@ const MODULE_OPTIONS = [
 
 const ACTION_GROUPS = [
   { id: 'all', label: 'All Actions' },
-  { id: 'login', label: '🔑 Logins' },
-  { id: 'create', label: '➕ Created' },
-  { id: 'update', label: '✏️ Updated' },
-  { id: 'delete', label: '🗑️ Deleted' },
+  { id: 'login', label: 'Logins' },
+  { id: 'create', label: 'Created' },
+  { id: 'update', label: 'Updated' },
+  { id: 'delete', label: 'Deleted' },
 ];
 
 const TIMEFRAMES = [
@@ -182,54 +182,54 @@ export default function AuditLogs() {
       return {
         icon: LogIn,
         label: 'User Login',
-        badge: 'bg-purple-500/10 text-purple-700 border-purple-300 dark:text-purple-300 dark:border-purple-800',
-        dot: 'bg-purple-500',
+        badge: 'bg-secondary text-foreground border-border',
+        dot: 'bg-foreground',
       };
     }
     if (act.includes('delete') || act.includes('removed') || act.includes('purged')) {
       return {
         icon: Trash2,
         label: 'Deleted',
-        badge: 'bg-rose-500/10 text-rose-700 border-rose-300 dark:text-rose-300 dark:border-rose-800',
-        dot: 'bg-rose-500',
+        badge: 'bg-secondary text-foreground border-foreground/40',
+        dot: 'bg-foreground',
       };
     }
     if (act.includes('restored')) {
       return {
         icon: RotateCcw,
         label: 'Restored',
-        badge: 'bg-indigo-500/10 text-indigo-700 border-indigo-300 dark:text-indigo-300 dark:border-indigo-800',
-        dot: 'bg-indigo-500',
+        badge: 'bg-secondary text-foreground border-border',
+        dot: 'bg-muted-foreground',
       };
     }
     if (act.includes('created') || act.includes('added') || act.includes('register')) {
       return {
         icon: PlusCircle,
         label: 'Created',
-        badge: 'bg-emerald-500/10 text-emerald-700 border-emerald-300 dark:text-emerald-300 dark:border-emerald-800',
-        dot: 'bg-emerald-500',
+        badge: 'bg-primary text-primary-foreground border-primary',
+        dot: 'bg-primary',
       };
     }
     return {
       icon: Edit3,
       label: 'Updated',
-      badge: 'bg-sky-500/10 text-sky-700 border-sky-300 dark:text-sky-300 dark:border-sky-800',
-      dot: 'bg-sky-500',
+      badge: 'bg-muted text-foreground border-border',
+      dot: 'bg-muted-foreground',
     };
   };
 
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto font-sans">
       {/* ── 1. HEADER SECTION ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-              <ShieldCheck size={13} className="stroke-[2.5]" />
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-foreground border border-border">
+              <ShieldCheck size={13} className="stroke-[2.5] shrink-0" />
               System Audit Logs
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
             Platform Activity & Change History
           </h1>
         </div>
@@ -240,11 +240,11 @@ export default function AuditLogs() {
             onClick={() => setFilterMyActionsOnly((prev) => !prev)}
             className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold border transition-all cursor-pointer ${
               filterMyActionsOnly
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200'
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-card border-border text-foreground hover:bg-secondary'
             }`}
           >
-            <User size={13} />
+            <User size={13} className="shrink-0" />
             <span>{filterMyActionsOnly ? 'Showing: My Actions Only' : 'Filter: My Actions Only'}</span>
           </button>
 
@@ -252,10 +252,10 @@ export default function AuditLogs() {
             type="button"
             onClick={() => fetchAuditLogs(page)}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground shadow-2xs hover:bg-secondary cursor-pointer disabled:opacity-50"
             title="Refresh logs"
           >
-            <RefreshCw size={13} className={loading ? 'animate-spin text-indigo-500' : ''} />
+            <RefreshCw size={13} className={loading ? 'animate-spin text-foreground shrink-0' : 'shrink-0'} />
             <span>Refresh</span>
           </button>
         </div>
@@ -263,84 +263,84 @@ export default function AuditLogs() {
 
       {/* ── 2. METRIC SUMMARY STAT CARDS ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-900 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Total Events
           </span>
-          <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
+          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
             {stats.total.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-slate-400">All matching logs</span>
+          <span className="text-[10px] text-muted-foreground">All matching logs</span>
         </div>
 
-        <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-500/5 to-transparent p-3.5 dark:border-indigo-900/40 dark:bg-indigo-950/20 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
-            <Clock size={12} /> Today's Events
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <Clock size={12} className="shrink-0" /> Today's Events
           </span>
-          <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
+          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
             {stats.todayCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-slate-400">Since 12:00 AM</span>
+          <span className="text-[10px] text-muted-foreground">Since 12:00 AM</span>
         </div>
 
-        <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-500/5 to-transparent p-3.5 dark:border-purple-900/40 dark:bg-purple-950/20 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1">
-            <LogIn size={12} /> Logins
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <LogIn size={12} className="shrink-0" /> Logins
           </span>
-          <div className="text-xl font-black text-purple-600 dark:text-purple-400 mt-1">
+          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
             {stats.loginCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-slate-400">User sessions</span>
+          <span className="text-[10px] text-muted-foreground">User sessions</span>
         </div>
 
-        <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-500/5 to-transparent p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-            <PlusCircle size={12} /> Created
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <PlusCircle size={12} className="shrink-0" /> Created
           </span>
-          <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
             {stats.createdCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-slate-400">New records</span>
+          <span className="text-[10px] text-muted-foreground">New records</span>
         </div>
 
-        <div className="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-500/5 to-transparent p-3.5 dark:border-sky-900/40 dark:bg-sky-950/20 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1">
-            <Edit3 size={12} /> Updates
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <Edit3 size={12} className="shrink-0" /> Updates
           </span>
-          <div className="text-xl font-black text-sky-600 dark:text-sky-400 mt-1">
+          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
             {stats.updatedCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-slate-400">Edits & statuses</span>
+          <span className="text-[10px] text-muted-foreground">Edits & statuses</span>
         </div>
 
-        <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-500/5 to-transparent p-3.5 dark:border-rose-900/40 dark:bg-rose-950/20 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1">
-            <Trash2 size={12} /> Deletions
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <Trash2 size={12} className="shrink-0" /> Deletions
           </span>
-          <div className="text-xl font-black text-rose-600 dark:text-rose-400 mt-1">
+          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
             {stats.deletedCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-slate-400">Archived items</span>
+          <span className="text-[10px] text-muted-foreground">Archived items</span>
         </div>
       </div>
 
       {/* ── 3. FILTER BAR ── */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-3.5">
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-xs space-y-3.5">
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           {/* Search bar */}
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by action, title, user..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
             />
           </div>
 
           {/* Timeframe Buttons */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl dark:bg-slate-800 self-stretch sm:self-auto overflow-x-auto">
+          <div className="flex items-center gap-1.5 p-1 bg-secondary rounded-xl self-stretch sm:self-auto overflow-x-auto">
             {TIMEFRAMES.map((t) => (
               <button
                 key={t.id}
@@ -348,8 +348,8 @@ export default function AuditLogs() {
                 onClick={() => setSelectedTimeframe(t.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   selectedTimeframe === t.id
-                    ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
-                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {t.label}
@@ -359,9 +359,9 @@ export default function AuditLogs() {
         </div>
 
         {/* Action Group Filter Pills */}
-        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-slate-100 dark:border-slate-800">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
-            <Filter size={11} /> Action:
+        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-border">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1 flex items-center gap-1">
+            <Filter size={11} className="shrink-0" /> Action:
           </span>
           {ACTION_GROUPS.map((act) => (
             <button
@@ -370,8 +370,8 @@ export default function AuditLogs() {
               onClick={() => setSelectedActionGroup(act.id)}
               className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                 selectedActionGroup === act.id
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-2xs'
+                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
               }`}
             >
               {act.label}
@@ -381,7 +381,7 @@ export default function AuditLogs() {
 
         {/* Module / Entity Pills */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1">
             Module:
           </span>
           {MODULE_OPTIONS.map((m) => {
@@ -394,11 +394,11 @@ export default function AuditLogs() {
                 onClick={() => setSelectedModule(m.id)}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                    ? 'bg-primary text-primary-foreground font-bold'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
-                <Icon size={12} />
+                <Icon size={12} className="shrink-0" />
                 <span>{m.label}</span>
               </button>
             );
@@ -409,22 +409,22 @@ export default function AuditLogs() {
       {/* ── 4. AUDIT LOGS LIST ── */}
       <div className="space-y-3">
         {loading && logs.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-            <RefreshCw className="mx-auto h-8 w-8 text-indigo-500 animate-spin mb-3" />
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+            <RefreshCw className="mx-auto h-8 w-8 text-foreground animate-spin mb-3" />
+            <h3 className="text-sm font-bold text-foreground">
               Loading audit logs...
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Querying database for real-time activity events
             </p>
           </div>
         ) : logs.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-            <ShieldCheck className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-12 text-center">
+            <ShieldCheck className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+            <h3 className="text-sm font-bold text-foreground">
               No audit logs found
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
               No activity logs match your selected filter criteria. Try resetting filters or clearing the search term.
             </p>
             <button
@@ -436,7 +436,7 @@ export default function AuditLogs() {
                 setSelectedTimeframe('all');
                 setFilterMyActionsOnly(false);
               }}
-              className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 cursor-pointer"
+              className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 cursor-pointer"
             >
               Reset Filters
             </button>
@@ -451,18 +451,18 @@ export default function AuditLogs() {
             return (
               <div
                 key={log._id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:shadow-sm transition-all dark:border-slate-800 dark:bg-slate-900"
+                className="rounded-2xl border border-border bg-card p-4 shadow-2xs hover:shadow-sm transition-all"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                   {/* Left: User Avatar & Activity Description */}
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     {/* Actor Avatar */}
                     <div className="relative shrink-0">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-black text-sm dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground font-black text-sm border border-border">
                         {log.actor?.name ? log.actor.name.charAt(0).toUpperCase() : 'U'}
                       </div>
                       <span
-                        className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900 ${design.dot}`}
+                        className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-card ${design.dot}`}
                         title={design.label}
                       />
                     </div>
@@ -471,20 +471,20 @@ export default function AuditLogs() {
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Actor Name */}
-                        <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+                        <span className="text-xs font-extrabold text-foreground">
                           {log.actor?.name || 'System / Automated'}
                         </span>
 
                         {/* Is You Pill */}
                         {isMe && (
-                          <span className="rounded-md bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                          <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary-foreground">
                             YOU
                           </span>
                         )}
 
                         {/* Actor Role */}
                         {log.actor?.role && (
-                          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground border border-border">
                             {log.actor.role}
                           </span>
                         )}
@@ -493,40 +493,40 @@ export default function AuditLogs() {
                         <span
                           className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${design.badge}`}
                         >
-                          <ActionIcon size={10} />
+                          <ActionIcon size={10} className="shrink-0" />
                           <span>{log.action}</span>
                         </span>
 
                         {/* Entity Type Tag */}
                         {log.entityType && (
-                          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             {log.entityType}
                           </span>
                         )}
                       </div>
 
                       {/* Main Title & Description */}
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <p className="text-xs font-bold text-foreground">
                         {log.title}
                       </p>
                       {log.description && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
                           {log.description}
                         </p>
                       )}
 
                       {/* Associated Client / Project Pills */}
                       {(log.relatedClient || log.relatedProject) && (
-                        <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500 flex-wrap">
+                        <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground flex-wrap">
                           {log.relatedClient && (
-                            <span className="flex items-center gap-1 rounded-md bg-slate-50 px-2 py-0.5 dark:bg-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                              <Building2 size={11} className="text-indigo-500" />
+                            <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 font-semibold text-foreground border border-border">
+                              <Building2 size={11} className="text-muted-foreground shrink-0" />
                               {log.relatedClient.company || log.relatedClient.name || 'Client'}
                             </span>
                           )}
                           {log.relatedProject && (
-                            <span className="flex items-center gap-1 rounded-md bg-slate-50 px-2 py-0.5 dark:bg-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                              <Briefcase size={11} className="text-sky-500" />
+                            <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 font-semibold text-foreground border border-border">
+                              <Briefcase size={11} className="text-muted-foreground shrink-0" />
                               {log.relatedProject.name || 'Project'}
                             </span>
                           )}
@@ -537,11 +537,11 @@ export default function AuditLogs() {
 
                   {/* Right: Timestamp & Details Expander */}
                   <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
-                    <div className="text-right">
-                      <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <div className="text-right tabular-nums">
+                      <div className="text-xs font-bold text-foreground">
                         {formatRelativeTime(log.createdAt)}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-muted-foreground">
                         {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -550,7 +550,7 @@ export default function AuditLogs() {
                       <button
                         type="button"
                         onClick={() => setExpandedLogId(isExpanded ? null : log._id)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                         title="View metadata payload"
                       >
                         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -561,12 +561,12 @@ export default function AuditLogs() {
 
                 {/* Collapsible Metadata Payload */}
                 {isExpanded && log.metadata && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-150">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 mb-1.5">
-                      <Info size={12} className="text-indigo-500" />
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground mb-1.5">
+                      <Info size={12} className="text-foreground shrink-0" />
                       <span>Event Metadata Payload</span>
                     </div>
-                    <pre className="rounded-xl bg-slate-900 p-3 text-[11px] text-emerald-400 font-mono overflow-x-auto max-h-48 custom-scrollbar">
+                    <pre className="rounded-xl bg-zinc-950 border border-border p-3 text-[11px] text-zinc-100 font-mono overflow-x-auto max-h-48 custom-scrollbar">
                       {JSON.stringify(log.metadata, null, 2)}
                     </pre>
                   </div>
@@ -579,10 +579,10 @@ export default function AuditLogs() {
 
       {/* ── 5. PAGINATION ── */}
       {pages > 1 && (
-        <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            Page <strong className="text-slate-900 dark:text-white">{page}</strong> of{' '}
-            <strong className="text-slate-900 dark:text-white">{pages}</strong> ({total} total logs)
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <span className="text-xs text-muted-foreground tabular-nums">
+            Page <strong className="text-foreground">{page}</strong> of{' '}
+            <strong className="text-foreground">{pages}</strong> ({total} total logs)
           </span>
 
           <div className="flex items-center gap-2">
@@ -594,7 +594,7 @@ export default function AuditLogs() {
                 setPage(newPage);
                 fetchAuditLogs(newPage);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Previous
             </button>
@@ -606,7 +606,7 @@ export default function AuditLogs() {
                 setPage(newPage);
                 fetchAuditLogs(newPage);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Next
             </button>

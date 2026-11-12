@@ -13,14 +13,14 @@ export const DEFAULT_ALLOWED_ORIGINS = [
   'http://company.risewithmedia.com',
   'https://risewithmedia.com',
   'http://risewithmedia.com',
-  'http://localhost:5173',
+  'http://localhost:5175',
   'http://localhost:3000',
-  'http://localhost:5000',
-  'http://localhost:4173',
-  'http://127.0.0.1:5173',
+  'http://localhost:5005',
+  'http://localhost:4175',
+  'http://127.0.0.1:5175',
   'http://127.0.0.1:3000',
-  'http://127.0.0.1:5000',
-  'http://127.0.0.1:4173',
+  'http://127.0.0.1:5005',
+  'http://127.0.0.1:4175',
 ];
 
 export const RISE_WITH_MEDIA_PATTERN = /^https?:\/\/([a-z0-9-]+\.)*risewithmedia\.com(:[0-9]+)?$/i;

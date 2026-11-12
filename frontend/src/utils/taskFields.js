@@ -23,12 +23,12 @@ export const VIDEO_TYPE_OPTIONS = [
 ];
 
 export const POSTING_PLATFORM_OPTIONS = [
-  { value: 'Instagram', label: '📸 Instagram Reels / Post' },
-  { value: 'YouTube Shorts', label: '▶️ YouTube Shorts / Video' },
-  { value: 'Facebook', label: '📘 Facebook Watch / Post' },
-  { value: 'LinkedIn', label: '💼 LinkedIn' },
-  { value: 'X', label: '🐦 X (Twitter)' },
-  { value: 'Moj/Josh/TikTok', label: '🎵 Moj / Josh / TikTok' },
+  { value: 'Instagram', label: 'Instagram Reels / Post' },
+  { value: 'YouTube Shorts', label: 'YouTube Shorts / Video' },
+  { value: 'Facebook', label: 'Facebook Watch / Post' },
+  { value: 'LinkedIn', label: 'LinkedIn' },
+  { value: 'X', label: 'X (Twitter)' },
+  { value: 'Moj/Josh/TikTok', label: 'Moj / Josh / TikTok' },
 ];
 
 export const CONTENT_TASK_TYPE_OPTIONS = [

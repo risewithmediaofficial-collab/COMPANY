@@ -15,6 +15,7 @@ import {
   Menu,
   Plus,
   ChevronRight,
+  Check,
   CheckSquare,
   Briefcase,
   Users,
@@ -22,7 +23,7 @@ import {
   Sparkles,
   Smartphone,
   Activity
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { toggleDarkMode, toggleSidebar } from '../../store/slices/uiSlice';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../api';
@@ -53,7 +54,6 @@ import {
 } from '../ui/DropdownMenu';
 import GlobalSearchModal from '../modals/GlobalSearchModal';
 import FavoritesPanel from '../modals/FavoritesPanel';
-import { DateRangePicker } from '../ui/DateRangePicker';
 import { AppTooltip } from '../ui/tooltip';
 
 // Lazy-load quick-create modals to reduce critical initial bundle & layout work
@@ -93,12 +93,7 @@ const getBreadcrumbs = (pathname, role) => {
     '/tasks/new': [{ label: 'Delivery', path: '/tasks' }, { label: 'Tasks', path: '/tasks' }, { label: 'New Task' }],
     '/projects': [{ label: 'Delivery', path: '/projects' }, { label: 'Projects', path: '/projects' }],
     '/calendar': [{ label: 'Delivery', path: '/tasks' }, { label: 'Content Calendar', path: '/calendar' }],
-    '/dm-calendar': [{ label: 'Delivery', path: '/tasks' }, { label: 'Shoots & DM Calendar', path: '/dm-calendar' }],
     '/influencers': [{ label: 'Delivery', path: '/tasks' }, { label: 'Influencer Hub', path: '/influencers' }],
-    '/manager-board': [{ label: 'Delivery', path: '/tasks' }, { label: 'Manager Board', path: '/manager-board' }],
-    '/pending-notes': [{ label: 'Delivery', path: '/tasks' }, { label: 'Pending Notes', path: '/pending-notes' }],
-    '/notes': [{ label: 'Delivery', path: '/tasks' }, { label: 'Pending Notes', path: '/pending-notes' }],
-    '/task-notes': [{ label: 'Delivery', path: '/tasks' }, { label: 'Pending Notes', path: '/pending-notes' }],
     '/daily-tasks': [{ label: 'Delivery', path: '/tasks' }, { label: 'Daily Calendar', path: '/daily-tasks' }],
 
     '/clients': [{ label: 'Clients', path: '/clients' }, { label: 'Directory', path: '/clients' }],
@@ -132,7 +127,6 @@ const getBreadcrumbs = (pathname, role) => {
     '/attendance': [{ label: 'Team', path: '/attendance' }, { label: 'Attendance & EOD', path: '/attendance' }],
     '/hr': [{ label: 'Team', path: '/hr' }, { label: 'HR & Hiring', path: '/hr' }],
     '/admin/users': [{ label: 'Team', path: '/admin/users' }, { label: 'User Directory', path: '/admin/users' }],
-    '/admin/manager-assignments': [{ label: 'Delivery', path: '/tasks' }, { label: 'Manager Assignments', path: '/admin/manager-assignments' }],
 
     '/sop': [{ label: 'Knowledge', path: '/sop' }, { label: 'SOP Library', path: '/sop' }],
     '/assets': [{ label: 'Knowledge', path: '/assets' }, { label: 'Asset Library', path: '/assets' }],
@@ -357,7 +351,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between border-b border-border bg-card/90 px-3.5 backdrop-blur-md sm:px-5 select-none">
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between border-b border-border bg-card px-3.5 sm:px-5 select-none">
         {/* Left: Mobile Toggle & Dynamic Interactive Breadcrumbs */}
         <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
           <button
@@ -437,29 +431,24 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                 <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-muted-foreground">Quick Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateTaskOpen(true)}>
-                  <CheckSquare size={14} className="text-primary" />
+                  <CheckSquare size={14} className="text-muted-foreground" />
                   <span>Create Task</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateProjectOpen(true)}>
-                  <Briefcase size={14} className="text-primary" />
+                  <Briefcase size={14} className="text-muted-foreground" />
                   <span>Create Project</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateClientOpen(true)}>
-                  <Users size={14} className="text-primary" />
+                  <Users size={14} className="text-muted-foreground" />
                   <span>Add Client</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateLeadOpen(true)}>
-                  <TrendingUp size={14} className="text-primary" />
+                  <TrendingUp size={14} className="text-muted-foreground" />
                   <span>Add Lead</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-
-          {/* Global Date Filter in Navbar */}
-          <div className="hidden lg:flex items-center">
-            <DateRangePicker compact />
-          </div>
 
           {/* Favorites Panel */}
           <FavoritesPanel />
@@ -482,7 +471,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
               <DropdownMenuTrigger className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
                 <Bell size={17} />
                 {(notificationData?.unreadCount > 0 || (notificationData?.notifications || []).filter((n) => !n.isRead).length > 0) && (
-                  <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-primary text-white rounded-full border border-card text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-primary text-primary-foreground rounded-full border border-card text-[9px] font-bold flex items-center justify-center tabular-nums">
                     {Math.min(notificationData?.unreadCount ?? (notificationData?.notifications || []).filter((n) => !n.isRead).length, 9)}
                   </span>
                 )}
@@ -509,9 +498,9 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
 
                     {/* Web Push Setup only if permission not yet decided or denied */}
                     {isIOSRequiresHomeInstall() ? (
-                      <div className="m-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs space-y-1">
-                        <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold text-[11px]">
-                          <Smartphone size={13} className="shrink-0" />
+                      <div className="m-2 p-2.5 bg-secondary/70 border border-border rounded-xl text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-foreground font-bold text-[11px]">
+                          <Smartphone size={13} className="shrink-0 text-muted-foreground" />
                           <span>iPhone / iPad Setup</span>
                         </div>
                         <p className="text-[10px] text-muted-foreground leading-tight">
@@ -529,16 +518,16 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                         </p>
                       </div>
                     ) : !pushSubscribed && pushPermission !== 'granted' ? (
-                      <div className="m-2 p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs flex items-center justify-between gap-2">
+                      <div className="m-2 p-2 bg-secondary/70 border border-border rounded-xl text-xs flex items-center justify-between gap-2">
                         <span className="text-foreground flex items-center gap-1.5 font-medium text-[11px]">
-                          <BellRing size={13} className="text-indigo-500 shrink-0" />
+                          <BellRing size={13} className="text-muted-foreground shrink-0" />
                           Banner Alerts
                         </span>
                         <button
                           id="enable-web-push-btn"
                           onClick={handleEnablePush}
                           disabled={pushLoading}
-                          className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold text-[10px] transition-all shrink-0 shadow-xs disabled:opacity-50 cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[10px] transition-colors shrink-0 shadow-xs disabled:opacity-50 cursor-pointer"
                         >
                           {pushLoading ? 'Enabling...' : 'Enable Banners'}
                         </button>
@@ -548,8 +537,8 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                     {/* Unread Notifications List */}
                     {unreadNotifications.length === 0 ? (
                       <div className="px-3 py-8 text-center space-y-1">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center font-bold text-sm mb-1.5">
-                          ✓
+                        <div className="w-8 h-8 rounded-full bg-secondary text-foreground mx-auto flex items-center justify-center font-bold text-sm mb-1.5">
+                          <Check size={15} />
                         </div>
                         <p className="text-xs font-bold text-foreground">All caught up!</p>
                         <p className="text-[11px] text-muted-foreground">No unread notifications.</p>

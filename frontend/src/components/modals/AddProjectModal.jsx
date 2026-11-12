@@ -21,7 +21,7 @@ import {
   Layers,
   Code2,
   ArrowRight,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useAcceptedProposals } from '../../hooks/useProposals';
 import { formatINR } from '../../utils/currency';
 import {
@@ -441,7 +441,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
         onOpenChange(false);
 
         if (!project && moveToDevelopment && targetProjectId) {
-          toast.success('Project created & moved directly to Development Board! 🚀');
+          toast.success('Project created and moved directly to Development Board.');
           navigate(`/development/board?project=${targetProjectId}`);
         }
       };
@@ -533,7 +533,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold text-foreground">
-                      Project Name <span className="text-rose-500">*</span>
+                      Project Name <span className="text-foreground">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -554,7 +554,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold text-foreground">
-                      Project Type <span className="text-rose-500">*</span>
+                      Project Type <span className="text-foreground">*</span>
                     </FormLabel>
                     <Select
                       onValueChange={(val) => {
@@ -574,24 +574,24 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="saas_product" className="font-semibold text-primary">
-                          🚀 SaaS Product / Platform (No Client)
+                        <SelectItem value="saas_product" className="font-semibold text-foreground">
+                          SaaS Product / Platform (No Client)
                         </SelectItem>
-                        <SelectItem value="internal_tool" className="font-semibold text-indigo-500">
-                          🛠️ Internal Software / Tool (No Client)
+                        <SelectItem value="internal_tool" className="font-semibold text-foreground">
+                          Internal Software / Tool (No Client)
                         </SelectItem>
-                        <SelectItem value="web_development">🌐 Website / Web Development</SelectItem>
-                        <SelectItem value="web_design">💻 Web Design / UI-UX</SelectItem>
-                        <SelectItem value="social_media">📱 Social Media Marketing</SelectItem>
-                        <SelectItem value="seo">🔍 Search Engine Optimization (SEO)</SelectItem>
-                        <SelectItem value="paid_ads">🎯 Paid Ads & Performance Marketing</SelectItem>
-                        <SelectItem value="branding">🎨 Branding & Identity</SelectItem>
-                        <SelectItem value="graphic_design">🖌️ Graphic Design & Creatives</SelectItem>
-                        <SelectItem value="video_content">🎬 Video Production & Content</SelectItem>
-                        <SelectItem value="mobile_app">📲 Mobile App Development</SelectItem>
-                        <SelectItem value="e_commerce">🛒 E-Commerce Solutions</SelectItem>
-                        <SelectItem value="content">✍️ Content Creation & Copywriting</SelectItem>
-                        <SelectItem value="other">📁 Other Services</SelectItem>
+                        <SelectItem value="web_development">Website / Web Development</SelectItem>
+                        <SelectItem value="web_design">Web Design / UI-UX</SelectItem>
+                        <SelectItem value="social_media">Social Media Marketing</SelectItem>
+                        <SelectItem value="seo">Search Engine Optimization (SEO)</SelectItem>
+                        <SelectItem value="paid_ads">Paid Ads &amp; Performance Marketing</SelectItem>
+                        <SelectItem value="branding">Branding &amp; Identity</SelectItem>
+                        <SelectItem value="graphic_design">Graphic Design &amp; Creatives</SelectItem>
+                        <SelectItem value="video_content">Video Production &amp; Content</SelectItem>
+                        <SelectItem value="mobile_app">Mobile App Development</SelectItem>
+                        <SelectItem value="e_commerce">E-Commerce Solutions</SelectItem>
+                        <SelectItem value="content">Content Creation &amp; Copywriting</SelectItem>
+                        <SelectItem value="other">Other Services</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -608,9 +608,9 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-sm font-semibold text-foreground">
                         Client {isSaasOrInternal ? (
-                          <span className="text-xs font-semibold text-emerald-500 ml-1.5">(Optional for SaaS)</span>
+                          <span className="text-xs font-semibold text-muted-foreground ml-1.5">(Optional for SaaS)</span>
                         ) : (
-                          <span className="text-rose-500">*</span>
+                          <span className="text-foreground">*</span>
                         )}
                       </FormLabel>
                     </div>
@@ -628,7 +628,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       <SelectContent>
                         {isSaasOrInternal && (
                           <SelectItem value="none" className="text-muted-foreground font-medium">
-                            🏢 None (Internal SaaS Product)
+                            None (Internal SaaS Product)
                           </SelectItem>
                         )}
                         {clients.map((client) => (
@@ -645,8 +645,8 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
               {/* SaaS Mode Helpful Notice */}
               {isSaasOrInternal && (
-                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2.5 animate-in fade-in duration-200">
-                  <span className="text-base">🚀</span>
+                <div className="p-3.5 rounded-xl bg-secondary border border-border text-xs sm:text-sm text-foreground flex items-center gap-2.5">
+                  <Rocket size={16} className="shrink-0" />
                   <span className="font-semibold">
                     SaaS Product Mode Active: You can create and build this SaaS platform without adding an external client.
                   </span>
@@ -818,7 +818,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         Monthly Deliverables & Content Quotas
                       </h3>
                       {isDevCategory && (
-                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-secondary text-foreground border border-border">
                           Non-content (Optional)
                         </span>
                       )}
@@ -863,7 +863,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
               ) : (
                 <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-background/70 border border-border/70 text-xs text-muted-foreground">
                   <span className="flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                    <CheckCircle2 size={16} className="text-foreground shrink-0" />
                     <span>
                       {isDevCategory
                         ? 'No monthly deliverables needed for website/software projects. Tasks will route directly to development milestones.'
@@ -886,15 +886,15 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
             {/* Field 11: Direct Move to Development Pipeline Toggle (for Dev / Software / Web projects) */}
             {isDevCategory && !project && (
-              <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs">
+              <div className="rounded-2xl border border-border bg-secondary/40 p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
-                    <Rocket size={17} />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
+                    <Rocket size={17} className="shrink-0" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-foreground flex items-center gap-2">
                       <span>Directly Move to Development Board</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-foreground border border-border">
                         Dev Workflow
                       </span>
                     </div>
@@ -903,12 +903,12 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     </p>
                   </div>
                 </div>
-                <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 cursor-pointer select-none shrink-0">
+                <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-foreground cursor-pointer select-none shrink-0">
                   <input
                     type="checkbox"
                     checked={moveToDevelopment}
                     onChange={(e) => setMoveToDevelopment(e.target.checked)}
-                    className="h-4 w-4 rounded border-blue-500 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
+                    className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
                   />
                   <span>Move to Dev</span>
                 </label>
@@ -989,12 +989,12 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
             </div>
 
             {/* Modern Pinned Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs select-none">
               <div className="flex items-center gap-2">
                 {isDevCategory && !project ? (
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 inline-flex items-center gap-1.5 shadow-2xs">
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-secondary text-foreground border border-border inline-flex items-center gap-1.5 shadow-2xs">
                     <Code2 size={14} className="shrink-0" />
-                    <span>Website & Software Workflow</span>
+                    <span>Website &amp; Software Workflow</span>
                   </span>
                 ) : (
                   <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
@@ -1021,22 +1021,23 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 {isDevCategory && !project && (
                   <Button
                     type="button"
+                    variant="secondary"
                     disabled={isLoading}
                     onClick={() => {
                       setMoveToDevelopment(true);
                       form.handleSubmit(onSubmit, onFormError)();
                     }}
-                    className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25 gap-2 cursor-pointer transition-all"
+                    className="h-11 px-5 rounded-xl border border-border text-sm font-bold shadow-sm gap-2 cursor-pointer transition-all"
                   >
-                    <Rocket size={15} />
-                    <span>Create & Move to Dev 🚀</span>
+                    <Rocket size={15} className="shrink-0" />
+                    <span>Create &amp; Move to Dev</span>
                   </Button>
                 )}
 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
                 >
                   {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
                 </Button>

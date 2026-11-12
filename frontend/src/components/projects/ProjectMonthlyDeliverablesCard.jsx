@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Clock,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   useProjectMonthlyDeliverables,
   useBatchSaveProjectMonthlyDeliverables,
@@ -205,17 +205,17 @@ export const ProjectMonthlyDeliverablesCard = ({
               const isReached = item.status === 'TARGET_REACHED';
               const visualProgress = Math.min(100, item.progressPercentage || 0);
 
-              let badgeBg = 'bg-primary/10 text-primary border-primary/20';
+              let badgeBg = 'bg-secondary text-foreground border-border';
               let badgeText = `${item.remaining} Remaining`;
               let BadgeIcon = Clock;
 
               if (isReached) {
-                badgeBg = 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400';
+                badgeBg = 'bg-primary text-primary-foreground border-primary';
                 badgeText = 'Target Reached';
                 BadgeIcon = CheckCircle2;
               } else if (isOver) {
-                badgeBg = 'bg-rose-500/15 text-rose-600 border-rose-500/30 dark:text-rose-400 font-extrabold';
-                badgeText = `🔴 Over by ${item.overBy}`;
+                badgeBg = 'bg-foreground text-background border-foreground font-extrabold';
+                badgeText = `Over by ${item.overBy}`;
                 BadgeIcon = AlertTriangle;
               }
 
@@ -223,10 +223,8 @@ export const ProjectMonthlyDeliverablesCard = ({
                 <div
                   key={item._id || item.contentType}
                   className={`relative flex flex-col justify-between rounded-2xl border p-4 transition-all duration-200 ${
-                    isOver
-                      ? 'border-rose-500/40 bg-rose-500/5 shadow-xs'
-                      : isReached
-                      ? 'border-emerald-500/30 bg-emerald-500/5'
+                    isOver || isReached
+                      ? 'border-foreground/40 bg-secondary/40 shadow-xs'
                       : 'border-border bg-secondary/15 hover:border-border/80'
                   }`}
                 >
@@ -235,11 +233,9 @@ export const ProjectMonthlyDeliverablesCard = ({
                     <div className="flex items-center gap-2 min-w-0">
                       <div
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold text-xs ${
-                          isOver
-                            ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
-                            : isReached
-                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-primary/10 text-primary'
+                          isOver || isReached
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-foreground border border-border'
                         }`}
                       >
                         <IconComponent size={16} />
@@ -248,18 +244,18 @@ export const ProjectMonthlyDeliverablesCard = ({
                     </div>
 
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold shrink-0 ${badgeBg}`}
+                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold shrink-0 tabular-nums ${badgeBg}`}
                     >
-                      <BadgeIcon size={11} />
+                      <BadgeIcon size={11} className="shrink-0" />
                       <span>{badgeText}</span>
                     </span>
                   </div>
 
                   {/* Middle: Numbers */}
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 tabular-nums">
                     <div className="flex items-baseline justify-between">
                       <div className="flex items-baseline gap-1">
-                        <span className={`text-2xl font-extrabold tracking-tight ${isOver ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>
+                        <span className="text-2xl font-extrabold tracking-tight text-foreground">
                           {item.currentCount}
                         </span>
                         <span className="text-xs font-semibold text-muted-foreground">
@@ -275,11 +271,9 @@ export const ProjectMonthlyDeliverablesCard = ({
                     <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/80">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isOver
-                            ? 'bg-rose-500'
-                            : isReached
-                            ? 'bg-emerald-500'
-                            : 'bg-primary'
+                          isOver || isReached
+                            ? 'bg-foreground'
+                            : 'bg-foreground/70'
                         }`}
                         style={{ width: `${visualProgress}%` }}
                       />
@@ -341,7 +335,7 @@ export const ProjectMonthlyDeliverablesCard = ({
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <Button

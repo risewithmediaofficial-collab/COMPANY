@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { BookOpen, CheckCircle2, ChevronDown, ChevronRight } from 'lucide-react';
+import { BookOpen, CheckCircle2, ChevronDown, ChevronRight, BarChart3, MessageSquare } from '@/components/ui/muiIcons';
 import { useState } from 'react';
 
 const SECTIONS = [
@@ -58,15 +58,17 @@ export default function PortalGuidelines() {
       {/* Quick tips */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {[
-          { emoji: '✅', label: 'Approve content from Ready for Review' },
-          { emoji: '📊', label: 'Track monthly KPIs in Reports section' },
-          { emoji: '💬', label: 'Submit requests via Support tickets' },
-        ].map(tip => (
+          { Icon: CheckCircle2, label: 'Approve content from Ready for Review' },
+          { Icon: BarChart3, label: 'Track monthly KPIs in Reports section' },
+          { Icon: MessageSquare, label: 'Submit requests via Support tickets' },
+        ].map((tip) => (
           <div
             key={tip.label}
-            className="flex items-center gap-3 p-4 rounded-2xl bg-primary/10 border border-primary/20 shadow-xs"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 border border-border shadow-xs"
           >
-            <span className="text-xl">{tip.emoji}</span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-card border border-border text-foreground">
+              <tip.Icon size={16} />
+            </div>
             <p className="text-xs font-semibold text-foreground">{tip.label}</p>
           </div>
         ))}

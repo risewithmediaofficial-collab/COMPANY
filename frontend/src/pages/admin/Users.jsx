@@ -22,7 +22,7 @@ import {
   Check,
   X,
   Plus,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   useAdminChangeUserPassword,
   useDeleteUser,
@@ -57,9 +57,9 @@ const roles = [
 ];
 
 const statusStyles = {
-  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  approved: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  rejected: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+  pending: 'bg-secondary text-foreground border-foreground/40',
+  approved: 'bg-primary text-primary-foreground border-primary',
+  rejected: 'bg-muted text-muted-foreground border-border',
 };
 
 const Users = () => {
@@ -160,21 +160,21 @@ const Users = () => {
       label: 'Team Member / Client',
       render: (u) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="h-8 w-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {u.name?.charAt(0) || 'U'}
           </div>
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="font-bold text-foreground">{u.name}</p>
               {u.clientId?.company && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground">
                   {u.clientId.company}
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 tabular-nums">
               <span>{u.email}</span>
-              {u.phone && <span className="text-[10px] opacity-80">· 📞 {u.phone}</span>}
+              {u.phone && <span className="text-[10px] opacity-80">· {u.phone}</span>}
             </p>
           </div>
         </div>
@@ -212,14 +212,14 @@ const Users = () => {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleApprovalChange(u._id, 'approved')}
-                  className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                  className="p-1 rounded-md bg-secondary border border-border text-foreground hover:bg-primary hover:text-primary-foreground"
                   title="Approve User"
                 >
                   <Check size={13} />
                 </button>
                 <button
                   onClick={() => handleApprovalChange(u._id, 'rejected')}
-                  className="p-1 rounded-md bg-rose-500/10 text-rose-600 hover:bg-rose-500/20"
+                  className="p-1 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground"
                   title="Reject User"
                 >
                   <X size={13} />
@@ -254,7 +254,7 @@ const Users = () => {
           </button>
           <button
             onClick={() => setDeleteUserTarget(u)}
-            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
             title="Delete User"
           >
             <Trash2 size={15} />
@@ -270,7 +270,7 @@ const Users = () => {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border text-foreground uppercase tracking-wider">
             {u.role}
           </span>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize ${statusStyles[st] || statusStyles.approved}`}>
@@ -279,12 +279,12 @@ const Users = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center font-black text-sm text-foreground">
+          <div className="h-10 w-10 rounded-2xl bg-secondary border border-border flex items-center justify-center font-black text-sm text-foreground shrink-0">
             {u.name?.charAt(0) || 'U'}
           </div>
-          <div>
-            <h4 className="font-bold text-sm text-foreground">{u.name}</h4>
-            <p className="text-xs text-muted-foreground">{u.email}</p>
+          <div className="min-w-0">
+            <h4 className="font-bold text-sm text-foreground truncate">{u.name}</h4>
+            <p className="text-xs text-muted-foreground truncate">{u.email}</p>
           </div>
         </div>
 
@@ -295,7 +295,7 @@ const Users = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Joined:</span>
-            <span className="font-medium text-foreground">{new Date(u.createdAt).toLocaleDateString()}</span>
+            <span className="font-medium text-foreground tabular-nums">{new Date(u.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
 
@@ -304,7 +304,7 @@ const Users = () => {
             onClick={() => setPermissionsUser(u)}
             className="px-2.5 py-1 rounded-lg hover:bg-secondary text-xs font-semibold text-foreground flex items-center gap-1"
           >
-            <ShieldCheck size={13} />
+            <ShieldCheck size={13} className="shrink-0" />
             <span>Permissions</span>
           </button>
           <button
@@ -312,14 +312,14 @@ const Users = () => {
               setPasswordUser(u);
               setPasswordForm({ newPassword: '', confirmPassword: '' });
             }}
-            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
             title="Reset Password"
           >
             <KeyRound size={13} />
           </button>
           <button
             onClick={() => setDeleteUserTarget(u)}
-            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
             title="Delete"
           >
             <Trash2 size={13} />
@@ -333,7 +333,7 @@ const Users = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Team & Workload', 'User Directory']}
       title="Team Directory & User Access"
-      icon="👥"
+      icon={UsersIcon}
       properties={[
         { label: 'Total Users', value: total, icon: UsersIcon },
         { label: 'Approved Staff', value: approvedCount, tone: 'success', icon: CheckCircle2 },
@@ -397,7 +397,7 @@ const Users = () => {
         <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-xl max-h-[90dvh]">
           <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
                 <KeyRound size={20} />
               </div>
               <div className="min-w-0">
@@ -411,10 +411,10 @@ const Users = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
                 ESC
               </kbd>
-              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-all active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <X size={16} className="stroke-[2.5]" />
                 <span className="sr-only">Close</span>
               </DialogClose>
@@ -471,8 +471,8 @@ const Users = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
-              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
                   ESC
@@ -491,7 +491,7 @@ const Users = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
                 >
                   Update Password
                 </Button>

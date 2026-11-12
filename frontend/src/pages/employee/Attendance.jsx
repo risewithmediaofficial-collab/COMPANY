@@ -26,7 +26,7 @@ import {
   Eye,
   BellRing,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import api from '../../api';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { EODReportModal } from '../../components/modals/EODReportModal';
@@ -222,12 +222,12 @@ const Attendance = () => {
   };
 
   const statusColors = {
-    present: 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
-    absent: 'bg-destructive/10 text-destructive border border-destructive/20',
-    half_day: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
-    leave: 'bg-rose-500/10 text-rose-600 border border-rose-500/20',
-    holiday: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
-    work_from_home: 'bg-purple-500/10 text-purple-600 border border-purple-500/20',
+    present: 'bg-primary text-primary-foreground border border-primary',
+    absent: 'bg-background text-muted-foreground border border-border',
+    half_day: 'bg-secondary text-foreground border border-border',
+    leave: 'bg-muted text-foreground border border-border',
+    holiday: 'bg-secondary text-foreground border border-border',
+    work_from_home: 'bg-secondary text-foreground border border-border',
   };
 
   useEffect(() => {
@@ -645,9 +645,9 @@ const Attendance = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto animate-pulse space-y-6">
-        <div className="h-48 bg-card rounded-3xl" />
-        <div className="h-96 bg-card rounded-3xl" />
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="h-48 bg-card rounded-3xl border border-border" />
+        <div className="h-96 bg-card rounded-3xl border border-border" />
       </div>
     );
   }
@@ -666,19 +666,19 @@ const Attendance = () => {
           {isAdmin && (
             <button
               onClick={handleExportCSV}
-              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors cursor-pointer"
               title="Download overall monthly summary & detailed logs as CSV spreadsheet"
             >
-              <FileSpreadsheet size={18} className="mr-2" />
+              <FileSpreadsheet size={18} className="mr-2 shrink-0" />
               Download Report (CSV)
             </button>
           )}
           {isAdmin && (
             <button
               onClick={() => setShowHolidayModal(true)}
-              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground shadow-sm hover:bg-secondary/40 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground shadow-sm hover:bg-secondary/40 transition-colors cursor-pointer"
             >
-              <Calendar size={18} className="mr-2 text-primary" />
+              <Calendar size={18} className="mr-2 text-muted-foreground shrink-0" />
               Assign Holiday
             </button>
           )}
@@ -686,10 +686,10 @@ const Attendance = () => {
             <button
               onClick={handleTriggerAttendanceReminder}
               disabled={reminding}
-              className="inline-flex items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-sm font-bold text-amber-600 dark:text-amber-400 shadow-xs hover:bg-amber-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-bold text-foreground shadow-xs hover:bg-secondary transition-colors disabled:opacity-50 cursor-pointer"
               title="Send morning attendance reminders (up to 10:30 AM cutoff) to unclocked staff"
             >
-              <Clock size={16} className="mr-1.5" />
+              <Clock size={16} className="mr-1.5 text-muted-foreground shrink-0" />
               Remind Attendance (10:30 AM Cutoff)
             </button>
           )}
@@ -697,10 +697,10 @@ const Attendance = () => {
             <button
               onClick={handleTriggerAutoAbsent}
               disabled={reminding}
-              className="inline-flex items-center justify-center rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2 text-sm font-bold text-destructive shadow-xs hover:bg-destructive/20 transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-bold text-foreground shadow-xs hover:bg-secondary transition-colors disabled:opacity-50 cursor-pointer"
               title="Run 10:30 AM cutoff check to automatically mark unclocked employees absent"
             >
-              <AlertCircle size={16} className="mr-1.5" />
+              <AlertCircle size={16} className="mr-1.5 text-muted-foreground shrink-0" />
               Auto-Absent (10:30 AM)
             </button>
           )}
@@ -708,36 +708,36 @@ const Attendance = () => {
             <button
               onClick={handleTriggerEveningReminder}
               disabled={reminding}
-              className="inline-flex items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 shadow-xs hover:bg-indigo-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-bold text-foreground shadow-xs hover:bg-secondary transition-colors disabled:opacity-50 cursor-pointer"
               title="Send 6:00 - 6:30 PM evening clock-out & EOD reminder to staff"
             >
-              <BellRing size={16} className="mr-1.5" />
+              <BellRing size={16} className="mr-1.5 text-muted-foreground shrink-0" />
               Remind EOD
             </button>
           )}
           <button
             onClick={() => setShowLeaveModal(true)}
-            className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground shadow-sm hover:bg-secondary/40 transition-colors"
+            className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground shadow-sm hover:bg-secondary/40 transition-colors cursor-pointer"
           >
-            <Calendar size={18} className="mr-2 text-rose-500" />
+            <Calendar size={18} className="mr-2 text-muted-foreground shrink-0" />
             {isAdmin ? 'Assign / Apply Leave' : 'Apply for Leave'}
           </button>
           {!isSuperAdmin && (
             <button
               onClick={() => setShowWFHModal(true)}
-              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground shadow-sm hover:bg-secondary/40 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground shadow-sm hover:bg-secondary/40 transition-colors cursor-pointer"
             >
-              <Calendar size={18} className="mr-2 text-indigo-500" />
+              <Calendar size={18} className="mr-2 text-muted-foreground shrink-0" />
               Inform WFH
             </button>
           )}
           {!isSuperAdmin && (
             <button
               onClick={() => setShowEOD(true)}
-              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
               disabled={!todayRecord?.clockIn}
             >
-              <FileText size={18} className="mr-2" />
+              <FileText size={18} className="mr-2 shrink-0" />
               {eodSubmitted ? 'Update EOD Report' : 'Submit EOD Report'}
             </button>
           )}
@@ -751,28 +751,28 @@ const Attendance = () => {
             <div className="flex items-center gap-2 bg-secondary/30 p-1.5 rounded-2xl border border-border overflow-x-auto custom-scrollbar max-w-full">
               <button
                 onClick={() => { hasUserChangedTab.current = true; setViewTab('team'); setSelectedUser('all'); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] cursor-pointer ${
                   viewTab === 'team'
                     ? 'bg-card text-foreground shadow-sm border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Users size={16} className={viewTab === 'team' ? 'text-primary' : ''} />
+                <Users size={16} className="shrink-0" />
                 Team Attendance Records
               </button>
 
               <button
                 onClick={() => { hasUserChangedTab.current = true; setViewTab('eod'); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] cursor-pointer ${
                   viewTab === 'eod'
                     ? 'bg-card text-foreground shadow-sm border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <FileText size={16} className={viewTab === 'eod' ? 'text-primary' : ''} />
+                <FileText size={16} className="shrink-0" />
                 Team EOD Reports
                 {eodData?.records?.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary border border-border text-foreground tabular-nums">
                     {eodData.records.length}
                   </span>
                 )}
@@ -780,33 +780,33 @@ const Attendance = () => {
 
               <button
                 onClick={() => { hasUserChangedTab.current = true; setViewTab('personal'); setSelectedUser(user?._id); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] cursor-pointer ${
                   viewTab === 'personal'
                     ? 'bg-card text-foreground shadow-sm border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <User size={16} className={viewTab === 'personal' ? 'text-primary' : ''} />
+                <User size={16} className="shrink-0" />
                 My Attendance
               </button>
             </div>
 
             {/* Quick Status Pill Counters for Today */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs font-bold">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="flex flex-wrap items-center gap-3 tabular-nums">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary text-foreground border border-border text-xs font-bold">
+                <span className="h-2 w-2 rounded-full bg-foreground shrink-0" />
                 Clocked In Today: {teamMetrics.clockedIn}
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 text-xs font-bold">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card text-foreground border border-border text-xs font-bold">
                 Completed Shift: {teamMetrics.completed}
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 text-xs font-bold">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card text-muted-foreground border border-border text-xs font-bold">
                 On Leave: {teamMetrics.onLeave}
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-600 border border-purple-500/20 text-xs font-bold">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card text-muted-foreground border border-border text-xs font-bold">
                 WFH: {teamMetrics.wfh}
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 text-xs font-bold">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card text-muted-foreground border border-border text-xs font-bold">
                 Absent: {teamMetrics.absent}
               </div>
             </div>
@@ -814,14 +814,13 @@ const Attendance = () => {
 
           {/* Dedicated Pending Approvals Action Banner for Admin & Super Admin */}
           {isAdmin && pendingApprovals.length > 0 && (
-            <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 border-2 border-amber-500/40 rounded-3xl p-5 shadow-sm space-y-3">
+            <div className="bg-secondary/40 border border-border rounded-3xl p-5 shadow-sm space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 text-amber-800 dark:text-amber-300 font-extrabold text-sm sm:text-base">
-                  <span className="flex h-3 w-3 rounded-full bg-amber-500 animate-ping" />
-                  <AlertCircle size={20} className="text-amber-600 dark:text-amber-400" />
+                <div className="flex items-center gap-2.5 text-foreground font-extrabold text-sm sm:text-base tabular-nums">
+                  <AlertCircle size={20} className="text-foreground shrink-0" />
                   <span>Action Required: {pendingApprovals.length} Pending WFH / Leave Request{pendingApprovals.length > 1 ? 's' : ''}</span>
                 </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-200 border border-amber-500/30">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-secondary text-foreground border border-border">
                   Awaiting Review
                 </span>
               </div>
@@ -831,10 +830,10 @@ const Attendance = () => {
                   const reqDateStr = new Date(req.date).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
                   const isWFH = req.requestedStatus === 'work_from_home' || req.status === 'work_from_home';
                   return (
-                    <div key={req._id} className="bg-card p-4 rounded-2xl border border-amber-500/30 shadow-xs flex flex-col justify-between gap-3">
+                    <div key={req._id} className="bg-card p-4 rounded-2xl border border-border shadow-xs flex flex-col justify-between gap-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary font-bold text-foreground text-xs uppercase overflow-hidden border border-border">
                             {req.user?.avatar ? (
                               <img src={getAssetUrl(req.user.avatar)} alt={req.user.name} className="h-full w-full object-cover" />
                             ) : (
@@ -850,18 +849,14 @@ const Attendance = () => {
                             </div>
                           </div>
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase shrink-0 border ${
-                          isWFH
-                            ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                            : 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30'
-                        }`}>
-                          {isWFH ? '🏠 WFH Request' : '🏖️ Leave Request'}
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase shrink-0 border bg-secondary text-foreground border-border">
+                          {isWFH ? 'WFH Request' : 'Leave Request'}
                         </span>
                       </div>
 
-                      <div className="text-xs bg-secondary/30 p-2.5 rounded-xl text-foreground/90 space-y-1 border border-border/50">
-                        <div className="font-semibold text-primary flex items-center gap-1.5 text-[11px]">
-                          <Calendar size={13} /> Requested Date: {reqDateStr}
+                      <div className="text-xs bg-secondary/30 p-2.5 rounded-xl text-foreground/90 space-y-1 border border-border/50 tabular-nums">
+                        <div className="font-semibold text-foreground flex items-center gap-1.5 text-[11px]">
+                          <Calendar size={13} className="shrink-0" /> Requested Date: {reqDateStr}
                         </div>
                         {req.notes && (
                           <div className="text-[11px] text-muted-foreground italic line-clamp-2">
@@ -870,7 +865,7 @@ const Attendance = () => {
                         )}
                         {req.appliedAt && (
                           <div className="text-[10px] text-muted-foreground/80 flex items-center gap-1 pt-0.5">
-                            <Clock size={10} /> Applied: {new Date(req.appliedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {formatTime(req.appliedAt)}
+                            <Clock size={10} className="shrink-0" /> Applied: {new Date(req.appliedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {formatTime(req.appliedAt)}
                           </div>
                         )}
                       </div>
@@ -880,7 +875,7 @@ const Attendance = () => {
                           type="button"
                           onClick={() => approveAttendanceMutation.mutate({ id: req._id, action: 'approve' })}
                           disabled={approveAttendanceMutation.isPending}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-xs transition-colors cursor-pointer"
                         >
                           <CheckCircle2 size={14} /> Approve
                         </button>
@@ -891,7 +886,7 @@ const Attendance = () => {
                             approveAttendanceMutation.mutate({ id: req._id, action: 'reject', rejectionReason: reason || '' });
                           }}
                           disabled={approveAttendanceMutation.isPending}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs shadow-xs transition-colors cursor-pointer"
                         >
                           <XCircle size={14} /> Reject
                         </button>
@@ -908,10 +903,10 @@ const Attendance = () => {
             <div className="bg-card p-6 rounded-3xl border border-border shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold flex items-center text-foreground">
-                  <Clock size={18} className="mr-2 text-emerald-500 animate-pulse" />
+                  <Clock size={18} className="mr-2 text-foreground shrink-0" />
                   Today's Live Employee Clock-In Activity ({todayTeamActivity.length} Team Members)
                 </h3>
-                <span className="text-xs text-muted-foreground font-semibold">
+                <span className="text-xs text-muted-foreground font-semibold tabular-nums">
                   {new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
                 </span>
               </div>
@@ -922,24 +917,12 @@ const Attendance = () => {
                     key={item.user._id}
                     className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all ${
                       item.status === 'present'
-                        ? 'bg-emerald-500/5 border-emerald-500/30'
-                        : item.status === 'completed'
-                        ? 'bg-amber-500/5 border-amber-500/30'
-                        : item.status === 'leave'
-                        ? 'bg-rose-500/5 border-rose-500/30'
-                        : item.status === 'work_from_home'
-                        ? 'bg-purple-500/5 border-purple-500/30'
-                        : item.status === 'pending_leave'
-                        ? 'bg-amber-500/10 border-amber-500/30'
-                        : item.status === 'pending_wfh'
-                        ? 'bg-purple-500/10 border-purple-500/30'
-                        : item.status === 'absent'
-                        ? 'bg-destructive/10 border-destructive/30'
-                        : 'bg-secondary/20 border-border'
+                        ? 'bg-secondary/40 border-border'
+                        : 'bg-secondary/15 border-border'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary font-bold text-foreground text-xs uppercase overflow-hidden border border-border">
                         {item.user.avatar ? (
                           <img src={getAssetUrl(item.user.avatar)} alt={item.user.name} className="h-full w-full object-cover" />
                         ) : (
@@ -953,32 +936,20 @@ const Attendance = () => {
                         <div className="text-[10px] text-muted-foreground truncate">
                           {item.user.department || item.user.position || item.user.role}
                         </div>
-                        <div className="text-[10px] font-semibold text-emerald-600 mt-0.5 flex items-center gap-1">
-                          <span>In: {item.clockIn}</span>
+                        <div className="text-[10px] font-semibold text-muted-foreground mt-0.5 flex items-center gap-1 tabular-nums">
+                          <span className="text-foreground">In: {item.clockIn}</span>
                           <span>•</span>
-                          <span className="text-amber-600">Out: {item.clockOut}</span>
+                          <span>Out: {item.clockOut}</span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex flex-col items-end shrink-0 ml-2">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
                           item.status === 'present'
-                            ? 'bg-emerald-500/20 text-emerald-600'
-                            : item.status === 'completed'
-                            ? 'bg-amber-500/20 text-amber-600'
-                            : item.status === 'leave'
-                            ? 'bg-rose-500/20 text-rose-600'
-                            : item.status === 'work_from_home'
-                            ? 'bg-purple-500/20 text-purple-600'
-                            : item.status === 'pending_leave'
-                            ? 'bg-amber-500/20 text-amber-600'
-                            : item.status === 'pending_wfh'
-                            ? 'bg-purple-500/20 text-purple-600'
-                            : item.status === 'absent'
-                            ? 'bg-destructive/20 text-destructive'
-                            : 'bg-secondary text-muted-foreground'
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-secondary text-foreground border-border'
                         }`}
                       >
                         {item.status === 'present'
@@ -996,11 +967,11 @@ const Attendance = () => {
                           : item.status?.replace(/_/g, ' ')}
                       </span>
                       {item.totalHours > 0 ? (
-                        <span className="text-[10px] font-bold text-foreground mt-1">
+                        <span className="text-[10px] font-bold text-foreground mt-1 tabular-nums">
                           {item.totalHours.toFixed(1)} hrs
                         </span>
                       ) : item.status === 'absent' ? (
-                        <span className="text-[9px] font-semibold text-destructive mt-0.5">
+                        <span className="text-[9px] font-semibold text-muted-foreground mt-0.5 tabular-nums">
                           Cutoff 10:30 AM
                         </span>
                       ) : null}
@@ -1010,7 +981,7 @@ const Attendance = () => {
                           <button
                             type="button"
                             onClick={() => approveAttendanceMutation.mutate({ id: item.attendance._id, action: 'approve' })}
-                            className="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold shadow-2xs cursor-pointer"
+                            className="px-2 py-0.5 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-bold shadow-2xs cursor-pointer"
                           >
                             Approve
                           </button>
@@ -1020,7 +991,7 @@ const Attendance = () => {
                               const reason = window.prompt('Rejection reason (optional):');
                               approveAttendanceMutation.mutate({ id: item.attendance._id, action: 'reject', rejectionReason: reason || '' });
                             }}
-                            className="px-2 py-0.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold shadow-2xs cursor-pointer"
+                            className="px-2 py-0.5 rounded-md bg-secondary hover:bg-muted text-foreground border border-border text-[10px] font-bold shadow-2xs cursor-pointer"
                           >
                             Reject
                           </button>
@@ -1039,26 +1010,26 @@ const Attendance = () => {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mr-1"><Filter size={12} /> Quick Filter:</span>
               {[
-                { value: 'all', label: '\u{1F518} All', activeClass: 'bg-primary text-primary-foreground border-primary' },
-                { value: 'pending', label: `\u23F3 Pending Approvals (${pendingApprovals.length})`, activeClass: 'bg-amber-600 text-white border-amber-600' },
-                { value: 'present', label: '\u2705 Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
-                { value: 'holiday', label: '\u{1F4C5} Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
-                { value: 'leave', label: '\u{1F3D6}\uFE0F Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
-                { value: 'work_from_home', label: '\u{1F3E0} WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
-                { value: 'absent', label: '\u274C Absent', activeClass: 'bg-red-600 text-white border-red-600' },
-              ].map(({ value, label, activeClass }) => (
+                { value: 'all', label: 'All' },
+                { value: 'pending', label: `Pending Approvals (${pendingApprovals.length})` },
+                { value: 'present', label: 'Present' },
+                { value: 'holiday', label: 'Holidays' },
+                { value: 'leave', label: 'Leaves' },
+                { value: 'work_from_home', label: 'WFH' },
+                { value: 'absent', label: 'Absent' },
+              ].map(({ value, label }) => (
                 <button
                   key={value}
                   onClick={() => setSelectedStatus(value)}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer tabular-nums ${
                     selectedStatus === value
-                      ? activeClass + ' shadow-sm ring-2 ring-offset-1 ring-offset-card ring-current/30'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                       : 'bg-secondary/30 border-border text-foreground hover:bg-secondary/60'
                   }`}
                 >
                   {label}
                   {selectedStatus === value && records.length > 0 && (
-                    <span className="ml-1.5 bg-white/20 text-inherit rounded-full px-1.5 py-0.5 text-[10px] font-extrabold">{records.length}</span>
+                    <span className="ml-1.5 bg-primary-foreground/20 text-inherit rounded-full px-1.5 py-0.5 text-[10px] font-extrabold">{records.length}</span>
                   )}
                 </button>
               ))}
@@ -1125,10 +1096,10 @@ const Attendance = () => {
 
           {/* Detailed Employee Stats & Worked Works Dashboard for Selected Employee */}
           {selectedEmployeeInfo && selectedUserStats && (
-            <div className="bg-gradient-to-br from-indigo-50/90 via-white to-slate-50 dark:from-card dark:to-secondary/40 p-6 rounded-3xl border border-indigo-200/80 dark:border-border shadow-md space-y-6">
+            <div className="bg-card p-6 rounded-3xl border border-border shadow-md space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 font-black text-primary text-lg uppercase overflow-hidden border border-primary/20 shadow-sm">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-secondary font-black text-foreground text-lg uppercase overflow-hidden border border-border shadow-sm">
                     {selectedEmployeeInfo.avatar ? (
                       <img src={getAssetUrl(selectedEmployeeInfo.avatar)} alt={selectedEmployeeInfo.name} className="h-full w-full object-cover" />
                     ) : (
@@ -1137,26 +1108,26 @@ const Attendance = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-black text-slate-900 dark:text-foreground">
+                      <h3 className="text-lg font-black text-foreground">
                         {selectedEmployeeInfo.name || selectedEmployeeInfo.email}
                       </h3>
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 text-xs font-extrabold uppercase border border-indigo-500/20">
+                      <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground text-xs font-extrabold uppercase border border-border">
                         {selectedEmployeeInfo.department || selectedEmployeeInfo.position || selectedEmployeeInfo.role}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {selectedEmployeeInfo.email} • Filtered Month: {monthName} {selectedYear}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="px-4 py-2 rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-black">
-                    🎯 {selectedUserStats.attendanceRate}% Attendance Rate
+                  <div className="px-4 py-2 rounded-2xl bg-secondary text-foreground border border-border text-xs font-black tabular-nums">
+                    {selectedUserStats.attendanceRate}% Attendance Rate
                   </div>
                   <button
                     onClick={() => setSelectedUser('all')}
-                    className="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-muted-foreground dark:hover:text-foreground bg-slate-200/60 hover:bg-slate-200 px-3 py-2 rounded-xl transition-all"
+                    className="text-xs font-bold text-foreground bg-secondary hover:bg-muted border border-border px-3 py-2 rounded-xl transition-all cursor-pointer"
                   >
                     Clear Filter
                   </button>
@@ -1164,35 +1135,35 @@ const Attendance = () => {
               </div>
 
               {/* 4 Core Stat Cards for Employee */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 tabular-nums">
+                <div className="p-4 rounded-2xl bg-background border border-border shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Present Days</span>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <span className="text-2xl font-black text-emerald-600">{selectedUserStats.present + selectedUserStats.wfh}</span>
+                    <span className="text-2xl font-black text-foreground">{selectedUserStats.present + selectedUserStats.wfh}</span>
                     <span className="text-xs text-muted-foreground font-semibold">Days ({selectedUserStats.present} P, {selectedUserStats.wfh} WFH)</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+                <div className="p-4 rounded-2xl bg-background border border-border shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Worked Hours</span>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <span className="text-2xl font-black text-primary">{selectedUserStats.totalHours}</span>
+                    <span className="text-2xl font-black text-foreground">{selectedUserStats.totalHours}</span>
                     <span className="text-xs text-muted-foreground font-semibold">hrs (Avg {selectedUserStats.avgDailyHours}h/day)</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+                <div className="p-4 rounded-2xl bg-background border border-border shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Leaves & Absences</span>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <span className="text-2xl font-black text-rose-600">{selectedUserStats.leave + selectedUserStats.absent}</span>
+                    <span className="text-2xl font-black text-foreground">{selectedUserStats.leave + selectedUserStats.absent}</span>
                     <span className="text-xs text-muted-foreground font-semibold">({selectedUserStats.leave} Leave, {selectedUserStats.absent} Absent)</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+                <div className="p-4 rounded-2xl bg-background border border-border shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">EOD Reports Submitted</span>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <span className="text-2xl font-black text-indigo-600">{selectedUserStats.eodSubmittedCount}</span>
+                    <span className="text-2xl font-black text-foreground">{selectedUserStats.eodSubmittedCount}</span>
                     <span className="text-xs text-muted-foreground font-semibold">Reports</span>
                   </div>
                 </div>
@@ -1201,29 +1172,29 @@ const Attendance = () => {
               {/* Worked Works & Daily Tasks Logged List */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-foreground flex items-center gap-1.5">
-                    <Briefcase size={14} className="text-primary" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 tabular-nums">
+                    <Briefcase size={14} className="text-muted-foreground shrink-0" />
                     Worked Works & Daily Task Updates ({selectedUserStats.workedTasks.length} Logged Entries)
                   </h4>
                 </div>
 
                 {selectedUserStats.workedTasks.length === 0 ? (
-                  <div className="p-4 rounded-2xl bg-white/60 dark:bg-card/60 border border-dashed border-slate-200 dark:border-border text-center text-xs text-muted-foreground">
+                  <div className="p-4 rounded-2xl bg-secondary/20 border border-dashed border-border text-center text-xs text-muted-foreground">
                     No EOD work tasks or progress updates logged for this employee in {monthName} {selectedYear}.
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
                     {selectedUserStats.workedTasks.map((work, idx) => (
-                      <div key={idx} className="p-3.5 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div key={idx} className="p-3.5 rounded-2xl bg-background border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                         <div className="min-w-0 space-y-0.5">
-                          <div className="font-bold text-slate-900 dark:text-foreground truncate">{work.workTitle}</div>
+                          <div className="font-bold text-foreground truncate">{work.workTitle}</div>
                           {work.notes && <div className="text-[11px] text-muted-foreground truncate">{work.notes}</div>}
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-secondary text-slate-700 dark:text-foreground font-bold">
+                        <div className="flex items-center gap-3 shrink-0 tabular-nums">
+                          <span className="px-2 py-0.5 rounded-md bg-secondary text-foreground font-bold">
                             {new Date(work.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                          <span className="px-2.5 py-0.5 rounded-full bg-secondary border border-border text-foreground font-bold">
                             {work.hours} hrs
                           </span>
                         </div>
@@ -1312,7 +1283,7 @@ const Attendance = () => {
           {isEodLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div key={n} className="h-56 bg-card rounded-3xl animate-pulse border border-border" />
+                <div key={n} className="h-56 bg-card rounded-3xl border border-border" />
               ))}
             </div>
           ) : (
@@ -1335,7 +1306,7 @@ const Attendance = () => {
               if (filteredReports.length === 0) {
                 return (
                   <div className="p-12 text-center bg-card rounded-3xl border border-dashed border-border text-muted-foreground space-y-2">
-                    <FileText size={36} className="mx-auto opacity-40 text-primary" />
+                    <FileText size={36} className="mx-auto opacity-40 text-muted-foreground" />
                     <h3 className="font-bold text-foreground text-sm">No EOD Reports Found</h3>
                     <p className="text-xs">No team members have submitted EOD reports matching the selected filters.</p>
                   </div>
@@ -1348,12 +1319,12 @@ const Attendance = () => {
                     <div
                       key={item._id}
                       onClick={() => setSelectedEodDetail(item)}
-                      className="bg-card hover:bg-secondary/15 rounded-3xl border border-border/80 hover:border-primary/40 transition-all p-5 space-y-4 shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between group"
+                      className="bg-card hover:bg-secondary/15 rounded-3xl border border-border transition-all p-5 space-y-4 shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between group"
                     >
                       {/* Header: User avatar + info + date */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary font-bold text-foreground text-xs uppercase overflow-hidden border border-border">
                             {item.user?.avatar ? (
                               <img src={getAssetUrl(item.user.avatar)} alt={item.user.name} className="h-full w-full object-cover" />
                             ) : (
@@ -1361,7 +1332,7 @@ const Attendance = () => {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">
+                            <h4 className="font-bold text-foreground text-sm truncate transition-colors">
                               {item.user?.name || item.user?.email || 'Employee'}
                             </h4>
                             <p className="text-[11px] text-muted-foreground truncate">
@@ -1370,7 +1341,7 @@ const Attendance = () => {
                           </div>
                         </div>
 
-                        <div className="text-right shrink-0">
+                        <div className="text-right shrink-0 tabular-nums">
                           <span className="text-xs font-bold text-foreground block">
                             {new Date(item.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                           </span>
@@ -1391,17 +1362,18 @@ const Attendance = () => {
                       {/* Completed Tasks Pills */}
                       {item.eodReport?.tasksCompleted?.length > 0 && (
                         <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground tabular-nums">
                             Completed Tasks ({item.eodReport.tasksCompleted.length})
                           </span>
                           <div className="flex flex-wrap gap-1.5">
                             {item.eodReport.tasksCompleted.slice(0, 3).map((t, idx) => (
-                              <span key={idx} className="inline-flex items-center gap-1 text-[11px] bg-secondary/70 border border-border/60 text-foreground px-2 py-0.5 rounded-lg max-w-[200px] truncate font-medium">
-                                ✓ {typeof t === 'string' ? t : t.title || t.taskTitle || 'Task'}
+                              <span key={idx} className="inline-flex items-center gap-1 text-[11px] bg-secondary/70 border border-border text-foreground px-2 py-0.5 rounded-lg max-w-[200px] truncate font-medium">
+                                <CheckCircle2 size={10} className="shrink-0" />
+                                <span className="truncate">{typeof t === 'string' ? t : t.title || t.taskTitle || 'Task'}</span>
                               </span>
                             ))}
                             {item.eodReport.tasksCompleted.length > 3 && (
-                              <span className="text-[10px] font-bold text-muted-foreground px-1.5 py-0.5">
+                              <span className="text-[10px] font-bold text-muted-foreground px-1.5 py-0.5 tabular-nums">
                                 +{item.eodReport.tasksCompleted.length - 3} more
                               </span>
                             )}
@@ -1411,23 +1383,23 @@ const Attendance = () => {
 
                       {/* Blockers */}
                       {item.eodReport?.blockers && (
-                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-950 dark:text-amber-300 text-xs">
+                        <div className="p-2.5 rounded-xl bg-muted border border-border text-foreground text-xs">
                           <span className="font-bold flex items-center gap-1 text-[10px] uppercase">
-                            <AlertCircle size={12} /> Blocker:
+                            <AlertCircle size={12} className="shrink-0" /> Blocker:
                           </span>
-                          <p className="line-clamp-2 mt-0.5">{item.eodReport.blockers}</p>
+                          <p className="line-clamp-2 mt-0.5 text-muted-foreground">{item.eodReport.blockers}</p>
                         </div>
                       )}
 
                       {/* Card Footer: Hours & View action */}
-                      <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+                      <div className="pt-3 border-t border-border flex items-center justify-between text-xs tabular-nums">
                         <span className="font-semibold text-muted-foreground">
                           Total Time: <strong className="text-foreground">{item.totalHours?.toFixed(1) || '0.0'} hrs</strong>
                         </span>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setSelectedEodDetail(item); }}
-                          className="inline-flex items-center gap-1 font-bold text-primary hover:underline"
+                          className="inline-flex items-center gap-1 font-bold text-foreground hover:underline cursor-pointer"
                         >
                           <Eye size={13} /> View Full Report
                         </button>
@@ -1448,34 +1420,34 @@ const Attendance = () => {
 
             <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
               <h3 className="font-bold flex items-center mb-6">
-                <TrendingUp size={18} className="mr-2 text-emerald-500" />
+                <TrendingUp size={18} className="mr-2 text-foreground shrink-0" />
                 {viewTab === 'team' ? 'Filtered Summary' : 'This Month Summary'}
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-4 tabular-nums">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Present Days / Logs</span>
-                  <span className="font-bold text-emerald-600">{summary.present} Records</span>
+                  <span className="font-bold text-foreground">{summary.present} Records</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Total Hours</span>
-                  <span className="font-bold">{summary.totalHours} hrs</span>
+                  <span className="font-bold text-foreground">{summary.totalHours} hrs</span>
                 </div>
                 {summary.leave > 0 && (
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Leaves</span>
-                    <span className="font-bold text-rose-600">{summary.leave} Days</span>
+                    <span className="font-bold text-foreground">{summary.leave} Days</span>
                   </div>
                 )}
                 {summary.wfh > 0 && (
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Work From Home</span>
-                    <span className="font-bold text-purple-600">{summary.wfh} Days</span>
+                    <span className="font-bold text-foreground">{summary.wfh} Days</span>
                   </div>
                 )}
                 {viewTab === 'personal' && (
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">EOD Submitted</span>
-                    <span className={`font-bold ${eodSubmitted ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    <span className={`font-bold ${eodSubmitted ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {eodSubmitted ? 'Yes' : 'Pending'}
                     </span>
                   </div>
@@ -1490,9 +1462,9 @@ const Attendance = () => {
               <div className="p-6 border-b border-border bg-secondary/10 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <h3 className="font-bold flex items-center">
-                    <History size={18} className="mr-2 text-primary" />
+                    <History size={18} className="mr-2 text-foreground shrink-0" />
                     {viewTab === 'team' ? 'Employee Shift & Attendance Records' : 'Shift History'}
-                    <span className="ml-2 text-xs font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full">
+                    <span className="ml-2 text-xs font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full tabular-nums">
                       {records.length} records
                     </span>
                   </h3>
@@ -1500,7 +1472,7 @@ const Attendance = () => {
                   {isAdmin && (
                     <button
                       onClick={handleExportCSV}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground bg-secondary hover:bg-muted border border-border px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
                     >
                       <Download size={14} />
                       Export CSV Report
@@ -1509,13 +1481,13 @@ const Attendance = () => {
 
                   {!isAdmin && (
                     <div className="flex items-center space-x-2">
-                      <button onClick={handlePrevMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
+                      <button onClick={handlePrevMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors cursor-pointer">
                         <ChevronLeft size={16} />
                       </button>
-                      <span className="text-xs font-bold uppercase tracking-widest">
+                      <span className="text-xs font-bold uppercase tracking-widest tabular-nums">
                         {monthName} {selectedYear}
                       </span>
-                      <button onClick={handleNextMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
+                      <button onClick={handleNextMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors cursor-pointer">
                         <ChevronRight size={16} />
                       </button>
                     </div>
@@ -1525,20 +1497,20 @@ const Attendance = () => {
                 {/* Quick Status Filter Pills - also for personal view */}
                 <div className="flex flex-wrap items-center gap-1.5">
                   {[
-                    { value: 'all', label: '\u{1F518} All', activeClass: 'bg-primary text-primary-foreground border-primary' },
-                    { value: 'pending', label: `\u23F3 Pending (${pendingApprovals.length})`, activeClass: 'bg-amber-600 text-white border-amber-600' },
-                    { value: 'present', label: '\u2705 Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
-                    { value: 'holiday', label: '\u{1F4C5} Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
-                    { value: 'leave', label: '\u{1F3D6}\uFE0F Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
-                    { value: 'work_from_home', label: '\u{1F3E0} WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
-                    { value: 'absent', label: '\u274C Absent', activeClass: 'bg-red-600 text-white border-red-600' },
-                  ].map(({ value, label, activeClass }) => (
+                    { value: 'all', label: 'All' },
+                    { value: 'pending', label: `Pending (${pendingApprovals.length})` },
+                    { value: 'present', label: 'Present' },
+                    { value: 'holiday', label: 'Holidays' },
+                    { value: 'leave', label: 'Leaves' },
+                    { value: 'work_from_home', label: 'WFH' },
+                    { value: 'absent', label: 'Absent' },
+                  ].map(({ value, label }) => (
                     <button
                       key={value}
                       onClick={() => setSelectedStatus(value)}
-                      className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold transition-all ${
+                      className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer tabular-nums ${
                         selectedStatus === value
-                          ? activeClass + ' shadow-sm'
+                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                           : 'bg-secondary/30 border-border text-foreground hover:bg-secondary/60'
                       }`}
                     >
@@ -1557,7 +1529,7 @@ const Attendance = () => {
                       )}
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Date</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">In / Out Timings</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Total Time</th>
+                      <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4 text-right">Total Time</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">EOD Report</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Status</th>
                     </tr>
@@ -1579,7 +1551,7 @@ const Attendance = () => {
                           {showEmployeeColumn && (
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary font-bold text-foreground text-xs uppercase overflow-hidden border border-border">
                                   {record.user?.avatar ? (
                                     <img src={getAssetUrl(record.user.avatar)} alt={record.user.name} className="h-full w-full object-cover" />
                                   ) : (
@@ -1595,7 +1567,7 @@ const Attendance = () => {
                                       {record.user.email}
                                     </div>
                                   )}
-                                  <div className="text-[10px] text-primary/80 font-semibold truncate max-w-[150px]">
+                                  <div className="text-[10px] text-muted-foreground font-semibold truncate max-w-[150px]">
                                     {record.user?.department || record.user?.position || record.user?.role || ''}
                                   </div>
                                 </div>
@@ -1603,7 +1575,7 @@ const Attendance = () => {
                             </td>
                           )}
 
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 tabular-nums">
                             <div className="font-bold">
                               {new Date(record.date).toLocaleDateString([], { weekday: 'short', day: 'numeric' })}
                             </div>
@@ -1613,18 +1585,18 @@ const Attendance = () => {
                           </td>
 
                           {/* Explicit 12-Hour AM/PM Format for Clock In and Out + All Sessions Logs */}
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 tabular-nums">
                             {record.sessions && record.sessions.length > 1 ? (
                               <div className="space-y-1.5">
                                 <div className="flex items-center space-x-2 text-xs">
-                                  <span className="text-emerald-600 font-bold">
+                                  <span className="text-foreground font-bold">
                                     {formatTime(record.clockIn)}
                                   </span>
-                                  <span className="text-muted-foreground opacity-40">to</span>
-                                  <span className="text-amber-600 font-bold">
+                                  <span className="text-muted-foreground">to</span>
+                                  <span className="text-muted-foreground font-bold">
                                     {formatTime(record.clockOut)}
                                   </span>
-                                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground border border-border">
                                     {record.sessions.length} sessions
                                   </span>
                                 </div>
@@ -1634,25 +1606,25 @@ const Attendance = () => {
                                       <span className="font-semibold text-foreground/80">#{idx + 1}: {formatTime(s.clockIn)}</span>
                                       <span className="text-muted-foreground">→</span>
                                       <span className="font-semibold text-foreground/80">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
-                                      <span className="text-primary font-bold">({s.durationHours ? s.durationHours.toFixed(1) : 0}h)</span>
+                                      <span className="text-foreground font-bold">({s.durationHours ? s.durationHours.toFixed(1) : 0}h)</span>
                                     </div>
                                   ))}
                                 </div>
                               </div>
                             ) : (
                               <div className="flex items-center space-x-2 text-xs">
-                                <span className="text-emerald-600 font-bold">
+                                <span className="text-foreground font-bold">
                                   {formatTime(record.clockIn)}
                                 </span>
-                                <span className="text-muted-foreground opacity-40">to</span>
-                                <span className="text-amber-600 font-bold">
+                                <span className="text-muted-foreground">to</span>
+                                <span className="text-muted-foreground font-bold">
                                   {formatTime(record.clockOut)}
                                 </span>
                               </div>
                             )}
                           </td>
 
-                          <td className="px-6 py-4 font-bold">{record.totalHours?.toFixed(1) || '0.0'} hrs</td>
+                          <td className="px-6 py-4 font-bold text-right tabular-nums">{record.totalHours?.toFixed(1) || '0.0'} hrs</td>
 
                           <td className="px-6 py-4">
                             {record.status === 'holiday' ? (
@@ -1661,8 +1633,8 @@ const Attendance = () => {
                               <span
                                 className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
                                   record.eodReport?.submittedAt
-                                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                                    : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                                    ? 'bg-primary text-primary-foreground border border-primary'
+                                    : 'bg-secondary text-muted-foreground border border-border'
                                 }`}
                               >
                                 {record.eodReport?.submittedAt ? 'Submitted' : 'Pending'}
@@ -1673,39 +1645,39 @@ const Attendance = () => {
                           <td className="px-6 py-4">
                             <div className="flex flex-col items-start gap-1">
                               {record.approvalStatus === 'pending' ? (
-                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center gap-1">
-                                  <AlertCircle size={11} />
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground border border-border flex items-center gap-1">
+                                  <AlertCircle size={11} className="shrink-0" />
                                   Pending Approval: {(record.requestedStatus || record.status).replace(/_/g, ' ')}
                                 </span>
                               ) : isApprovedLeave ? (
-                                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                                  <CheckCircle2 size={11} />
-                                  Leave Approved ✅
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-primary text-primary-foreground border border-primary flex items-center gap-1">
+                                  <CheckCircle2 size={11} className="shrink-0" />
+                                  Leave Approved
                                 </span>
                               ) : isApprovedWFH ? (
-                                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1">
-                                  <CheckCircle2 size={11} />
-                                  WFH Approved ✅
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-primary text-primary-foreground border border-primary flex items-center gap-1">
+                                  <CheckCircle2 size={11} className="shrink-0" />
+                                  WFH Approved
                                 </span>
                               ) : record.approvalStatus === 'rejected' ? (
-                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center gap-1">
-                                  <XCircle size={11} />
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-muted text-muted-foreground border border-border flex items-center gap-1">
+                                  <XCircle size={11} className="shrink-0" />
                                   Rejected: {(record.requestedStatus || record.status).replace(/_/g, ' ')}
                                 </span>
                               ) : (
                                 <span
                                   className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 ${
-                                    statusColors[record.status] || 'bg-secondary/40 text-muted-foreground'
+                                    statusColors[record.status] || 'bg-secondary text-muted-foreground border border-border'
                                   }`}
                                 >
                                   {record.status?.replace(/_/g, ' ')}
-                                  {(record.notes || record.approvedBy) && <Info size={11} className="ml-0.5 opacity-80" />}
+                                  {(record.notes || record.approvedBy) && <Info size={11} className="ml-0.5 opacity-80 shrink-0" />}
                                 </span>
                               )}
 
                               {record.appliedAt && (
-                                <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                                  <Clock size={10} className="text-primary" />
+                                <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1 tabular-nums">
+                                  <Clock size={10} className="shrink-0" />
                                   Applied: {new Date(record.appliedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {formatTime(record.appliedAt)}
                                 </span>
                               )}
@@ -1720,7 +1692,7 @@ const Attendance = () => {
                                 <div className="flex items-center gap-1.5 mt-1" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     onClick={() => approveAttendanceMutation.mutate({ id: record._id, action: 'approve' })}
-                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition-all shadow-xs cursor-pointer"
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-bold text-[10px] hover:bg-primary/90 transition-all shadow-xs cursor-pointer"
                                   >
                                     <CheckCircle2 size={12} /> Approve
                                   </button>
@@ -1729,7 +1701,7 @@ const Attendance = () => {
                                       const reason = window.prompt('Rejection reason (optional):');
                                       approveAttendanceMutation.mutate({ id: record._id, action: 'reject', rejectionReason: reason || '' });
                                     }}
-                                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-600 text-white font-bold text-[10px] hover:bg-rose-700 transition-all shadow-xs cursor-pointer"
+                                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary text-foreground border border-border font-bold text-[10px] hover:bg-muted transition-all shadow-xs cursor-pointer"
                                   >
                                     <XCircle size={12} /> Reject
                                   </button>
@@ -1737,8 +1709,8 @@ const Attendance = () => {
                               )}
 
                               {record.approvedBy && (record.approvalStatus === 'approved' || isApprovedLeave) && (
-                                <span className="text-[10px] font-semibold text-primary flex items-center gap-1 mt-0.5">
-                                  <UserCheck size={10} />
+                                <span className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1 mt-0.5">
+                                  <UserCheck size={10} className="shrink-0" />
                                   Approved by: {record.approvedBy.name || 'Admin'}
                                 </span>
                               )}
@@ -1761,20 +1733,20 @@ const Attendance = () => {
             </div>
 
             {!isSuperAdmin && (
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-3xl text-white shadow-xl flex items-center justify-between mt-6">
+              <div className="bg-primary text-primary-foreground p-8 rounded-3xl shadow-sm flex items-center justify-between mt-6 border border-border">
                 <div>
                   <h3 className="text-xl font-bold">Daily Closeout</h3>
-                  <p className="text-white/75 text-sm mt-1 max-w-[420px]">
+                  <p className="text-primary-foreground/80 text-sm mt-1 max-w-[420px]">
                     Submit your EOD report after logging work so managers can review progress and blockers.
                   </p>
                   <button
                     onClick={() => setShowEOD(true)}
-                    className="mt-4 px-6 py-2.5 bg-white text-primary font-bold rounded-xl text-sm shadow-lg hover:bg-white/90 transition-all"
+                    className="mt-4 px-6 py-2.5 bg-background text-foreground border border-border font-bold rounded-xl text-sm shadow-sm hover:bg-secondary transition-all cursor-pointer"
                   >
                     {eodSubmitted ? 'Review Report' : 'Submit Report'}
                   </button>
                 </div>
-                <Calendar size={80} className="opacity-20 hidden md:block" />
+                <Calendar size={80} className="opacity-20 hidden md:block shrink-0" />
               </div>
             )}
           </div>
@@ -1800,9 +1772,9 @@ const Attendance = () => {
           className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
         >
           {/* Pinned Header */}
-          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card px-6 py-5 select-none z-10">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shadow-xs shrink-0">
                 <Calendar className="h-5 w-5" />
               </div>
               <div>
@@ -1831,7 +1803,7 @@ const Attendance = () => {
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Select Holiday Date <span className="text-rose-500">*</span>
+                  Select Holiday Date <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="date"
@@ -1845,7 +1817,7 @@ const Attendance = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Reason / Description <span className="text-rose-500">*</span>
+                  Reason / Description <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="text"
@@ -1859,7 +1831,7 @@ const Attendance = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
                 Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
               </span>
@@ -1875,7 +1847,7 @@ const Attendance = () => {
                 <button
                   type="submit"
                   disabled={assignHolidayMutation.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 disabled:opacity-50 transition-all cursor-pointer"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {assignHolidayMutation.isPending ? 'Assigning...' : 'Assign Holiday'}
                 </button>
@@ -1894,9 +1866,9 @@ const Attendance = () => {
           className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
         >
           {/* Pinned Header */}
-          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card px-6 py-5 select-none z-10">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shadow-xs shrink-0">
                 <Briefcase className="h-5 w-5" />
               </div>
               <div>
@@ -1949,7 +1921,7 @@ const Attendance = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Leave Start Date <span className="text-rose-500">*</span>
+                  Leave Start Date <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="date"
@@ -1970,7 +1942,7 @@ const Attendance = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Leave End Date <span className="text-rose-500">*</span>
+                  Leave End Date <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="date"
@@ -1985,7 +1957,7 @@ const Attendance = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Reason / Description <span className="text-rose-500">*</span>
+                  Reason / Description <span className="text-foreground">*</span>
                 </label>
                 <textarea
                   required
@@ -1999,14 +1971,14 @@ const Attendance = () => {
 
               {!isAdmin && (
                 <div className="p-3.5 rounded-xl bg-secondary/40 border border-border text-xs text-muted-foreground flex items-center gap-2.5">
-                  <Info size={16} className="text-primary shrink-0" />
-                  <span>Your application will be sent to Super Admin and Admin. Once approved, the status will show <strong>Leave Approved ✅</strong>.</span>
+                  <Info size={16} className="text-foreground shrink-0" />
+                  <span>Your application will be sent to Super Admin and Admin. Once approved, the status will show <strong>Leave Approved</strong>.</span>
                 </div>
               )}
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
                 Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
               </span>
@@ -2022,7 +1994,7 @@ const Attendance = () => {
                 <button
                   type="submit"
                   disabled={submitLeaveMutation.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm disabled:opacity-50 flex items-center gap-2 cursor-pointer transition-all"
                 >
                   <Send size={15} />
                   {submitLeaveMutation.isPending
@@ -2046,9 +2018,9 @@ const Attendance = () => {
           className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
         >
           {/* Pinned Header */}
-          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card px-6 py-5 select-none z-10">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shadow-xs shrink-0">
                 <MapPin className="h-5 w-5" />
               </div>
               <div>
@@ -2077,7 +2049,7 @@ const Attendance = () => {
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Select WFH Date <span className="text-rose-500">*</span>
+                  Select WFH Date <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="date"
@@ -2093,7 +2065,7 @@ const Attendance = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Reason / Details <span className="text-rose-500">*</span>
+                  Reason / Details <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="text"
@@ -2107,7 +2079,7 @@ const Attendance = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
                 Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
               </span>
@@ -2123,7 +2095,7 @@ const Attendance = () => {
                 <button
                   type="submit"
                   disabled={submitWFHMutation.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 disabled:opacity-50 transition-all cursor-pointer"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {submitWFHMutation.isPending ? 'Submitting...' : 'Submit WFH Notice'}
                 </button>
@@ -2148,7 +2120,7 @@ const Attendance = () => {
               {/* Employee Info */}
               {selectedRecord.user && typeof selectedRecord.user === 'object' && (
                 <div className="flex items-center gap-3 p-3 rounded-2xl bg-secondary/30 border border-border/80">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary font-bold text-foreground text-xs uppercase overflow-hidden border border-border">
                     {selectedRecord.user.avatar ? (
                       <img src={getAssetUrl(selectedRecord.user.avatar)} alt={selectedRecord.user.name} className="h-full w-full object-cover" />
                     ) : (
@@ -2174,9 +2146,9 @@ const Attendance = () => {
               </div>
 
               {selectedRecord.appliedAt && (
-                <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/25 border border-border">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/25 border border-border tabular-nums">
                   <span className="font-medium text-muted-foreground flex items-center gap-1.5">
-                    <Clock size={13} className="text-primary" /> Applied Date &amp; Time
+                    <Clock size={13} className="text-foreground shrink-0" /> Applied Date &amp; Time
                   </span>
                   <span className="font-bold text-foreground">
                     {new Date(selectedRecord.appliedAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {formatTime(selectedRecord.appliedAt)}
@@ -2193,16 +2165,16 @@ const Attendance = () => {
               </div>
 
               {/* Times */}
-              <div className="grid grid-cols-3 gap-2.5 text-center">
+              <div className="grid grid-cols-3 gap-2.5 text-center tabular-nums">
                 <div className="p-2.5 rounded-xl border border-border bg-card">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock In</div>
-                  <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                  <div className="text-xs font-bold text-foreground mt-1">
                     {formatTime(selectedRecord.clockIn)}
                   </div>
                 </div>
                 <div className="p-2.5 rounded-xl border border-border bg-card">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock Out</div>
-                  <div className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1">
+                  <div className="text-xs font-bold text-muted-foreground mt-1">
                     {formatTime(selectedRecord.clockOut)}
                   </div>
                 </div>
@@ -2216,10 +2188,10 @@ const Attendance = () => {
 
               {/* All Login & Logout Timings Breakdown */}
               {selectedRecord.sessions && selectedRecord.sessions.length > 0 && (
-                <div className="space-y-2 p-3.5 rounded-2xl bg-secondary/20 border border-border">
+                <div className="space-y-2 p-3.5 rounded-2xl bg-secondary/20 border border-border tabular-nums">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                      <Clock size={13} className="text-primary" />
+                      <Clock size={13} className="text-foreground shrink-0" />
                       All Login &amp; Logout Timings ({selectedRecord.sessions.length} Sessions)
                     </span>
                     <span className="text-xs font-bold text-foreground">
@@ -2233,15 +2205,15 @@ const Attendance = () => {
                         className="p-2.5 rounded-xl bg-card border border-border/80 flex items-center justify-between text-xs"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="h-5 w-5 rounded-md bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center">
+                          <span className="h-5 w-5 rounded-md bg-secondary border border-border text-foreground font-bold text-[10px] flex items-center justify-center">
                             #{sIdx + 1}
                           </span>
                           <div>
-                            <span className="font-bold text-emerald-600">
+                            <span className="font-bold text-foreground">
                               In: {formatTime(session.clockIn)}
                             </span>
                             <span className="mx-1.5 text-muted-foreground">•</span>
-                            <span className="font-bold text-amber-600">
+                            <span className="font-bold text-muted-foreground">
                               Out: {session.clockOut ? formatTime(session.clockOut) : 'Currently Active'}
                             </span>
                           </div>
@@ -2257,8 +2229,8 @@ const Attendance = () => {
 
               {/* EOD Report if exists */}
               {selectedRecord.eodReport?.submittedAt && (
-                <div className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-1">
-                  <div className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                <div className="p-3.5 rounded-xl bg-secondary/40 border border-border space-y-1">
+                  <div className="text-[11px] font-bold text-foreground uppercase tracking-wider flex items-center gap-1">
                     <FileText size={12} /> EOD Report Submitted
                   </div>
                   <p className="text-xs text-foreground/80 line-clamp-3">
@@ -2271,7 +2243,7 @@ const Attendance = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedRecord(null)}
-                  className="w-full py-2.5 rounded-xl border border-border bg-secondary/50 text-foreground font-semibold text-xs hover:bg-secondary transition-all"
+                  className="w-full py-2.5 rounded-xl border border-border bg-secondary/50 text-foreground font-semibold text-xs hover:bg-secondary transition-all cursor-pointer"
                 >
                   Close
                 </button>

@@ -14,7 +14,7 @@ import {
   Sparkles,
   X,
   XCircle,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useProposals } from '../../hooks/useProposals';
 import { formatINR } from '../../utils/currency';
 import { Button } from '../../components/ui/button';
@@ -61,8 +61,8 @@ export default function ClientProposals() {
       {/* Page Header */}
       <div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
-            <Sparkles size={12} />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
+            <Sparkles size={12} className="shrink-0" />
             Client Scope Agreements
           </span>
           <span className="text-xs text-muted-foreground hidden sm:inline">• Official Project Contracts</span>
@@ -76,20 +76,20 @@ export default function ClientProposals() {
       </div>
 
       {/* KPI Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 tabular-nums">
         {/* Total Proposals */}
         <motion.div
           whileHover={{ y: -2 }}
           onClick={() => setStatusFilter('all')}
           className={`cursor-pointer rounded-2xl border p-4 transition-all ${
             statusFilter === 'all'
-              ? 'border-amber-500 bg-amber-500/[0.04] shadow-sm'
-              : 'border-border bg-card/70 hover:border-amber-500/40'
+              ? 'border-foreground bg-secondary/40 shadow-sm'
+              : 'border-border bg-card hover:border-foreground/40'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Total Proposals</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
               <FileText size={16} />
             </div>
           </div>
@@ -103,13 +103,13 @@ export default function ClientProposals() {
           onClick={() => setStatusFilter('accepted')}
           className={`cursor-pointer rounded-2xl border p-4 transition-all ${
             statusFilter === 'accepted'
-              ? 'border-emerald-500 bg-emerald-500/[0.04] shadow-sm'
-              : 'border-border bg-card/70 hover:border-emerald-500/40'
+              ? 'border-foreground bg-secondary/40 shadow-sm'
+              : 'border-border bg-card hover:border-foreground/40'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Accepted & Active</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
               <CheckCircle2 size={16} />
             </div>
           </div>
@@ -123,22 +123,22 @@ export default function ClientProposals() {
           onClick={() => setStatusFilter('pending')}
           className={`cursor-pointer rounded-2xl border p-4 transition-all ${
             statusFilter === 'pending'
-              ? 'border-blue-500 bg-blue-500/[0.06] shadow-sm'
+              ? 'border-foreground bg-secondary/40 shadow-sm'
               : metrics.pending > 0
-              ? 'border-blue-500/40 bg-blue-500/[0.02]'
-              : 'border-border bg-card/70 hover:border-blue-500/40'
+              ? 'border-foreground/40 bg-card'
+              : 'border-border bg-card hover:border-foreground/40'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Awaiting Decision</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
               <Clock size={16} />
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <p className="text-2xl font-black text-foreground">{metrics.pending}</p>
             {metrics.pending > 0 && (
-              <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-bold text-blue-600 animate-pulse">
+              <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-bold text-background">
                 Needs Sign-off
               </span>
             )}
@@ -149,11 +149,11 @@ export default function ClientProposals() {
         {/* Total Proposal Value */}
         <motion.div
           whileHover={{ y: -2 }}
-          className="rounded-2xl border border-border bg-card/70 p-4"
+          className="rounded-2xl border border-border bg-card p-4"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Agreement Value</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
               <IndianRupee size={16} />
             </div>
           </div>
@@ -174,19 +174,19 @@ export default function ClientProposals() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all shrink-0 min-h-[36px] whitespace-nowrap ${
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all shrink-0 min-h-[36px] whitespace-nowrap cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-amber-600 text-white shadow-xs'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold tabular-nums ${
                   statusFilter === tab.id
-                    ? 'bg-white/20 text-white'
+                    ? 'bg-primary-foreground/20 text-primary-foreground'
                     : tab.alert
-                    ? 'bg-blue-500/15 text-blue-600 font-extrabold'
+                    ? 'bg-foreground text-background font-extrabold'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
@@ -204,7 +204,7 @@ export default function ClientProposals() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search proposals..."
-            className="w-full rounded-xl border border-border bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+            className="w-full rounded-xl border border-border bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
           />
           {searchQuery && (
             <button
@@ -220,12 +220,12 @@ export default function ClientProposals() {
       {/* Proposals Grid / List */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-56 animate-pulse rounded-3xl border border-border bg-card/60" />
-          <div className="h-56 animate-pulse rounded-3xl border border-border bg-card/60" />
+          <div className="h-56 rounded-3xl border border-border bg-card" />
+          <div className="h-56 rounded-3xl border border-border bg-card" />
         </div>
       ) : filteredProposals.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card/40 py-16 px-6 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 mb-4">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card py-16 px-6 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-foreground border border-border mb-4">
             <FileText size={28} />
           </div>
           <h3 className="text-base font-bold text-foreground">No proposals found</h3>
@@ -262,38 +262,37 @@ export default function ClientProposals() {
                 onClick={() => navigate(`/proposals/${prop._id}`)}
                 className={`cursor-pointer relative overflow-hidden rounded-3xl border p-4 sm:p-6 transition-all shadow-xs hover:shadow-md bg-card flex flex-col justify-between gap-5 ${
                   isAccepted
-                    ? 'border-emerald-500/30'
-                    : 'border-border hover:border-amber-500/40'
+                    ? 'border-foreground/40'
+                    : 'border-border hover:border-foreground/40'
                 }`}
               >
                 {/* Top status accent */}
                 <div
-                  className="absolute top-0 left-0 right-0 h-1.5"
-                  style={{
-                    background: isAccepted
-                      ? 'linear-gradient(90deg, #10b981, #059669)'
+                  className={`absolute top-0 left-0 right-0 h-1 ${
+                    isAccepted
+                      ? 'bg-foreground'
                       : isRejected
-                      ? 'linear-gradient(90deg, #ef4444, #dc2626)'
-                      : 'linear-gradient(90deg, #f59e0b, #d97706)',
-                  }}
+                      ? 'bg-muted-foreground/40'
+                      : 'bg-muted-foreground'
+                  }`}
                 />
 
                 <div>
                   {/* Top line with Number and Status */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs font-bold text-muted-foreground">
+                    <span className="font-mono text-xs font-bold text-muted-foreground tabular-nums">
                       {prop.proposalNumber || 'PROP-OFFICIAL'}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${
                         isAccepted
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : isRejected
-                          ? 'bg-rose-500/15 text-rose-600 border border-rose-500/20'
-                          : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20 animate-pulse'
+                          ? 'bg-secondary text-muted-foreground border-border line-through'
+                          : 'bg-secondary text-foreground border-border'
                       }`}
                     >
-                      {isAccepted ? <CheckCircle2 size={12} /> : isRejected ? <XCircle size={12} /> : <Clock size={12} />}
+                      {isAccepted ? <CheckCircle2 size={12} className="shrink-0" /> : isRejected ? <XCircle size={12} className="shrink-0" /> : <Clock size={12} className="shrink-0" />}
                       <span>{(prop.status || 'Draft').toUpperCase()}</span>
                     </span>
                   </div>
@@ -310,7 +309,7 @@ export default function ClientProposals() {
                     </span>
                     {prop.timeline && (
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar size={12} /> {prop.timeline}
+                        <Calendar size={12} className="shrink-0" /> {prop.timeline}
                       </span>
                     )}
                   </div>
@@ -329,7 +328,7 @@ export default function ClientProposals() {
                     <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                       Total Agreement
                     </span>
-                    <p className="text-lg font-black text-foreground">
+                    <p className="text-lg font-black text-foreground tabular-nums">
                       {formatINR(prop.amount)}
                     </p>
                   </div>
@@ -340,7 +339,7 @@ export default function ClientProposals() {
                     className={`gap-1.5 rounded-xl font-bold text-xs h-9 px-4 ${
                       isAccepted
                         ? 'bg-secondary text-foreground hover:bg-secondary/80'
-                        : 'bg-amber-600 hover:bg-amber-500 text-white shadow-xs'
+                        : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs'
                     }`}
                   >
                     <span>{isAccepted ? 'View Agreement' : 'Review & Sign'}</span>

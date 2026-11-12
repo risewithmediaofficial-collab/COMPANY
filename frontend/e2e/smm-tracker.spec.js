@@ -21,7 +21,7 @@ test.describe('SMM One-Page Tracker E2E', () => {
   });
 
   test('Tracker displays active client row with full month columns and day cells', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/tracker');
+    await page.goto('http://localhost:5175/smm/tracker');
     await page.waitForLoadState('networkidle');
 
     // Verify title is visible

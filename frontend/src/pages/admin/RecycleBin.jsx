@@ -17,7 +17,7 @@ import {
   ShieldAlert,
   ArrowRight,
   FolderOpen,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import api from '../../api';
 import { useSocket } from '../../context/SocketContext';
 import { toast } from 'sonner';
@@ -217,33 +217,33 @@ export default function RecycleBin() {
       case 'task':
         return {
           icon: CheckSquare,
-          badge: 'bg-indigo-500/10 text-indigo-700 border-indigo-300 dark:text-indigo-300 dark:border-indigo-800',
+          badge: 'bg-secondary text-foreground border-border',
         };
       case 'project':
         return {
           icon: Briefcase,
-          badge: 'bg-sky-500/10 text-sky-700 border-sky-300 dark:text-sky-300 dark:border-sky-800',
+          badge: 'bg-secondary text-foreground border-border',
         };
       case 'client':
         return {
           icon: Building2,
-          badge: 'bg-purple-500/10 text-purple-700 border-purple-300 dark:text-purple-300 dark:border-purple-800',
+          badge: 'bg-secondary text-foreground border-border',
         };
       case 'lead':
         return {
           icon: TrendingUp,
-          badge: 'bg-amber-500/10 text-amber-700 border-amber-300 dark:text-amber-300 dark:border-amber-800',
+          badge: 'bg-secondary text-foreground border-border',
         };
       case 'expense':
       case 'invoice':
         return {
           icon: CreditCard,
-          badge: 'bg-emerald-500/10 text-emerald-700 border-emerald-300 dark:text-emerald-300 dark:border-emerald-800',
+          badge: 'bg-secondary text-foreground border-border',
         };
       default:
         return {
           icon: Layers,
-          badge: 'bg-slate-500/10 text-slate-700 border-slate-300 dark:text-slate-300 dark:border-slate-800',
+          badge: 'bg-muted text-foreground border-border',
         };
     }
   };
@@ -251,18 +251,18 @@ export default function RecycleBin() {
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto font-sans">
       {/* ── 1. HEADER SECTION ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500/10 px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 border border-rose-500/20">
-              <Trash2 size={13} className="stroke-[2.5]" />
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-foreground border border-border">
+              <Trash2 size={13} className="stroke-[2.5] shrink-0" />
               Data Recovery & Retention
             </span>
-            <span className="text-xs text-slate-500 font-bold">
+            <span className="text-xs text-muted-foreground font-bold tabular-nums">
               {total} {total === 1 ? 'item' : 'items'} in trash
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
             Recycle Bin
           </h1>
         </div>
@@ -272,9 +272,9 @@ export default function RecycleBin() {
             <button
               type="button"
               onClick={() => setShowEmptyConfirm(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-300 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300 cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-foreground/30 bg-secondary px-3.5 py-2 text-xs font-bold text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer transition-colors"
             >
-              <Trash2 size={13} />
+              <Trash2 size={13} className="shrink-0" />
               <span>Empty Recycle Bin</span>
             </button>
           )}
@@ -283,38 +283,38 @@ export default function RecycleBin() {
             type="button"
             onClick={() => fetchRecycleBin(page)}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground shadow-2xs hover:bg-secondary cursor-pointer disabled:opacity-50"
             title="Refresh recycle bin"
           >
-            <RefreshCw size={13} className={loading ? 'animate-spin text-indigo-500' : ''} />
+            <RefreshCw size={13} className={loading ? 'animate-spin text-foreground shrink-0' : 'shrink-0'} />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {/* ── 2. FILTER & SEARCH BAR ── */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-3.5">
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-xs space-y-3.5">
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           {/* Search bar */}
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search deleted items..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
             />
           </div>
 
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            Showing <strong className="text-slate-900 dark:text-white">{items.length}</strong> of{' '}
-            <strong className="text-slate-900 dark:text-white">{total}</strong> records
+          <div className="text-xs text-muted-foreground tabular-nums">
+            Showing <strong className="text-foreground">{items.length}</strong> of{' '}
+            <strong className="text-foreground">{total}</strong> records
           </div>
         </div>
 
         {/* Entity Tabs */}
-        <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-border">
           {ENTITY_TABS.map((tab) => {
             const Icon = tab.icon;
             const count = countsByType[tab.id] ?? (tab.id === 'all' ? total : 0);
@@ -326,18 +326,18 @@ export default function RecycleBin() {
                 onClick={() => setSelectedType(tab.id)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
-                <Icon size={12} />
+                <Icon size={12} className="shrink-0" />
                 <span>{tab.label}</span>
                 {count > 0 && (
                   <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-black ${
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-black tabular-nums ${
                       isSelected
-                        ? 'bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900'
-                        : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-background text-foreground border border-border'
                     }`}
                   >
                     {count}
@@ -352,21 +352,21 @@ export default function RecycleBin() {
       {/* ── 3. ITEMS LIST ── */}
       <div className="space-y-3">
         {loading && items.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-            <RefreshCw className="mx-auto h-8 w-8 text-indigo-500 animate-spin mb-3" />
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+            <RefreshCw className="mx-auto h-8 w-8 text-foreground animate-spin mb-3" />
+            <h3 className="text-sm font-bold text-foreground">
               Loading Recycle Bin...
             </h3>
           </div>
         ) : items.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-14 text-center dark:border-slate-800 dark:bg-slate-900">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 mb-3">
+          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-14 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary border border-border text-foreground mb-3">
               <Trash2 size={26} />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            <h3 className="text-base font-bold text-foreground">
               Recycle Bin is Empty
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
               No deleted items found in this section. Whenever tasks, projects, clients, or expenses are deleted, they will be safely held here for recovery.
             </p>
           </div>
@@ -379,12 +379,12 @@ export default function RecycleBin() {
             return (
               <div
                 key={item._id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 transition-all"
+                className="rounded-2xl border border-border bg-card p-4 shadow-2xs hover:border-foreground/30 transition-all"
               >
                 <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
                   {/* Left: Icon, Details */}
                   <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground border border-border">
                       <TypeIcon size={18} />
                     </div>
 
@@ -394,43 +394,43 @@ export default function RecycleBin() {
                         <span
                           className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border ${design.badge}`}
                         >
-                          <TypeIcon size={11} />
+                          <TypeIcon size={11} className="shrink-0" />
                           <span>{item.entityType}</span>
                         </span>
 
                         {/* Original Location */}
                         {item.originalLocation && (
-                          <span className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                            <FolderOpen size={10} className="text-indigo-500" />
+                          <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground border border-border">
+                            <FolderOpen size={10} className="text-foreground shrink-0" />
                             <span>Location: {item.originalLocation}</span>
                           </span>
                         )}
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                      <h3 className="text-sm font-extrabold text-foreground truncate">
                         {item.title}
                       </h3>
 
                       {/* Subtitle / Value */}
                       {item.subtitle && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        <p className="text-xs text-muted-foreground font-medium">
                           {item.subtitle}
                         </p>
                       )}
 
                       {/* Deleted By & Time */}
-                      <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400 flex-wrap">
+                      <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground flex-wrap tabular-nums">
                         <span className="flex items-center gap-1">
-                          <User size={11} />
+                          <User size={11} className="shrink-0" />
                           <span>Deleted by:</span>
-                          <strong className="text-slate-600 dark:text-slate-300 font-semibold">
+                          <strong className="text-foreground font-semibold">
                             {item.deletedBy?.name || 'Admin'}
                           </strong>
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <Clock size={11} />
+                          <Clock size={11} className="shrink-0" />
                           <span>{formatRelativeTime(item.createdAt)}</span>
                         </span>
                       </div>
@@ -444,9 +444,9 @@ export default function RecycleBin() {
                       type="button"
                       onClick={() => handleRestore(item)}
                       disabled={isRestoring}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-indigo-600/30 hover:bg-indigo-500 disabled:opacity-50 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
                     >
-                      <RotateCcw size={13} className={isRestoring ? 'animate-spin' : ''} />
+                      <RotateCcw size={13} className={isRestoring ? 'animate-spin shrink-0' : 'shrink-0'} />
                       <span>{isRestoring ? 'Restoring...' : 'Restore Item'}</span>
                     </button>
 
@@ -454,7 +454,7 @@ export default function RecycleBin() {
                     <button
                       type="button"
                       onClick={() => setPermanentTarget(item)}
-                      className="rounded-xl border border-slate-200 p-2 text-slate-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                      className="rounded-xl border border-border p-2 text-muted-foreground hover:border-foreground/40 hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                       title="Delete permanently"
                     >
                       <Trash2 size={14} />
@@ -469,10 +469,10 @@ export default function RecycleBin() {
 
       {/* ── 4. PAGINATION ── */}
       {pages > 1 && (
-        <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            Page <strong className="text-slate-900 dark:text-white">{page}</strong> of{' '}
-            <strong className="text-slate-900 dark:text-white">{pages}</strong>
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <span className="text-xs text-muted-foreground tabular-nums">
+            Page <strong className="text-foreground">{page}</strong> of{' '}
+            <strong className="text-foreground">{pages}</strong>
           </span>
 
           <div className="flex items-center gap-2">
@@ -484,7 +484,7 @@ export default function RecycleBin() {
                 setPage(newPage);
                 fetchRecycleBin(newPage);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Previous
             </button>
@@ -496,7 +496,7 @@ export default function RecycleBin() {
                 setPage(newPage);
                 fetchRecycleBin(newPage);
               }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Next
             </button>
@@ -506,25 +506,25 @@ export default function RecycleBin() {
 
       {/* ── 5. CONFIRMATION DIALOG: PERMANENT DELETE ── */}
       <AlertDialog open={Boolean(permanentTarget)} onOpenChange={(open) => !open && setPermanentTarget(null)}>
-        <AlertDialogContent className="max-w-md p-6 bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 shadow-2xl rounded-2xl">
+        <AlertDialogContent className="max-w-md p-6 bg-card border border-border shadow-2xl rounded-2xl">
           <AlertDialogHeader className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-xs">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground border border-border shadow-xs">
                 <AlertTriangle className="h-6 w-6 stroke-[2.2]" />
               </div>
               <div>
-                <AlertDialogTitle className="text-base font-extrabold text-slate-900 dark:text-white">
+                <AlertDialogTitle className="text-base font-extrabold text-foreground">
                   Permanently Delete Record?
                 </AlertDialogTitle>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Irreversible Action
                 </span>
               </div>
             </div>
 
-            <AlertDialogDescription className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
+            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
               Are you sure you want to permanently delete{' '}
-              <strong className="text-slate-900 dark:text-white font-bold">"{permanentTarget?.title}"</strong>?
+              <strong className="text-foreground font-bold">"{permanentTarget?.title}"</strong>?
               This record will be completely removed from the database and cannot be recovered.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -533,16 +533,16 @@ export default function RecycleBin() {
             <button
               type="button"
               onClick={() => setPermanentTarget(null)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handlePermanentDelete}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-rose-600/30 hover:bg-rose-500 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 transition-all cursor-pointer"
             >
-              <Trash2 size={13} />
+              <Trash2 size={13} className="shrink-0" />
               <span>Yes, Delete Permanently</span>
             </button>
           </div>
@@ -551,24 +551,24 @@ export default function RecycleBin() {
 
       {/* ── 6. CONFIRMATION DIALOG: EMPTY RECYCLE BIN ── */}
       <AlertDialog open={showEmptyConfirm} onOpenChange={setShowEmptyConfirm}>
-        <AlertDialogContent className="max-w-md p-6 bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 shadow-2xl rounded-2xl">
+        <AlertDialogContent className="max-w-md p-6 bg-card border border-border shadow-2xl rounded-2xl">
           <AlertDialogHeader className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-xs">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground border border-border shadow-xs">
                 <ShieldAlert className="h-6 w-6 stroke-[2.2]" />
               </div>
               <div>
-                <AlertDialogTitle className="text-base font-extrabold text-slate-900 dark:text-white">
+                <AlertDialogTitle className="text-base font-extrabold text-foreground">
                   Empty Entire Recycle Bin?
                 </AlertDialogTitle>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Destructive Action
                 </span>
               </div>
             </div>
 
-            <AlertDialogDescription className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
-              All <strong className="text-slate-900 dark:text-white font-bold">{total} items</strong> currently in the Recycle Bin will be permanently wiped out. This action cannot be undone.
+            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
+              All <strong className="text-foreground font-bold tabular-nums">{total} items</strong> currently in the Recycle Bin will be permanently wiped out. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -576,7 +576,7 @@ export default function RecycleBin() {
             <button
               type="button"
               onClick={() => setShowEmptyConfirm(false)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
             >
               Cancel
             </button>
@@ -584,9 +584,9 @@ export default function RecycleBin() {
               type="button"
               onClick={handleEmptyRecycleBin}
               disabled={emptying}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-rose-600/30 hover:bg-rose-500 disabled:opacity-50 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
             >
-              <Trash2 size={13} className={emptying ? 'animate-spin' : ''} />
+              <Trash2 size={13} className={emptying ? 'animate-spin shrink-0' : 'shrink-0'} />
               <span>{emptying ? 'Emptying...' : 'Yes, Empty Recycle Bin'}</span>
             </button>
           </div>

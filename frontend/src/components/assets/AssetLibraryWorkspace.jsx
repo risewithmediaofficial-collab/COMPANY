@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Download, FileText, FolderOpen, Image as ImageIcon, Plus, Tag, Trash2, Upload, Video, X } from 'lucide-react';
+import { Download, FileText, FolderOpen, Image as ImageIcon, Plus, Tag, Trash2, Upload, Video, X } from '@/components/ui/muiIcons';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
@@ -262,7 +262,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
           </div>
 
           {/* Pinned Sticky Footer */}
-          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
             <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
             <div className="flex items-center gap-2.5 ml-auto">
               <Button
@@ -342,17 +342,17 @@ export const AssetLibraryWorkspace = ({
     {
       key: 'category',
       label: 'Category',
-      render: (row) => <StatusBadge tone="info">{categoryLabelMap[row.category] || 'Other'}</StatusBadge>,
+      render: (row) => <StatusBadge tone="neutral">{categoryLabelMap[row.category] || 'Other'}</StatusBadge>,
     },
     {
       key: 'files',
       label: 'Files',
-      render: (row) => `${fileCount(row)} file${fileCount(row) === 1 ? '' : 's'}`,
+      render: (row) => <span className="tabular-nums">{fileCount(row)} file{fileCount(row) === 1 ? '' : 's'}</span>,
     },
     {
       key: 'visibility',
       label: 'Visibility',
-      render: (row) => <StatusBadge tone={row.isClientVisible ? 'success' : 'warning'}>{row.isClientVisible ? 'Client Visible' : 'Internal'}</StatusBadge>,
+      render: (row) => <StatusBadge tone="neutral">{row.isClientVisible ? 'Client Visible' : 'Internal'}</StatusBadge>,
     },
     {
       key: 'uploadedBy',
@@ -382,9 +382,9 @@ export const AssetLibraryWorkspace = ({
         ) : null}
       >
         <MetricGrid>
-          <MetricCard label="Assets" value={metrics.total} helper="Records in this view" icon={FolderOpen} tone="info" />
-          <MetricCard label="Client Visible" value={metrics.visible} helper="Available in the client portal" icon={ImageIcon} tone="success" />
-          <MetricCard label="Files" value={metrics.files} helper="Files stored across all assets" icon={FileText} tone="warning" />
+          <MetricCard label="Assets" value={metrics.total} helper="Records in this view" icon={FolderOpen} tone="neutral" />
+          <MetricCard label="Client Visible" value={metrics.visible} helper="Available in the client portal" icon={ImageIcon} tone="neutral" />
+          <MetricCard label="Files" value={metrics.files} helper="Files stored across all assets" icon={FileText} tone="neutral" />
           <MetricCard label="Categories" value={metrics.categories} helper="Asset types represented here" icon={Tag} tone="neutral" />
         </MetricGrid>
       </PageHeader>

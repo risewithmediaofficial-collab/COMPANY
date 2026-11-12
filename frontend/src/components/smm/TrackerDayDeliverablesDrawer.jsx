@@ -21,7 +21,7 @@ import {
   Info,
   Edit2,
   Save,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import toast from 'react-hot-toast';
 
 const TYPE_CONFIG = {
@@ -30,30 +30,27 @@ const TYPE_CONFIG = {
     shortLabel: 'Reel',
     prefix: 'R',
     icon: Film,
-    color: 'text-fuchsia-600 dark:text-fuchsia-400',
-    badge: 'bg-fuchsia-500/10 text-fuchsia-600 border-fuchsia-500/20 dark:text-fuchsia-300',
-    border: 'border-l-4 border-l-fuchsia-500',
-    gradient: 'from-fuchsia-500/20 to-purple-500/5',
+    color: 'text-foreground',
+    badge: 'bg-primary text-primary-foreground border-primary',
+    border: 'border-l-4 border-l-foreground',
   },
   post: {
     label: 'Feed Post / Graphic',
     shortLabel: 'Post',
     prefix: 'P',
     icon: Image,
-    color: 'text-sky-600 dark:text-sky-400',
-    badge: 'bg-sky-500/10 text-sky-600 border-sky-500/20 dark:text-sky-300',
-    border: 'border-l-4 border-l-sky-500',
-    gradient: 'from-sky-500/20 to-blue-500/5',
+    color: 'text-foreground',
+    badge: 'bg-secondary text-foreground border-border',
+    border: 'border-l-4 border-l-zinc-500',
   },
   story: {
     label: 'Story Update',
     shortLabel: 'Story',
     prefix: 'S',
     icon: Smartphone,
-    color: 'text-emerald-600 dark:text-emerald-400',
-    badge: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-300',
-    border: 'border-l-4 border-l-emerald-500',
-    gradient: 'from-emerald-500/20 to-teal-500/5',
+    color: 'text-muted-foreground',
+    badge: 'bg-muted text-muted-foreground border-border',
+    border: 'border-l-4 border-l-zinc-400',
   },
 };
 
@@ -61,22 +58,22 @@ const STATUS_CONFIG = {
   todo: {
     label: 'TODO',
     icon: ListTodo,
-    badge: 'bg-sky-50 text-sky-700 border-sky-300 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800',
+    badge: 'bg-muted text-muted-foreground border-border',
   },
   pending: {
     label: 'PENDING',
     icon: Clock,
-    badge: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800',
+    badge: 'bg-secondary text-foreground border-zinc-400 dark:border-zinc-600',
   },
   done: {
     label: 'DONE',
     icon: CheckCircle2,
-    badge: 'bg-emerald-600 text-white border-emerald-600 shadow-xs shadow-emerald-500/20',
+    badge: 'bg-primary text-primary-foreground border-primary',
   },
   skip: {
     label: 'SKIP',
     icon: X,
-    badge: 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
+    badge: 'bg-muted/60 text-muted-foreground border-border opacity-75',
   },
 };
 
@@ -383,32 +380,32 @@ export const TrackerDayDeliverablesDrawer = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[999] flex justify-end bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[999] flex justify-end bg-black/60 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative flex h-full w-full max-w-full sm:max-w-xl md:max-w-2xl flex-col bg-white shadow-2xl dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 animate-in slide-in-from-right duration-300"
+        className="relative flex h-full w-full max-w-full sm:max-w-xl md:max-w-2xl flex-col bg-card shadow-2xl border-l border-border animate-in slide-in-from-right duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── 1. Drawer Header ── */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-secondary/40 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-black text-sm shadow-md shadow-indigo-500/20">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-sm">
               {clientName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-extrabold text-slate-900 dark:text-white truncate">
+                <h2 className="text-base font-extrabold text-foreground truncate">
                   {clientName}
                 </h2>
                 {isToday && (
-                  <span className="rounded-md bg-rose-500 px-1.5 py-0.5 text-[9px] font-black uppercase text-white tracking-wider">
-                    ● TODAY LIVE
+                  <span className="rounded-md bg-primary px-1.5 py-0.5 text-[9px] font-black uppercase text-primary-foreground tracking-wider shrink-0">
+                    TODAY LIVE
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
-                <Calendar size={12} className="text-indigo-500" />
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 tabular-nums">
+                <Calendar size={12} className="text-foreground shrink-0" />
                 <span>
                   {dayOfWeek}, {monthName} {dayNumber}, {year} &nbsp;•&nbsp; Day {dayNumber}
                 </span>
@@ -416,15 +413,15 @@ export const TrackerDayDeliverablesDrawer = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {saving && (
-              <span className="text-[11px] text-indigo-500 font-semibold animate-pulse">
+              <span className="text-[11px] text-muted-foreground font-semibold">
                 Saving...
               </span>
             )}
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              className="rounded-xl p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
               title="Close drawer (Esc)"
             >
               <X size={18} />
@@ -437,60 +434,60 @@ export const TrackerDayDeliverablesDrawer = ({
 
           {/* ── Sortout Metric Cards (Reels / Posts / Stories Counts) ── */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="uppercase tracking-wider text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <Sparkles size={13} className="text-indigo-500" />
+            <div className="flex items-center justify-between text-xs font-bold text-foreground">
+              <span className="uppercase tracking-wider text-[11px] text-muted-foreground flex items-center gap-1.5">
+                <Sparkles size={13} className="text-foreground shrink-0" />
                 Day Deliverables Breakdown
               </span>
-              <span>
+              <span className="tabular-nums">
                 {sortoutMetrics.doneTotal} of {sortoutMetrics.total} Complete ({sortoutMetrics.pct}%)
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2.5 tabular-nums">
               {/* Reels Stat Card */}
-              <div className="rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-500/10 to-transparent p-3 dark:border-fuchsia-900/50">
-                <div className="flex items-center justify-between text-fuchsia-600 dark:text-fuchsia-400">
+              <div className="rounded-2xl border border-border bg-secondary/40 p-3">
+                <div className="flex items-center justify-between text-foreground">
                   <span className="text-xs font-bold flex items-center gap-1">
-                    <Film size={13} /> Reels
+                    <Film size={13} className="shrink-0" /> Reels
                   </span>
                   <span className="text-lg font-black">{sortoutMetrics.reels.total}</span>
                 </div>
-                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                    ✓ {sortoutMetrics.reels.done} Done
+                <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span className="text-foreground font-bold inline-flex items-center gap-1">
+                    <Check size={10} /> {sortoutMetrics.reels.done} Done
                   </span>
                   <span>{sortoutMetrics.reels.total - sortoutMetrics.reels.done} Left</span>
                 </div>
               </div>
 
               {/* Posts Stat Card */}
-              <div className="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-500/10 to-transparent p-3 dark:border-sky-900/50">
-                <div className="flex items-center justify-between text-sky-600 dark:text-sky-400">
+              <div className="rounded-2xl border border-border bg-secondary/40 p-3">
+                <div className="flex items-center justify-between text-foreground">
                   <span className="text-xs font-bold flex items-center gap-1">
-                    <Image size={13} /> Posts
+                    <Image size={13} className="shrink-0" /> Posts
                   </span>
                   <span className="text-lg font-black">{sortoutMetrics.posts.total}</span>
                 </div>
-                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                    ✓ {sortoutMetrics.posts.done} Done
+                <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span className="text-foreground font-bold inline-flex items-center gap-1">
+                    <Check size={10} /> {sortoutMetrics.posts.done} Done
                   </span>
                   <span>{sortoutMetrics.posts.total - sortoutMetrics.posts.done} Left</span>
                 </div>
               </div>
 
               {/* Stories Stat Card */}
-              <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-500/10 to-transparent p-3 dark:border-emerald-900/50">
-                <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+              <div className="rounded-2xl border border-border bg-secondary/40 p-3">
+                <div className="flex items-center justify-between text-foreground">
                   <span className="text-xs font-bold flex items-center gap-1">
-                    <Smartphone size={13} /> Stories
+                    <Smartphone size={13} className="shrink-0" /> Stories
                   </span>
                   <span className="text-lg font-black">{sortoutMetrics.stories.total}</span>
                 </div>
-                <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                    ✓ {sortoutMetrics.stories.done} Done
+                <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span className="text-foreground font-bold inline-flex items-center gap-1">
+                    <Check size={10} /> {sortoutMetrics.stories.done} Done
                   </span>
                   <span>{sortoutMetrics.stories.total - sortoutMetrics.stories.done} Left</span>
                 </div>
@@ -498,24 +495,24 @@ export const TrackerDayDeliverablesDrawer = ({
             </div>
 
             {/* Overall Day Progress Bar */}
-            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden dark:bg-slate-800">
+            <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-indigo-500 via-emerald-500 to-teal-400 transition-all duration-300"
+                className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${sortoutMetrics.pct}%` }}
               />
             </div>
           </div>
 
           {/* ── 3. Deliverables Header & Filter Tabs ── */}
-          <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl dark:bg-slate-800 text-xs font-bold">
+          <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-border">
+            <div className="flex items-center gap-1.5 p-1 bg-secondary rounded-xl text-xs font-bold tabular-nums">
               <button
                 type="button"
                 onClick={() => setFilterType('all')}
-                className={`px-3 py-1 rounded-lg transition-all ${
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                   filterType === 'all'
-                    ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 All ({items.length})
@@ -523,10 +520,10 @@ export const TrackerDayDeliverablesDrawer = ({
               <button
                 type="button"
                 onClick={() => setFilterType('reel')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                className={`px-2.5 py-1 rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer ${
                   filterType === 'reel'
-                    ? 'bg-fuchsia-600 text-white shadow-xs'
-                    : 'text-fuchsia-600 dark:text-fuchsia-400 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-950/40'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
                 }`}
               >
                 <Film size={11} /> Reels ({sortoutMetrics.reels.total})
@@ -534,10 +531,10 @@ export const TrackerDayDeliverablesDrawer = ({
               <button
                 type="button"
                 onClick={() => setFilterType('post')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                className={`px-2.5 py-1 rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer ${
                   filterType === 'post'
-                    ? 'bg-sky-600 text-white shadow-xs'
-                    : 'text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
                 }`}
               >
                 <Image size={11} /> Posts ({sortoutMetrics.posts.total})
@@ -545,10 +542,10 @@ export const TrackerDayDeliverablesDrawer = ({
               <button
                 type="button"
                 onClick={() => setFilterType('story')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                className={`px-2.5 py-1 rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer ${
                   filterType === 'story'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
                 }`}
               >
                 <Smartphone size={11} /> Stories ({sortoutMetrics.stories.total})
@@ -558,9 +555,9 @@ export const TrackerDayDeliverablesDrawer = ({
             <button
               type="button"
               onClick={() => setShowAddForm((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-indigo-600/30 hover:bg-indigo-500 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
             >
-              <Plus size={14} className="stroke-[2.5]" />
+              <Plus size={14} />
               <span>Add Extra Deliverable</span>
             </button>
           </div>
@@ -569,16 +566,16 @@ export const TrackerDayDeliverablesDrawer = ({
           {showAddForm && (
             <form
               onSubmit={handleAddNewItem}
-              className="rounded-2xl border-2 border-indigo-500/30 bg-indigo-50/40 p-4 dark:bg-indigo-950/20 space-y-3.5 animate-in fade-in duration-200"
+              className="rounded-2xl border-2 border-foreground/30 bg-secondary/40 p-4 space-y-3.5 animate-in fade-in duration-200"
             >
-              <div className="flex items-center justify-between pb-1 border-b border-indigo-200/50 dark:border-indigo-800/50">
-                <span className="text-xs font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
-                  <Plus size={13} className="stroke-[3]" /> Add New Deliverable for Day {dayNumber}
+              <div className="flex items-center justify-between pb-1 border-b border-border">
+                <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Plus size={13} /> Add New Deliverable for Day {dayNumber}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="text-slate-400 hover:text-slate-600 text-xs"
+                  className="text-muted-foreground hover:text-foreground text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -587,30 +584,36 @@ export const TrackerDayDeliverablesDrawer = ({
               {/* Type Switcher */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'reel', label: '🎬 Reel', desc: 'Short Video' },
-                  { id: 'post', label: '🖼️ Post', desc: 'Feed / Graphic' },
-                  { id: 'story', label: '📱 Story', desc: '24hr Story' },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setNewType(t.id)}
-                    className={`rounded-xl border p-2 text-center text-xs font-bold transition-all ${
-                      newType === t.id
-                        ? 'border-indigo-600 bg-white shadow-xs text-indigo-700 ring-2 ring-indigo-500/20 dark:bg-slate-800 dark:text-white'
-                        : 'border-slate-200 bg-white/60 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-900/60'
-                    }`}
-                  >
-                    <div>{t.label}</div>
-                    <div className="text-[10px] font-normal opacity-70">{t.desc}</div>
-                  </button>
-                ))}
+                  { id: 'reel', label: 'Reel', icon: Film, desc: 'Short Video' },
+                  { id: 'post', label: 'Post', icon: Image, desc: 'Feed / Graphic' },
+                  { id: 'story', label: 'Story', icon: Smartphone, desc: '24hr Story' },
+                ].map((t) => {
+                  const IconComp = t.icon;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setNewType(t.id)}
+                      className={`rounded-xl border p-2 text-center text-xs font-bold transition-all cursor-pointer ${
+                        newType === t.id
+                          ? 'border-foreground bg-primary text-primary-foreground shadow-xs'
+                          : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      }`}
+                    >
+                      <div className="inline-flex items-center justify-center gap-1.5">
+                        <IconComp size={13} />
+                        <span>{t.label}</span>
+                      </div>
+                      <div className="text-[10px] font-normal opacity-75">{t.desc}</div>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Label Code & Posting Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[11px] font-bold text-foreground mb-1">
                     Label Code (e.g. R2 7:30P)
                   </label>
                   <input
@@ -618,12 +621,12 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
                     placeholder="e.g. R2 7:30P"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[11px] font-bold text-foreground mb-1">
                     Scheduled Time
                   </label>
                   <input
@@ -631,7 +634,7 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
                     placeholder="07:30 PM"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20 tabular-nums"
                   />
                   {/* Quick Time Pills */}
                   <div className="mt-1 flex flex-wrap gap-1">
@@ -640,7 +643,7 @@ export const TrackerDayDeliverablesDrawer = ({
                         key={time}
                         type="button"
                         onClick={() => setNewTime(time)}
-                        className="rounded-md bg-white border border-slate-200 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600 hover:border-indigo-400 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                        className="rounded-md bg-card border border-border px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer tabular-nums"
                       >
                         {time}
                       </button>
@@ -652,23 +655,23 @@ export const TrackerDayDeliverablesDrawer = ({
               {/* Initial Status & Topic */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[11px] font-bold text-foreground mb-1">
                     Initial Status
                   </label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white cursor-pointer"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground cursor-pointer"
                   >
-                    <option value="todo">📋 TODO</option>
-                    <option value="pending">⏳ PENDING</option>
-                    <option value="done">✅ DONE</option>
-                    <option value="skip">⏭ SKIP</option>
+                    <option value="todo">TODO</option>
+                    <option value="pending">PENDING</option>
+                    <option value="done">DONE</option>
+                    <option value="skip">SKIP</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[11px] font-bold text-foreground mb-1">
                     Topic / Concept (Optional)
                   </label>
                   <input
@@ -676,7 +679,7 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="e.g. Behind the scenes reel"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
                   />
                 </div>
               </div>
@@ -684,7 +687,7 @@ export const TrackerDayDeliverablesDrawer = ({
               {/* Drive Link & Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[11px] font-bold text-foreground mb-1">
                     Google Drive / Asset Link
                   </label>
                   <input
@@ -692,12 +695,12 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newDriveLink}
                     onChange={(e) => setNewDriveLink(e.target.value)}
                     placeholder="https://drive.google.com/..."
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[11px] font-bold text-foreground mb-1">
                     Caption / Notes
                   </label>
                   <input
@@ -705,7 +708,7 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     placeholder="Caption copy or instructions"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
                   />
                 </div>
               </div>
@@ -713,9 +716,9 @@ export const TrackerDayDeliverablesDrawer = ({
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-500 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
                 >
-                  <Plus size={14} className="stroke-[3]" />
+                  <Plus size={14} />
                   <span>Add to Day {dayNumber}</span>
                 </button>
               </div>
@@ -725,22 +728,22 @@ export const TrackerDayDeliverablesDrawer = ({
           {/* ── 5. Deliverables List ── */}
           <div className="space-y-3">
             {filteredItems.length === 0 ? (
-              <div className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center dark:border-slate-800">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 mb-3">
+              <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground mb-3">
                   <Layers size={22} />
                 </div>
-                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                <h4 className="text-sm font-bold text-foreground">
                   No deliverables scheduled for Day {dayNumber}
                 </h4>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+                <p className="mt-1 text-xs text-muted-foreground max-w-xs mx-auto">
                   Click the button above to add a Reel, Post, or Story for this date.
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(true)}
-                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 transition-all"
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
                 >
-                  <Plus size={14} className="stroke-[2.5]" />
+                  <Plus size={14} />
                   <span>Add First Deliverable</span>
                 </button>
               </div>
@@ -757,17 +760,17 @@ export const TrackerDayDeliverablesDrawer = ({
                     <form
                       key={item.id || index}
                       onSubmit={handleSaveEdit}
-                      className="rounded-2xl border-2 border-indigo-500 bg-white p-4 shadow-lg space-y-3.5 dark:bg-slate-900 ring-2 ring-indigo-500/15 animate-in fade-in duration-200"
+                      className="rounded-2xl border-2 border-foreground bg-card p-4 shadow-lg space-y-3.5 animate-in fade-in duration-200"
                     >
                       {/* Edit Header */}
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                        <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                          <Edit2 size={13} className="stroke-[2.5]" /> Edit Deliverable
+                      <div className="flex items-center justify-between pb-2 border-b border-border">
+                        <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                          <Edit2 size={13} /> Edit Deliverable
                         </span>
                         <button
                           type="button"
                           onClick={handleCancelEdit}
-                          className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-semibold cursor-pointer"
+                          className="text-xs text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -776,30 +779,36 @@ export const TrackerDayDeliverablesDrawer = ({
                       {/* Type Switcher */}
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { id: 'reel', label: '🎬 Reel', desc: 'Short Video' },
-                          { id: 'post', label: '🖼️ Post', desc: 'Feed / Graphic' },
-                          { id: 'story', label: '📱 Story', desc: '24hr Story' },
-                        ].map((t) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setEditDraft((prev) => ({ ...prev, type: t.id }))}
-                            className={`rounded-xl border p-2 text-center text-xs font-bold transition-all cursor-pointer ${
-                              editDraft.type === t.id
-                                ? 'border-indigo-600 bg-indigo-50/60 shadow-xs text-indigo-700 ring-2 ring-indigo-500/20 dark:bg-slate-800 dark:text-white dark:border-indigo-500'
-                                : 'border-slate-200 bg-white/60 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300'
-                            }`}
-                          >
-                            <div>{t.label}</div>
-                            <div className="text-[10px] font-normal opacity-70">{t.desc}</div>
-                          </button>
-                        ))}
+                          { id: 'reel', label: 'Reel', icon: Film, desc: 'Short Video' },
+                          { id: 'post', label: 'Post', icon: Image, desc: 'Feed / Graphic' },
+                          { id: 'story', label: 'Story', icon: Smartphone, desc: '24hr Story' },
+                        ].map((t) => {
+                          const IconComp = t.icon;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => setEditDraft((prev) => ({ ...prev, type: t.id }))}
+                              className={`rounded-xl border p-2 text-center text-xs font-bold transition-all cursor-pointer ${
+                                editDraft.type === t.id
+                                  ? 'border-foreground bg-primary text-primary-foreground shadow-xs'
+                                  : 'border-border bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary'
+                              }`}
+                            >
+                              <div className="inline-flex items-center justify-center gap-1.5">
+                                <IconComp size={13} />
+                                <span>{t.label}</span>
+                              </div>
+                              <div className="text-[10px] font-normal opacity-75">{t.desc}</div>
+                            </button>
+                          );
+                        })}
                       </div>
 
                       {/* Label Code & Posting Time */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          <label className="block text-[11px] font-bold text-foreground mb-1">
                             Label Code (e.g. R2 7:30P)
                           </label>
                           <input
@@ -807,12 +816,12 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.label || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, label: e.target.value }))}
                             placeholder="e.g. R2 7:30P"
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          <label className="block text-[11px] font-bold text-foreground mb-1">
                             Scheduled Time
                           </label>
                           <input
@@ -820,7 +829,7 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.time || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, time: e.target.value }))}
                             placeholder="07:30 PM"
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20 tabular-nums"
                           />
                           {/* Quick Time Pills */}
                           <div className="mt-1 flex flex-wrap gap-1">
@@ -829,7 +838,7 @@ export const TrackerDayDeliverablesDrawer = ({
                                 key={time}
                                 type="button"
                                 onClick={() => setEditDraft((prev) => ({ ...prev, time }))}
-                                className="rounded-md bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600 hover:border-indigo-400 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
+                                className="rounded-md bg-secondary border border-border px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer tabular-nums"
                               >
                                 {time}
                               </button>
@@ -841,23 +850,23 @@ export const TrackerDayDeliverablesDrawer = ({
                       {/* Status & Topic */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          <label className="block text-[11px] font-bold text-foreground mb-1">
                             Status
                           </label>
                           <select
                             value={editDraft.status || 'todo'}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, status: e.target.value }))}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white cursor-pointer"
+                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground cursor-pointer"
                           >
-                            <option value="todo">📋 TODO</option>
-                            <option value="pending">⏳ PENDING</option>
-                            <option value="done">✅ DONE</option>
-                            <option value="skip">⏭ SKIP</option>
+                            <option value="todo">TODO</option>
+                            <option value="pending">PENDING</option>
+                            <option value="done">DONE</option>
+                            <option value="skip">SKIP</option>
                           </select>
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          <label className="block text-[11px] font-bold text-foreground mb-1">
                             Topic / Concept (Optional)
                           </label>
                           <input
@@ -865,7 +874,7 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.title || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, title: e.target.value }))}
                             placeholder="e.g. Behind the scenes reel"
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
                           />
                         </div>
                       </div>
@@ -873,7 +882,7 @@ export const TrackerDayDeliverablesDrawer = ({
                       {/* Drive Link & Notes */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          <label className="block text-[11px] font-bold text-foreground mb-1">
                             Google Drive / Asset Link
                           </label>
                           <input
@@ -881,12 +890,12 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.driveLink || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, driveLink: e.target.value }))}
                             placeholder="https://drive.google.com/..."
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          <label className="block text-[11px] font-bold text-foreground mb-1">
                             Caption / Notes
                           </label>
                           <input
@@ -894,17 +903,17 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.note || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, note: e.target.value }))}
                             placeholder="Caption copy or instructions"
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
                           />
                         </div>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between pt-2 border-t border-border">
                         <button
                           type="button"
                           onClick={() => handleDeleteItem(item.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-1.5 text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
                           title="Delete this deliverable"
                         >
                           <Trash2 size={13} />
@@ -915,13 +924,13 @@ export const TrackerDayDeliverablesDrawer = ({
                           <button
                             type="button"
                             onClick={handleCancelEdit}
-                            className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 transition-colors cursor-pointer"
+                            className="rounded-xl border border-border bg-card px-3.5 py-1.5 text-xs font-bold text-foreground hover:bg-secondary transition-colors cursor-pointer"
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-indigo-600/30 hover:bg-indigo-500 transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
                           >
                             <Save size={13} />
                             <span>Save Changes</span>
@@ -935,7 +944,7 @@ export const TrackerDayDeliverablesDrawer = ({
                 return (
                   <div
                     key={item.id || index}
-                    className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 ${typeCfg.border}`}
+                    className={`rounded-2xl border border-border bg-card p-4 shadow-xs transition-all hover:border-foreground/40 ${typeCfg.border}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       {/* Left: Type Badge, Label, Time */}
@@ -948,26 +957,26 @@ export const TrackerDayDeliverablesDrawer = ({
                             <span>{typeCfg.shortLabel}</span>
                           </span>
 
-                          <span className="text-sm font-extrabold text-slate-900 dark:text-white">
+                          <span className="text-sm font-extrabold text-foreground">
                             {item.label || `${typeCfg.prefix}${index + 1}`}
                           </span>
 
                           {item.time && (
-                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                              <Clock size={11} className="text-indigo-500" />
+                            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1 tabular-nums">
+                              <Clock size={11} className="text-foreground shrink-0" />
                               {item.time}
                             </span>
                           )}
                         </div>
 
                         {item.title && (
-                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          <p className="text-xs font-bold text-foreground">
                             {item.title}
                           </p>
                         )}
 
                         {item.note && (
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                          <p className="text-xs text-muted-foreground">
                             {item.note}
                           </p>
                         )}
@@ -978,7 +987,7 @@ export const TrackerDayDeliverablesDrawer = ({
                               href={item.driveLink}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 underline underline-offset-2"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-foreground hover:text-muted-foreground underline underline-offset-2"
                             >
                               <ExternalLink size={11} />
                               <span>Open Google Drive Footage / Asset</span>
@@ -1004,7 +1013,7 @@ export const TrackerDayDeliverablesDrawer = ({
                         <button
                           type="button"
                           onClick={() => handleStartEdit(item)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                          className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                           title="Edit deliverable"
                         >
                           <Edit2 size={13} />
@@ -1014,7 +1023,7 @@ export const TrackerDayDeliverablesDrawer = ({
                         <button
                           type="button"
                           onClick={() => handleDeleteItem(item.id)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                           title="Delete deliverable"
                         >
                           <Trash2 size={13} />
@@ -1029,14 +1038,14 @@ export const TrackerDayDeliverablesDrawer = ({
         </div>
 
         {/* ── 6. Drawer Sticky Footer ── */}
-        <div className="border-t border-slate-200 px-5 py-3.5 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex items-center justify-between shrink-0">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Total on Day {dayNumber}: <strong className="text-slate-900 dark:text-white font-bold">{items.length} deliverables</strong>
+        <div className="border-t border-border px-5 py-3.5 bg-secondary/40 flex items-center justify-between shrink-0">
+          <div className="text-xs text-muted-foreground font-medium tabular-nums">
+            Total on Day {dayNumber}: <strong className="text-foreground font-bold">{items.length} deliverables</strong>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl bg-slate-200 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-foreground hover:bg-muted border border-border transition-colors cursor-pointer"
           >
             Done & Close
           </button>

@@ -9,7 +9,7 @@ import {
   Loader2,
   Smartphone,
   Info,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   isBrowserNotificationSupported,
   getBrowserNotificationPermission,
@@ -134,26 +134,26 @@ export const EnableBannerNotificationBar = () => {
         animate={{ height: 'auto', opacity: 1 }}
         exit={{ height: 0, opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="w-full overflow-hidden border-b border-indigo-500/30 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-white shadow-md"
+        className="w-full overflow-hidden border-b border-zinc-800 bg-zinc-950 text-zinc-100 shadow-xs"
       >
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
           {/* Left Info Column */}
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="relative shrink-0 flex items-center justify-center p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-              <BellRing size={16} className="animate-pulse" />
-              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400" />
+            <div className="relative shrink-0 flex items-center justify-center p-2 rounded-xl bg-zinc-900 text-zinc-200 border border-zinc-700">
+              <BellRing size={16} />
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-zinc-300" />
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs sm:text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
                   Enable Banner Notifications
-                  <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.2 rounded-full bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">
+                  <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-200 border border-zinc-700">
                     Recommended
                   </span>
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-indigo-200/80 leading-tight truncate sm:whitespace-normal">
+              <p className="text-[11px] sm:text-xs text-zinc-400 leading-tight truncate sm:whitespace-normal">
                 {isIOSRequiresHomeInstall()
                   ? 'Add RiseWithMedia to your Home Screen on iPhone/iPad to enable background push alerts.'
                   : 'Receive real-time popup banner alerts for tasks, leads, and messages even when the app is closed.'}
@@ -168,7 +168,7 @@ export const EnableBannerNotificationBar = () => {
               type="button"
               onClick={handleEnable}
               disabled={loading}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-xs font-bold shadow-md hover:shadow-indigo-500/25 transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex-1 sm:flex-initial"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold shadow-xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex-1 sm:flex-initial"
             >
               {loading ? (
                 <>
@@ -177,7 +177,7 @@ export const EnableBannerNotificationBar = () => {
                 </>
               ) : (
                 <>
-                  <Sparkles size={13} className="text-amber-300 shrink-0" />
+                  <Sparkles size={13} className="text-zinc-800 shrink-0" />
                   <span className="sm:hidden">Enable Alerts</span>
                   <span className="hidden sm:inline">Enable Banner Notifications</span>
                 </>
@@ -187,7 +187,7 @@ export const EnableBannerNotificationBar = () => {
             <button
               type="button"
               onClick={handleDismiss}
-              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 rounded-lg text-indigo-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
               title="Dismiss for 2 days"
               aria-label="Dismiss banner"
             >

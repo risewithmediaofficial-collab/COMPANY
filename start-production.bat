@@ -38,7 +38,7 @@ start "Agency CRM API" cmd /k "set NODE_ENV=production&& npm start"
 echo.
 echo [3/3] Production startup launched.
 
-echo Backend health check: http://localhost:5000/api/health
+echo Backend health check: http://localhost:5005/api/health
 
 echo Frontend static build: %~dp0frontend\dist
 

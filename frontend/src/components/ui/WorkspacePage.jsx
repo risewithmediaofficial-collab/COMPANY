@@ -1,10 +1,10 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from '@/components/ui/muiIcons';
 import { Link } from 'react-router-dom';
 
 /**
  * Helper to safely render any icon type:
- * - Lucide React icons (ForwardRef objects with $$typeof/render)
+ * - Material UI / React forwardRef icons (objects with $$typeof/render)
  * - Function components
  * - Valid React elements (<Icon />)
  * - String emojis ("📞", "🌐", "👥")
@@ -40,11 +40,11 @@ export function WorkspacePage({
   className = '',
 }) {
   const toneClasses = {
-    neutral: 'bg-secondary/60 text-foreground border-border/60',
-    success: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-    warning: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-    danger: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
-    info: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    neutral: 'bg-secondary/70 text-foreground border-border',
+    success: 'bg-secondary/70 text-foreground border-border',
+    warning: 'bg-secondary/70 text-foreground border-border',
+    danger: 'bg-zinc-900 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900 border-border',
+    info: 'bg-secondary/70 text-foreground border-border',
   };
 
   const isIconComponent =
@@ -54,10 +54,10 @@ export function WorkspacePage({
   return (
     <div className={`space-y-5 animate-in fade-in duration-300 ${className}`}>
       {/* Workspace Header Block */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-border/60">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-border">
         <div className="flex items-center gap-3 min-w-0">
           {isIconComponent ? (
-            <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shadow-xs">
               {renderIconHelper(icon, { size: 22 })}
             </div>
           ) : icon ? (
@@ -95,7 +95,7 @@ export function WorkspacePage({
                 >
                   {prop.icon && renderIconHelper(prop.icon, { size: 13, className: 'shrink-0 text-muted-foreground' })}
                   <span className="text-muted-foreground font-medium">{prop.label}:</span>
-                  <span className="font-bold text-foreground">{prop.value}</span>
+                  <span className="font-bold text-foreground tabular-nums">{prop.value}</span>
                 </div>
               );
             })

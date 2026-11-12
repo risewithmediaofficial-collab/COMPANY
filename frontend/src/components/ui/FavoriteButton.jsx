@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star } from '@/components/ui/muiIcons';
 import { useFavorites } from '../../hooks/useFavorites';
 import { AppTooltip } from './tooltip';
 
@@ -32,12 +32,12 @@ const FavoriteButton = ({
     <AppTooltip content={isFav ? 'Remove from favorites' : 'Add to favorites'}>
       <button
         onClick={handleClick}
-        className={`p-2 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground ${
-          isFav ? 'text-yellow-500 bg-yellow-500/10' : ''
+        className={`p-2 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground inline-flex items-center justify-center ${
+          isFav ? 'text-foreground bg-secondary' : ''
         } ${className}`}
       >
-        <Star size={20} className={isFav ? 'fill-yellow-500 text-yellow-500' : ''} />
-        {showLabel && <span className="text-xs ml-1">{isFav ? 'Favorited' : 'Favorite'}</span>}
+        <Star size={18} className={isFav ? 'fill-current text-foreground' : ''} />
+        {showLabel && <span className="text-xs ml-1.5 font-medium">{isFav ? 'Favorited' : 'Favorite'}</span>}
       </button>
     </AppTooltip>
   );

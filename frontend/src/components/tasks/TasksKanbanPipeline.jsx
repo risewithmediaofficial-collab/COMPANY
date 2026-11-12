@@ -17,7 +17,17 @@ import {
   AlertTriangle,
   Calendar,
   ExternalLink,
-} from 'lucide-react';
+  ClipboardList,
+  Zap,
+  Search,
+  Users,
+  Rocket,
+  UploadCloud,
+  CheckCircle2,
+  Check,
+  Smartphone,
+  FileText,
+} from '@/components/ui/muiIcons';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import { getAssetUrl } from '../../utils/assetUrl';
@@ -27,65 +37,65 @@ export const KANBAN_COLUMNS = [
   {
     id: 'todo',
     title: 'To Do',
-    icon: '📋',
-    color: 'border-t-slate-500 bg-slate-500/5',
-    badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    Icon: ClipboardList,
+    color: 'border-t-neutral-400 bg-neutral-500/5',
+    badge: 'bg-secondary text-secondary-foreground border border-border',
     description: 'Fresh tasks assigned to team',
-    accentBorder: 'border-t-4 border-t-slate-500',
+    accentBorder: 'border-t-4 border-t-neutral-400 dark:border-t-neutral-600',
   },
   {
     id: 'in_progress',
     title: 'In Progress',
-    icon: '⚡',
-    color: 'border-t-blue-500 bg-blue-500/5',
-    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+    Icon: Zap,
+    color: 'border-t-neutral-600 bg-neutral-500/5',
+    badge: 'bg-neutral-200 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100 border border-border',
     description: 'Work actively ongoing',
-    accentBorder: 'border-t-4 border-t-blue-500',
+    accentBorder: 'border-t-4 border-t-neutral-600 dark:border-t-neutral-400',
   },
   {
     id: 'review',
     title: 'Internal Approval',
-    icon: '🔍',
-    color: 'border-t-purple-500 bg-purple-500/5',
-    badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
+    Icon: Search,
+    color: 'border-t-neutral-700 bg-neutral-500/5',
+    badge: 'bg-secondary text-foreground border border-border',
     description: 'Internal manager / lead review',
-    accentBorder: 'border-t-4 border-t-purple-500',
+    accentBorder: 'border-t-4 border-t-neutral-700 dark:border-t-neutral-300',
   },
   {
     id: 'client_approval',
     title: 'Client Approval',
-    icon: '🤝',
-    color: 'border-t-amber-500 bg-amber-500/5',
-    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
+    Icon: Users,
+    color: 'border-t-neutral-500 bg-neutral-500/5',
+    badge: 'bg-secondary text-foreground border border-border',
     description: 'Awaiting client feedback/signoff',
-    accentBorder: 'border-t-4 border-t-amber-500',
+    accentBorder: 'border-t-4 border-t-neutral-500',
   },
   {
     id: 'smm_team',
     title: 'SMM Team',
-    icon: '🚀',
-    color: 'border-t-pink-500 bg-pink-500/5',
-    badge: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300',
+    Icon: Rocket,
+    color: 'border-t-neutral-600 bg-neutral-500/5',
+    badge: 'bg-secondary text-foreground border border-border',
     description: 'Ready for posting & scheduling',
-    accentBorder: 'border-t-4 border-t-pink-500',
+    accentBorder: 'border-t-4 border-t-neutral-600 dark:border-t-neutral-400',
   },
   {
     id: 'drive_uploaded',
     title: 'Drive Uploaded',
-    icon: '☁️',
-    color: 'border-t-cyan-500 bg-cyan-500/5',
-    badge: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
+    Icon: UploadCloud,
+    color: 'border-t-neutral-700 bg-neutral-500/5',
+    badge: 'bg-secondary text-foreground border border-border',
     description: 'Edited assets uploaded to Drive',
-    accentBorder: 'border-t-4 border-t-cyan-500',
+    accentBorder: 'border-t-4 border-t-neutral-700 dark:border-t-neutral-300',
   },
   {
     id: 'completed',
     title: 'Completed',
-    icon: '✅',
-    color: 'border-t-emerald-500 bg-emerald-500/5',
-    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+    Icon: CheckCircle2,
+    color: 'border-t-neutral-900 bg-neutral-500/5',
+    badge: 'bg-primary text-primary-foreground',
     description: 'Done and published',
-    accentBorder: 'border-t-4 border-t-emerald-500',
+    accentBorder: 'border-t-4 border-t-neutral-900 dark:border-t-neutral-100',
   },
 ];
 
@@ -158,9 +168,9 @@ const renderTimerBadge = (task) => {
     return (
       <span
         title={task.submissionStatus === 'completed_with_delay' ? 'Submitted with delay' : 'Completed'}
-        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40"
+        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums bg-primary text-primary-foreground"
       >
-        <span>✓</span>
+        <Check className="h-2.5 w-2.5 shrink-0" />
         <span>{task.actualTimeSpentMinutes ? `${Math.floor(task.actualTimeSpentMinutes / 60)}h ${task.actualTimeSpentMinutes % 60}m` : 'Done'}</span>
       </span>
     );
@@ -170,9 +180,9 @@ const renderTimerBadge = (task) => {
     return (
       <span
         title="Timer expired! Task is overdue"
-        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800 animate-pulse"
+        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border border-neutral-800 dark:border-neutral-200"
       >
-        <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-rose-600" />
+        <AlertTriangle className="h-2.5 w-2.5 shrink-0" />
         <span>Overdue</span>
       </span>
     );
@@ -186,9 +196,9 @@ const renderTimerBadge = (task) => {
     return (
       <span
         title={`Timer active: ${h}h ${m}m remaining`}
-        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/40"
+        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums bg-secondary text-foreground border border-border"
       >
-        <Timer className="h-2.5 w-2.5 text-indigo-500 animate-spin" style={{ animationDuration: '4s' }} />
+        <Timer className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
         <span>{h > 0 ? `${h}h ${m}m` : `${m}m`} left</span>
       </span>
     );
@@ -197,9 +207,9 @@ const renderTimerBadge = (task) => {
   return (
     <span
       title={`Allocated: ${task.allocatedHours || 0}h ${task.allocatedMinutes || 0}m (Awaiting acceptance)`}
-      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40"
+      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium tabular-nums bg-muted text-muted-foreground border border-border"
     >
-      <Clock className="h-2.5 w-2.5 text-amber-600" />
+      <Clock className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
       <span>{task.allocatedHours || 0}h{task.allocatedMinutes ? ` ${task.allocatedMinutes}m` : ''}</span>
     </span>
   );
@@ -351,24 +361,24 @@ export const TasksKanbanPipeline = React.memo(({
   return (
     <div className="relative w-full">
       {/* Board Controls: 1-Row Indicator & Scroll Controls */}
-      <div className="flex items-center justify-between pb-2.5 px-1 text-xs text-slate-500 dark:text-slate-400">
+      <div className="flex items-center justify-between pb-2.5 px-1 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-700 dark:text-slate-200 text-xs">
+          <span className="font-bold text-foreground text-xs tracking-tight">
             Workflow Board
           </span>
-          <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500">
+          <span className="hidden sm:inline text-[11px] text-muted-foreground">
             • Drag & drop cards across all 7 stages
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mr-1">
+          <span className="text-[11px] font-medium text-muted-foreground mr-1 tabular-nums">
             7 Stages in Row
           </span>
           <button
             type="button"
             onClick={() => scrollBoard('left')}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-all hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-2xs transition-all hover:bg-secondary hover:text-foreground cursor-pointer"
             title="Scroll left"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -376,7 +386,7 @@ export const TasksKanbanPipeline = React.memo(({
           <button
             type="button"
             onClick={() => scrollBoard('right')}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-2xs transition-all hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-2xs transition-all hover:bg-secondary hover:text-foreground cursor-pointer"
             title="Scroll right"
           >
             <ChevronRight className="h-4 w-4" />
@@ -388,6 +398,7 @@ export const TasksKanbanPipeline = React.memo(({
       <div className="flex sm:hidden items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
         {KANBAN_COLUMNS.map((col, idx) => {
           const count = (columnTasksMap[col.id] || []).length;
+          const ColIcon = col.Icon;
           return (
             <button
               key={col.id}
@@ -398,11 +409,11 @@ export const TasksKanbanPipeline = React.memo(({
                   boardContainerRef.current.scrollTo({ left: targetX, behavior: 'smooth' });
                 }
               }}
-              className="inline-flex items-center gap-1 shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 shadow-2xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+              className="inline-flex items-center gap-1.5 shrink-0 rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-2xs"
             >
-              <span>{col.icon}</span>
+              <ColIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span>{col.title}</span>
-              <span className="rounded-full bg-slate-100 px-1.5 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              <span className="rounded-full bg-secondary px-1.5 text-[10px] tabular-nums text-muted-foreground">
                 {count}
               </span>
             </button>
@@ -420,6 +431,7 @@ export const TasksKanbanPipeline = React.memo(({
             const columnTasks = columnTasksMap[column.id] || [];
             const isDragOver = dragOverColumnId === column.id;
             const nextCol = KANBAN_COLUMNS[colIdx + 1];
+            const ColumnIcon = column.Icon;
 
             return (
               <div
@@ -428,26 +440,26 @@ export const TasksKanbanPipeline = React.memo(({
                 onDragEnter={(e) => handleDragEnter(e, column.id)}
                 onDragLeave={(e) => handleDragLeave(e, column.id)}
                 onDrop={(e) => handleDrop(e, column.id)}
-                className={`flex flex-col w-[85vw] max-w-[320px] sm:w-[295px] sm:max-w-none shrink-0 snap-center sm:snap-align-none rounded-2xl border transition-all duration-200 select-none ${column.accentBorder} ${
+                className={`flex flex-col w-[85vw] max-w-[320px] sm:w-[295px] sm:max-w-none shrink-0 snap-center sm:snap-align-none rounded-xl border transition-all duration-200 select-none ${column.accentBorder} ${
                   isDragOver
-                    ? 'border-indigo-500 bg-indigo-50/70 dark:border-indigo-500 dark:bg-indigo-950/40 ring-2 ring-indigo-500/40 shadow-lg'
-                    : 'border-slate-200/90 bg-slate-50/60 dark:border-slate-800/80 dark:bg-slate-900/60'
+                    ? 'border-neutral-600 bg-secondary dark:border-neutral-400 ring-2 ring-neutral-500/30 shadow-lg'
+                    : 'border-border bg-muted/40'
                 } p-3 h-[calc(100dvh-230px)] sm:h-[calc(100vh-275px)] min-h-[440px] max-h-[calc(100dvh-180px)] sm:max-h-[calc(100vh-220px)]`}
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
+                <div className="flex items-center justify-between pb-2.5 border-b border-border shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-base select-none">{column.icon}</span>
-                    <h3 className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                    <ColumnIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <h3 className="text-xs font-bold tracking-tight text-foreground">
                       {column.title}
                     </h3>
                   </div>
 
                   <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${
                       columnTasks.length > 0
                         ? column.badge
-                        : 'bg-slate-200/60 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {columnTasks.length}
@@ -458,16 +470,16 @@ export const TasksKanbanPipeline = React.memo(({
                 {column.id === 'todo' && onOpenCreateGeneral && canCreate && (
                   <button
                     onClick={onOpenCreateGeneral}
-                    className="mt-2 shrink-0 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:bg-white hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-500 dark:hover:bg-slate-800"
+                    className="mt-2 shrink-0 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/50 hover:bg-card hover:text-foreground cursor-pointer"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-3.5 w-3.5 shrink-0" />
                     <span>New Task</span>
                   </button>
                 )}
 
                 {/* Drop Cue when dragging over this column */}
                 {isDragOver && (
-                  <div className="mt-2 shrink-0 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-dashed border-indigo-400 bg-indigo-100/60 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/70 dark:text-indigo-300 font-bold text-xs animate-pulse">
+                  <div className="mt-2 shrink-0 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-dashed border-neutral-500 bg-secondary text-foreground font-bold text-xs">
                     <ArrowDown className="h-4 w-4 shrink-0" />
                     <span>Drop in {column.title}</span>
                   </div>
@@ -481,15 +493,15 @@ export const TasksKanbanPipeline = React.memo(({
                       onDrop={(e) => handleDrop(e, column.id)}
                       className={`flex h-44 flex-col items-center justify-center rounded-xl border-2 border-dashed text-center transition-all ${
                         isDragOver
-                          ? 'border-indigo-400 bg-indigo-100/40 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/40 dark:text-indigo-300'
-                          : 'border-slate-200/80 dark:border-slate-800/80'
+                          ? 'border-neutral-500 bg-secondary text-foreground'
+                          : 'border-border'
                       }`}
                     >
-                      <span className="text-xl opacity-40">{column.icon}</span>
-                      <span className="mt-1.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                      <ColumnIcon className="h-6 w-6 text-muted-foreground opacity-40" />
+                      <span className="mt-1.5 text-[11px] font-medium text-muted-foreground">
                         No tasks
                       </span>
-                      <span className="text-[10px] text-slate-400/80 dark:text-slate-600">
+                      <span className="text-[10px] text-muted-foreground/70">
                         Drag card here to move
                       </span>
                     </div>
@@ -524,14 +536,14 @@ export const TasksKanbanPipeline = React.memo(({
                       // Notes count
                       const notesCount = task.taskNotes?.length || 0;
 
-                      // Priority colors
+                      // Priority left borders (monochrome tonal hierarchy)
                       const priority = (task.priority || 'medium').toLowerCase();
                       const priorityBorder =
                         priority === 'urgent'
-                          ? 'border-l-4 border-l-rose-500'
+                          ? 'border-l-4 border-l-neutral-900 dark:border-l-neutral-100'
                           : priority === 'high'
-                          ? 'border-l-4 border-l-amber-500'
-                          : 'border-l-4 border-l-indigo-500';
+                          ? 'border-l-4 border-l-neutral-600 dark:border-l-neutral-400'
+                          : 'border-l-4 border-l-neutral-300 dark:border-l-neutral-700';
 
                       const isDragging = draggedTaskId === task._id;
 
@@ -542,9 +554,9 @@ export const TasksKanbanPipeline = React.memo(({
                           onDragStart={(e) => handleDragStart(e, task)}
                           onDragEnd={handleDragEnd}
                           onClick={() => onSelectTask && onSelectTask(task)}
-                          className={`group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-indigo-500 ${priorityBorder} ${
+                          className={`group relative flex flex-col justify-between rounded-xl border border-border bg-card p-3 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-500 hover:shadow-md ${priorityBorder} ${
                             isDragging
-                              ? 'opacity-40 scale-95 ring-2 ring-indigo-500 shadow-xl cursor-grabbing'
+                              ? 'opacity-40 scale-95 ring-2 ring-neutral-500 shadow-xl cursor-grabbing'
                               : 'cursor-grab active:cursor-grabbing'
                           }`}
                         >
@@ -553,23 +565,19 @@ export const TasksKanbanPipeline = React.memo(({
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {/* Visual Drag Grip Handle */}
                               <span
-                                className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 shrink-0 cursor-grab active:cursor-grabbing p-0.5"
+                                className="text-muted-foreground hover:text-foreground shrink-0 cursor-grab active:cursor-grabbing p-0.5"
                                 title="Drag to move card to another stage"
                               >
                                 <GripVertical className="h-3.5 w-3.5" />
                               </span>
 
                               <span
-                                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                                  task.taskCategory === 'content'
-                                    ? 'bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-300'
-                                    : 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
-                                }`}
+                                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-secondary text-foreground border border-border"
                               >
                                 {task.taskCategory === 'content' ? (
-                                  <Video className="h-2.5 w-2.5" />
+                                  <Video className="h-2.5 w-2.5 shrink-0" />
                                 ) : (
-                                  <Code2 className="h-2.5 w-2.5" />
+                                  <Code2 className="h-2.5 w-2.5 shrink-0" />
                                 )}
                                 <span>{task.taskType || 'Task'}</span>
                               </span>
@@ -577,9 +585,10 @@ export const TasksKanbanPipeline = React.memo(({
                               {task.publisherName && (
                                 <span
                                   title={`SMM Assigned: ${task.publisherName}`}
-                                  className="inline-flex items-center gap-0.5 rounded-md bg-purple-50 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+                                  className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-foreground border border-border"
                                 >
-                                  📱 {task.publisherName}
+                                  <Smartphone className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
+                                  <span>{task.publisherName}</span>
                                 </span>
                               )}
 
@@ -589,10 +598,11 @@ export const TasksKanbanPipeline = React.memo(({
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center gap-0.5 rounded-md bg-cyan-50 px-1.5 py-0.5 text-[9px] font-bold text-cyan-700 hover:bg-cyan-100 hover:text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300"
+                                  className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-[9px] font-bold text-foreground hover:bg-muted border border-border"
                                   title="Open Google Drive Files"
                                 >
-                                  ☁️ Drive
+                                  <UploadCloud className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
+                                  <span>Drive</span>
                                 </a>
                               )}
 
@@ -602,7 +612,7 @@ export const TasksKanbanPipeline = React.memo(({
                             {task.clientName && (
                               <span
                                 title={task.clientName}
-                                className="truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400 max-w-[95px]"
+                                className="truncate text-[10px] font-semibold text-muted-foreground max-w-[95px]"
                               >
                                 {task.clientName}
                               </span>
@@ -612,7 +622,7 @@ export const TasksKanbanPipeline = React.memo(({
                           {/* Task Title */}
                           <h4
                             title={task.title || task.taskTitle}
-                            className="line-clamp-2 text-xs font-bold text-slate-900 dark:text-white leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                            className="line-clamp-2 text-xs font-bold text-foreground leading-snug group-hover:underline"
                           >
                             {task.title || task.taskTitle}
                           </h4>
@@ -620,10 +630,11 @@ export const TasksKanbanPipeline = React.memo(({
                           {/* Submission Delay Reason Preview */}
                           {task.completionReason && (
                             <div
-                              className="mt-1 text-[10px] text-amber-700 dark:text-amber-300 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 rounded px-1.5 py-0.5 truncate"
+                              className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground bg-muted border border-border rounded px-1.5 py-0.5 truncate"
                               title={`Delay/Completion Reason: ${task.completionReason}`}
                             >
-                              📝 Reason: {task.completionReason}
+                              <FileText className="h-2.5 w-2.5 shrink-0" />
+                              <span className="truncate">Reason: {task.completionReason}</span>
                             </div>
                           )}
 
@@ -631,15 +642,15 @@ export const TasksKanbanPipeline = React.memo(({
                           {task.createdAt && (
                             <div
                               title={`Created: ${new Date(task.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`}
-                              className="mt-1.5 flex items-center gap-1.5 flex-wrap text-[10px] text-slate-500 dark:text-slate-400 font-medium"
+                              className="mt-1.5 flex items-center gap-1.5 flex-wrap text-[10px] text-muted-foreground font-medium tabular-nums"
                             >
-                              <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                                <Calendar className="h-3 w-3 text-indigo-500 shrink-0" />
+                              <span className="inline-flex items-center gap-1">
+                                <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
                                 <span>Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                               </span>
                               {task.dueDate && (
-                                <span className="inline-flex items-center gap-1 text-slate-400 dark:text-slate-500">
-                                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="text-border">•</span>
                                   <Clock className="h-2.5 w-2.5 shrink-0" />
                                   <span>Due {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                                 </span>
@@ -649,17 +660,17 @@ export const TasksKanbanPipeline = React.memo(({
 
                           {/* Checklist Progress Indicator */}
                           {hasChecklist && (
-                            <div className="mt-2.5 flex items-center justify-between gap-2 rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-800/60">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-                                <ListChecks className="h-3 w-3 text-indigo-500" />
+                            <div className="mt-2.5 flex items-center justify-between gap-2 rounded-md bg-muted px-2 py-1">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold tabular-nums text-foreground">
+                                <ListChecks className="h-3 w-3 shrink-0 text-muted-foreground" />
                                 <span>
                                   {completedChecklistCount}/{checklist.length} Steps
                                 </span>
                               </div>
 
-                              <div className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                              <div className="h-1.5 w-12 overflow-hidden rounded-full bg-border">
                                 <div
-                                  className="h-full bg-emerald-500 transition-all"
+                                  className="h-full bg-primary transition-all"
                                   style={{
                                     width: `${Math.round(
                                       (completedChecklistCount / checklist.length) * 100
@@ -671,21 +682,21 @@ export const TasksKanbanPipeline = React.memo(({
                           )}
 
                           {/* Assigned Employee & Footer */}
-                          <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 dark:border-slate-800/60">
+                          <div className="mt-3 pt-2.5 border-t border-border flex items-center justify-between gap-2">
                             {/* Assignee Avatar + Name */}
                             <div className="flex items-center gap-1.5 min-w-0" title={`Assigned to: ${assigneeName}`}>
                               {assigneeAvatar ? (
                                 <img
                                   src={assigneeAvatar}
                                   alt={assigneeName}
-                                  className="h-5 w-5 rounded-full object-cover ring-1 ring-white shadow-xs dark:ring-slate-800 shrink-0"
+                                  className="h-5 w-5 rounded-full object-cover ring-1 ring-border shadow-xs shrink-0"
                                 />
                               ) : (
-                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[9px] font-bold text-white shrink-0">
+                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground shrink-0">
                                   {initials}
                                 </div>
                               )}
-                              <span className="truncate text-[11px] font-semibold text-slate-700 dark:text-slate-200">
+                              <span className="truncate text-[11px] font-semibold text-foreground">
                                 {assigneeName}
                               </span>
                             </div>
@@ -695,9 +706,9 @@ export const TasksKanbanPipeline = React.memo(({
                               {notesCount > 0 && (
                                 <span
                                   title={`${notesCount} notes`}
-                                  className="flex items-center gap-0.5 text-[10px] text-slate-400"
+                                  className="flex items-center gap-0.5 text-[10px] tabular-nums text-muted-foreground"
                                 >
-                                  <MessageSquare className="h-3 w-3" />
+                                  <MessageSquare className="h-3 w-3 shrink-0" />
                                   <span>{notesCount}</span>
                                 </span>
                               )}
@@ -710,9 +721,9 @@ export const TasksKanbanPipeline = React.memo(({
                                     onDeleteTask && onDeleteTask(task);
                                   }}
                                   title="Delete Task"
-                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all dark:hover:bg-rose-950/60 dark:hover:text-rose-400 cursor-pointer"
+                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-all cursor-pointer"
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-3 w-3 shrink-0" />
                                 </button>
                               )}
 
@@ -720,18 +731,18 @@ export const TasksKanbanPipeline = React.memo(({
                                 to={`/tasks/${task._id}`}
                                 onClick={(e) => e.stopPropagation()}
                                 title="Open Full View"
-                                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-all dark:hover:bg-slate-800 dark:hover:text-indigo-400 cursor-pointer"
+                                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-all cursor-pointer"
                               >
-                                <ExternalLink className="h-3 w-3" />
+                                <ExternalLink className="h-3 w-3 shrink-0" />
                               </Link>
 
                               {nextCol && (
                                 <button
                                   onClick={(e) => handleQuickAdvance(e, task, column.id)}
                                   title={`Move to ${nextCol.title}`}
-                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all dark:bg-indigo-950 dark:text-indigo-300 cursor-pointer"
+                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
                                 >
-                                  <ArrowRight className="h-3 w-3" />
+                                  <ArrowRight className="h-3 w-3 shrink-0" />
                                 </button>
                               )}
                             </div>

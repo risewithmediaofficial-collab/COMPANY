@@ -6,7 +6,7 @@ import {
   Clock, Plus, Calendar, FileText, CheckCircle2, AlertTriangle,
   Info, TrendingUp, Megaphone, DollarSign, Download, Save,
   Layers, Check, Sparkles, PhoneCall, MessageSquare, AlertCircle, X
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import {
@@ -276,18 +276,18 @@ export default function DailyTracking() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsSpendModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-colors cursor-pointer"
           >
-            <DollarSign size={15} className="text-emerald-500" />
+            <DollarSign size={15} className="text-foreground shrink-0" />
             <span>Log Spend / Funds</span>
           </button>
 
           <button
             onClick={handleSaveReport}
             disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs rounded-xl shadow-md shadow-primary/20 transition-all cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
           >
-            <Save size={15} />
+            <Save size={15} className="shrink-0" />
             <span>{saving ? 'Saving...' : 'Save Daily Report'}</span>
           </button>
         </div>
@@ -324,18 +324,25 @@ export default function DailyTracking() {
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground font-medium">Status:</span>
-          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
             report.status === 'Completed'
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary text-foreground border border-border'
           }`}>
-            {report.status === 'Completed' ? '✓ Saved Report' : 'Draft Generated'}
+            {report.status === 'Completed' ? (
+              <>
+                <CheckCircle2 size={12} className="shrink-0" />
+                <span>Saved Report</span>
+              </>
+            ) : (
+              'Draft Generated'
+            )}
           </span>
         </div>
       </div>
 
       {loading ? (
-        <div className="p-16 text-center text-xs text-muted-foreground animate-pulse">Loading daily tracking engine...</div>
+        <div className="p-16 text-center text-xs text-muted-foreground">Loading daily tracking engine...</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ── LEFT & CENTER: DAILY SOCIAL MEDIA REPORT DOCUMENT (2 cols) ── */}
@@ -343,20 +350,20 @@ export default function DailyTracking() {
             {/* The Printable / Presentation Daily Report Card */}
             <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
               {/* Report Header */}
-              <div className="border-b border-border/80 pb-4 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-extrabold tracking-widest text-primary block">
+              <div className="border-b border-border/80 pb-4 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <span className="text-[10px] uppercase font-extrabold tracking-widest text-muted-foreground block">
                     Daily Social Media & Ads Report
                   </span>
-                  <h2 className="text-xl font-black text-foreground mt-0.5">
+                  <h2 className="text-xl font-black text-foreground mt-0.5 truncate">
                     {clientObj?.company || clientObj?.name || 'Client Report'}
                   </h2>
-                  <span className="text-xs text-muted-foreground font-semibold">
+                  <span className="text-xs text-muted-foreground font-semibold tabular-nums">
                     {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
 
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <span className="text-xs text-muted-foreground block">Prepared by</span>
                   <span className="text-xs font-bold text-foreground">Rise With Media Agency OS</span>
                 </div>
@@ -365,21 +372,21 @@ export default function DailyTracking() {
               {/* 1. CONTENT BLOCK */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500" />
+                  <div className="w-2 h-2 rounded-full bg-foreground shrink-0" />
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">1. Content Production & Publishing</h3>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="p-3 bg-secondary/30 rounded-2xl border border-border/60 text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Videos Posted</span>
-                    <span className="text-xl font-black text-emerald-500 block mt-0.5">{report.contentSummary?.videosPosted || 0}</span>
+                    <span className="text-xl font-black text-foreground tabular-nums block mt-0.5">{report.contentSummary?.videosPosted || 0}</span>
                   </div>
-                  <div className="p-3 bg-secondary/30 rounded-2xl border border-border/60 text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Videos Scheduled</span>
-                    <span className="text-xl font-black text-sky-500 block mt-0.5">{report.contentSummary?.videosScheduled || 0}</span>
+                    <span className="text-xl font-black text-foreground tabular-nums block mt-0.5">{report.contentSummary?.videosScheduled || 0}</span>
                   </div>
-                  <div className="p-3 bg-secondary/30 rounded-2xl border border-border/60 text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Pending Approval</span>
-                    <span className="text-xl font-black text-amber-500 block mt-0.5">{report.contentSummary?.videosPendingApproval || 0}</span>
+                    <span className="text-xl font-black text-muted-foreground tabular-nums block mt-0.5">{report.contentSummary?.videosPendingApproval || 0}</span>
                   </div>
                 </div>
               </div>
@@ -387,31 +394,31 @@ export default function DailyTracking() {
               {/* 2. ORGANIC BLOCK */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="w-2 h-2 rounded-full bg-foreground shrink-0" />
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">2. Organic Performance</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 bg-secondary/30 rounded-2xl border border-border/60 text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Total Views</span>
-                    <span className="text-lg font-black text-foreground block mt-0.5">
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {(report.organicSummary?.views || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/30 rounded-2xl border border-border/60 text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Total Reach</span>
-                    <span className="text-lg font-black text-foreground block mt-0.5">
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {(report.organicSummary?.reach || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/30 rounded-2xl border border-border/60 text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Engagement</span>
-                    <span className="text-lg font-black text-foreground block mt-0.5">
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {(report.organicSummary?.engagement || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/30 rounded-2xl border border-border/60 text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Followers Added</span>
-                    <span className="text-lg font-black text-emerald-500 block mt-0.5">
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       +{report.organicSummary?.followersGained || 0}
                     </span>
                   </div>
@@ -421,44 +428,44 @@ export default function DailyTracking() {
               {/* 3. ADS BLOCK */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <div className="w-2 h-2 rounded-full bg-foreground shrink-0" />
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">3. Advertising Spend & Results</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 text-center">
-                    <span className="text-[10px] text-blue-400 block font-bold">Amount Added</span>
-                    <span className="text-lg font-black text-foreground block mt-0.5">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                    <span className="text-[10px] text-muted-foreground block font-bold">Amount Added</span>
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       ₹{(report.adsSummary?.amountAdded || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-rose-500/10 rounded-2xl border border-rose-500/20 text-center">
-                    <span className="text-[10px] text-rose-400 block font-bold">Amount Spent</span>
-                    <span className="text-lg font-black text-rose-400 block mt-0.5">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                    <span className="text-[10px] text-muted-foreground block font-bold">Amount Spent</span>
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       ₹{(report.adsSummary?.amountSpent || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-center">
-                    <span className="text-[10px] text-emerald-400 block font-bold">Leads Generated</span>
-                    <span className="text-lg font-black text-emerald-400 block mt-0.5">
+                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                    <span className="text-[10px] text-muted-foreground block font-bold">Leads Generated</span>
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {report.adsSummary?.leads || 0}
                     </span>
                   </div>
                   <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-bold">Cost Per Lead (CPL)</span>
-                    <span className="text-lg font-black text-emerald-400 block mt-0.5">
+                    <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       ₹{report.adsSummary?.cpl || 0}
                     </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-2.5 rounded-xl bg-secondary/20 border border-border flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-1.5"><MessageSquare size={13} /> Direct Messages</span>
-                    <span className="font-bold text-foreground">{report.adsSummary?.messages || 0}</span>
+                  <div className="p-2.5 rounded-xl bg-secondary/30 border border-border flex items-center justify-between">
+                    <span className="text-muted-foreground inline-flex items-center gap-1.5"><MessageSquare size={13} className="shrink-0" /> Direct Messages</span>
+                    <span className="font-bold text-foreground tabular-nums">{report.adsSummary?.messages || 0}</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-secondary/20 border border-border flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-1.5"><PhoneCall size={13} /> Phone Calls</span>
-                    <span className="font-bold text-foreground">{report.adsSummary?.calls || 0}</span>
+                  <div className="p-2.5 rounded-xl bg-secondary/30 border border-border flex items-center justify-between">
+                    <span className="text-muted-foreground inline-flex items-center gap-1.5"><PhoneCall size={13} className="shrink-0" /> Phone Calls</span>
+                    <span className="font-bold text-foreground tabular-nums">{report.adsSummary?.calls || 0}</span>
                   </div>
                 </div>
               </div>
@@ -467,7 +474,7 @@ export default function DailyTracking() {
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                    <div className="w-2 h-2 rounded-full bg-foreground shrink-0" />
                     <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">4. Qualitative Daily Notes</h3>
                   </div>
                   <span className="text-[10px] text-muted-foreground">Manager Insights & Observations</span>
@@ -480,13 +487,19 @@ export default function DailyTracking() {
                     </div>
                   ) : (
                     report.notes.map((note, idx) => (
-                      <div key={idx} className="p-3 rounded-xl bg-secondary/30 border border-border/80 flex items-start justify-between gap-3 text-xs">
-                        <div className="flex items-start gap-2.5">
-                          <span className="mt-0.5 font-bold">
-                            {note.tag === 'success' ? '✓' : note.tag === 'warning' ? '⚠' : 'ℹ'}
+                      <div key={idx} className="p-3 rounded-xl bg-secondary/30 border border-border flex items-start justify-between gap-3 text-xs">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <span className="mt-0.5 text-foreground shrink-0">
+                            {note.tag === 'success' ? (
+                              <CheckCircle2 size={14} />
+                            ) : note.tag === 'warning' ? (
+                              <AlertTriangle size={14} />
+                            ) : (
+                              <Info size={14} className="text-muted-foreground" />
+                            )}
                           </span>
-                          <span className={`font-medium ${
-                            note.tag === 'success' ? 'text-emerald-400 font-semibold' : note.tag === 'warning' ? 'text-amber-400 font-semibold' : 'text-foreground'
+                          <span className={`leading-relaxed ${
+                            note.tag === 'success' || note.tag === 'warning' ? 'text-foreground font-semibold' : 'text-foreground font-medium'
                           }`}>
                             {note.text}
                           </span>
@@ -494,7 +507,7 @@ export default function DailyTracking() {
                         <button
                           type="button"
                           onClick={() => handleRemoveNote(idx)}
-                          className="text-muted-foreground hover:text-rose-400 p-1 cursor-pointer"
+                          className="text-muted-foreground hover:text-foreground p-1 cursor-pointer shrink-0"
                           title="Remove note"
                         >
                           <X size={14} />
@@ -511,9 +524,9 @@ export default function DailyTracking() {
                     onChange={(e) => setNewNoteTag(e.target.value)}
                     className="h-9 px-2.5 bg-secondary/40 border border-border rounded-xl text-xs font-bold outline-none text-foreground cursor-pointer shrink-0"
                   >
-                    <option value="success">✓ Success</option>
-                    <option value="warning">⚠ Warning</option>
-                    <option value="info">ℹ Note</option>
+                    <option value="success">Success</option>
+                    <option value="warning">Warning</option>
+                    <option value="info">Note</option>
                   </select>
                   <input
                     type="text"
@@ -562,7 +575,7 @@ export default function DailyTracking() {
                         <button
                           type="button"
                           onClick={() => handleRemoveTimeline(idx)}
-                          className="text-muted-foreground hover:text-rose-400 p-1 cursor-pointer"
+                          className="text-muted-foreground hover:text-foreground p-1 cursor-pointer shrink-0"
                           title="Remove event"
                         >
                           <X size={13} />
@@ -611,7 +624,7 @@ export default function DailyTracking() {
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <DollarSign size={16} className="text-emerald-500" />
+                    <DollarSign size={16} className="text-foreground shrink-0" />
                     Campaign Cash Ledger
                   </h3>
                   <span className="text-[11px] text-muted-foreground">Amount Added vs Spent Balance</span>
@@ -632,22 +645,22 @@ export default function DailyTracking() {
                 ) : (
                   spendLogs.slice(0, 8).map((log) => (
                     <div key={log._id} className="p-3 rounded-2xl bg-secondary/30 border border-border/70 text-xs space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-foreground">{log.campaign?.name || 'Campaign'}</span>
-                        <span className="font-mono text-[10px] text-muted-foreground">{new Date(log.date).toLocaleDateString()}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-foreground truncate min-w-0">{log.campaign?.name || 'Campaign'}</span>
+                        <span className="font-mono text-[10px] text-muted-foreground tabular-nums shrink-0">{new Date(log.date).toLocaleDateString()}</span>
                       </div>
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-emerald-400 font-semibold">+₹{(log.amountAdded || 0).toLocaleString()} added</span>
-                        <span className="text-rose-400 font-semibold">-₹{(log.amountSpent || 0).toLocaleString()} spent</span>
+                      <div className="flex items-center justify-between text-[11px] tabular-nums">
+                        <span className="text-foreground font-semibold">+₹{(log.amountAdded || 0).toLocaleString()} added</span>
+                        <span className="text-muted-foreground font-semibold">-₹{(log.amountSpent || 0).toLocaleString()} spent</span>
                       </div>
                       {log.leadsGenerated > 0 && (
-                        <div className="pt-1 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
+                        <div className="pt-1 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground tabular-nums">
                           <span>{log.leadsGenerated} leads generated</span>
                           <span>CPL: ₹{log.cpl || 0}</span>
                         </div>
                       )}
                       {log.isAnomaly && (
-                        <div className="text-[10px] font-bold text-rose-400 bg-rose-500/10 p-1 rounded-md mt-1">
+                        <div className="text-[10px] font-bold text-foreground bg-secondary border border-border p-1.5 rounded-md mt-1">
                           {log.anomalyReason}
                         </div>
                       )}
@@ -727,7 +740,7 @@ export default function DailyTracking() {
                     <option value="">-- Entire Campaign Level --</option>
                     {(campaignsList.find(c => String(c._id) === String(spendForm.campaign))?.sourceContentIds || []).map((v) => (
                       <option key={v._id || v} value={v._id || v}>
-                        🎥 {v.name || 'Video'} ({v.contentType || 'Video'})
+                        {v.name || 'Video'} ({v.contentType || 'Video'})
                       </option>
                     ))}
                   </select>
@@ -746,43 +759,43 @@ export default function DailyTracking() {
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-blue-500 mb-1.5 block">Deposited Funds (₹)</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Deposited Funds (₹)</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.amountAdded}
                   onChange={(e) => setSpendForm({ ...spendForm, amountAdded: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-rose-500 mb-1.5 block">Amount Spent Today (₹) *</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Amount Spent Today (₹) *</label>
                 <input
                   type="number"
                   required
                   placeholder="0"
                   value={spendForm.amountSpent}
                   onChange={(e) => setSpendForm({ ...spendForm, amountSpent: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-emerald-500 mb-1.5 block">Leads Generated</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Leads Generated</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.leadsGenerated}
                   onChange={(e) => setSpendForm({ ...spendForm, leadsGenerated: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               {(Number(spendForm.amountAdded) > 0 || Number(spendForm.amountSpent) > 0) && (
                 <div className="p-3 bg-secondary/50 rounded-xl border border-border flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Balance Amount (Deposited - Spent):</span>
-                  <span className="font-bold font-mono text-emerald-500">
+                  <span className="font-bold font-mono tabular-nums text-foreground">
                     ₹{Math.max(0, (Number(spendForm.amountAdded) || 0) - (Number(spendForm.amountSpent) || 0)).toLocaleString()}
                   </span>
                 </div>
@@ -823,7 +836,7 @@ export default function DailyTracking() {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -843,7 +856,7 @@ export default function DailyTracking() {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
                 >
                   Save Spend Entry
                 </Button>

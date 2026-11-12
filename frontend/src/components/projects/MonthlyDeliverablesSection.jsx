@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Target, Video, Film, Image, BookOpen, Layers, Sparkles, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Target, Video, Film, Image, BookOpen, Layers, Sparkles, AlertCircle } from '@/components/ui/muiIcons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export const STANDARD_DELIVERABLE_TYPES = [
-  { value: 'Video', label: '🎬 Video', icon: Video },
-  { value: 'Reel', label: '📱 Reel / Short', icon: Film },
-  { value: 'Poster', label: '🖼️ Poster / Static Post', icon: Image },
-  { value: 'Story', label: '📖 Story', icon: BookOpen },
-  { value: 'Carousel Post', label: '📑 Carousel Post', icon: Layers },
-  { value: 'Social Media Post', label: '🌐 Social Media Post', icon: Sparkles },
-  { value: 'Blog', label: '✍️ Blog Article', icon: BookOpen },
-  { value: 'Ad Creative', label: '🎯 Ad Creative', icon: Target },
+  { value: 'Video', label: 'Video', icon: Video },
+  { value: 'Reel', label: 'Reel / Short', icon: Film },
+  { value: 'Poster', label: 'Poster / Static Post', icon: Image },
+  { value: 'Story', label: 'Story', icon: BookOpen },
+  { value: 'Carousel Post', label: 'Carousel Post', icon: Layers },
+  { value: 'Social Media Post', label: 'Social Media Post', icon: Sparkles },
+  { value: 'Blog', label: 'Blog Article', icon: BookOpen },
+  { value: 'Ad Creative', label: 'Ad Creative', icon: Target },
 ];
 
 export const MONTH_NAMES = [
@@ -158,7 +158,7 @@ export const MonthlyDeliverablesSection = ({
                     </SelectItem>
                   ))}
                   <SelectItem value="Custom" className="text-xs font-medium">
-                    ✨ Custom Deliverable...
+                    Custom Deliverable...
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -244,7 +244,7 @@ export const MonthlyDeliverablesSection = ({
                         <Input
                           type="number"
                           min="1"
-                          className="h-7 w-16 text-center text-xs font-bold rounded-lg"
+                          className="h-7 w-16 text-center text-xs font-bold rounded-lg tabular-nums"
                           value={item.targetQuantity}
                           onChange={(e) => handleQtyChange(index, e.target.value)}
                         />
@@ -258,7 +258,7 @@ export const MonthlyDeliverablesSection = ({
                         </button>
                       </div>
                     ) : (
-                      <span className="rounded-lg bg-secondary px-2 py-1 text-xs font-extrabold text-foreground">
+                      <span className="rounded-lg bg-secondary px-2 py-1 text-xs font-extrabold text-foreground tabular-nums">
                         {item.targetQuantity}
                       </span>
                     )}

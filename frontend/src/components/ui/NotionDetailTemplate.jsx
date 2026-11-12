@@ -1,6 +1,6 @@
 import { isValidElement } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft } from '@/components/ui/muiIcons';
 import { cn } from '../../utils/cn';
 
 export const NotionDetailPage = ({

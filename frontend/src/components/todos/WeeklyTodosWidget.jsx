@@ -28,7 +28,13 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
+  Building2,
+  Code2,
+  Palette,
+  Phone,
+  Flame,
+  ClipboardList,
+} from '@/components/ui/muiIcons';
 import {
   useWeeklyTodos,
   useCreateWeeklyTodo,
@@ -53,20 +59,20 @@ const DAYS = [
 ];
 
 const PRIORITY_BADGES = {
-  urgent: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
-  high: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
-  medium: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30',
-  low: 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border-slate-500/30',
+  urgent: 'bg-primary text-primary-foreground border-primary font-black',
+  high: 'bg-secondary text-foreground border-foreground/40 font-bold',
+  medium: 'bg-secondary/70 text-foreground border-border',
+  low: 'bg-secondary/40 text-muted-foreground border-border',
 };
 
 const CATEGORY_ICONS = {
-  general: '📋',
-  client: '🏢',
-  dev: '💻',
-  content: '🎨',
-  meeting: '📞',
-  review: '🔍',
-  urgent: '🔥',
+  general: ClipboardList,
+  client: Building2,
+  dev: Code2,
+  content: Palette,
+  meeting: Phone,
+  review: Search,
+  urgent: Flame,
 };
 
 /**
@@ -294,31 +300,31 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
           {/* Progress Bar */}
           <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden p-0.5 border border-border/60">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-indigo-500 transition-all duration-500"
+              className="h-full rounded-full bg-primary transition-all duration-500"
               style={{ width: `${summary.completionRate}%` }}
             />
           </div>
-          <div className="text-[10px] text-muted-foreground">
+          <div className="text-[10px] text-muted-foreground tabular-nums">
             {summary.completionRate === 100 && summary.total > 0
-              ? '🎉 All deliverables for this week are completed!'
+              ? 'All deliverables for this week are completed.'
               : `${summary.pending} pending item${summary.pending === 1 ? '' : 's'} remaining this week`}
           </div>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-card border border-border/60 flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-card border border-border flex items-center justify-between">
           <div>
             <span className="text-[10px] uppercase font-bold text-muted-foreground">Pending</span>
-            <div className="text-lg font-black text-amber-500">{summary.pending}</div>
+            <div className="text-lg font-black text-foreground tabular-nums">{summary.pending}</div>
           </div>
-          <Clock size={18} className="text-amber-500/50" />
+          <Clock size={18} className="text-muted-foreground" />
         </div>
 
-        <div className="p-2.5 rounded-xl bg-card border border-border/60 flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-card border border-border flex items-center justify-between">
           <div>
             <span className="text-[10px] uppercase font-bold text-muted-foreground">Completed</span>
-            <div className="text-lg font-black text-emerald-500">{summary.completed}</div>
+            <div className="text-lg font-black text-foreground tabular-nums">{summary.completed}</div>
           </div>
-          <CheckCircle2 size={18} className="text-emerald-500/50" />
+          <CheckCircle2 size={18} className="text-foreground" />
         </div>
       </div>
 
@@ -333,7 +339,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               <button
                 key={day}
                 onClick={() => setSelectedDay(day)}
-                className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-primary text-primary-foreground shadow-xs font-bold'
                     : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/60'
@@ -341,8 +347,8 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               >
                 <span>{day}</span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-background text-muted-foreground'
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
+                    isSelected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-background text-muted-foreground'
                   }`}
                 >
                   {count}
@@ -371,7 +377,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
             <div className="flex items-center bg-secondary/50 rounded-xl p-0.5 border border-border/60 text-xs">
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   statusFilter === 'all' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -379,7 +385,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               </button>
               <button
                 onClick={() => setStatusFilter('pending')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   statusFilter === 'pending' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -387,7 +393,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               </button>
               <button
                 onClick={() => setStatusFilter('completed')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   statusFilter === 'completed' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -405,8 +411,8 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                 onChange={(e) => setAssigneeFilter(e.target.value)}
                 className="px-2.5 py-1.5 rounded-xl border border-border bg-background text-foreground text-xs font-semibold focus:outline-hidden focus:ring-1 focus:ring-primary"
               >
-                <option value="all">👥 All Team Members</option>
-                <option value="mine">👤 My Own Todos</option>
+                <option value="all">All Team Members</option>
+                <option value="mine">My Own Todos</option>
                 {teamUsers
                   .filter((u) => u.employmentStatus !== 'terminated')
                   .map((u) => (
@@ -457,6 +463,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               const isPersonal = todo.assignedTo?._id === todo.assignedBy?._id;
               const canEditFull = isManagerOrAdmin || isAssignedByMe;
               const isExpanded = expandedTodoId === todo._id;
+              const CategoryIcon = CATEGORY_ICONS[todo.category] || ClipboardList;
 
               return (
                 <div
@@ -471,11 +478,11 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                       <button
                         type="button"
                         onClick={() => toggleTodo.mutate(todo._id)}
-                        className="mt-0.5 shrink-0 text-muted-foreground hover:text-primary transition-transform hover:scale-110"
+                        className="mt-0.5 shrink-0 text-muted-foreground hover:text-primary transition-transform hover:scale-110 cursor-pointer"
                         title={isCompleted ? 'Mark pending' : 'Mark completed'}
                       >
                         {isCompleted ? (
-                          <CheckCircle2 size={18} className="text-emerald-500 fill-emerald-500/20" />
+                          <CheckCircle2 size={18} className="text-foreground" />
                         ) : (
                           <Square size={18} className="text-muted-foreground/80 hover:text-foreground" />
                         )}
@@ -497,7 +504,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                           {/* Priority badge */}
                           {todo.priority && (
                             <span
-                              className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded-md border ${
+                              className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md border ${
                                 PRIORITY_BADGES[todo.priority] || PRIORITY_BADGES.medium
                               }`}
                             >
@@ -507,8 +514,8 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
 
                           {/* Category badge */}
                           {todo.category && (
-                            <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-2 py-0.2 rounded-md flex items-center gap-1">
-                              <span>{CATEGORY_ICONS[todo.category] || '📋'}</span>
+                            <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-border">
+                              <CategoryIcon size={11} className="shrink-0" />
                               <span className="capitalize">{todo.category}</span>
                             </span>
                           )}
@@ -517,14 +524,14 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                         {/* Metadata Row: Day + Assignee Info */}
                         <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground pt-0.5">
                           {/* Day badge */}
-                          <span className="inline-flex items-center gap-1 font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                          <span className="inline-flex items-center gap-1 font-semibold text-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">
                             <Calendar size={11} />
                             <span>{todo.dayOfWeek || 'Weekly Target'}</span>
                           </span>
 
                           {/* Who it's assigned to / who assigned it */}
                           {isPersonal ? (
-                            <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <span className="inline-flex items-center gap-1 text-muted-foreground">
                               <Sparkles size={11} />
                               <span>Personal Todo ({todo.assignedTo?.name || 'Self'})</span>
                             </span>
@@ -541,7 +548,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                           )}
 
                           {todo.notes && (
-                            <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                            <span className="inline-flex items-center gap-1 text-foreground font-medium">
                               <MessageSquare size={11} />
                               <span>Has Notes</span>
                             </span>
@@ -556,7 +563,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                         <button
                           type="button"
                           onClick={() => setExpandedTodoId(isExpanded ? null : todo._id)}
-                          className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                          className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                           title={isExpanded ? 'Collapse notes' : 'Expand notes'}
                         >
                           {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
@@ -570,7 +577,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                             setEditingTodo(todo);
                             setModalOpen(true);
                           }}
-                          className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                          className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                           title="Edit todo"
                         >
                           <Edit2 size={14} />
@@ -585,7 +592,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                               deleteTodo.mutate(todo._id);
                             }
                           }}
-                          className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                           title="Delete todo"
                         >
                           <Trash2 size={14} />
@@ -605,7 +612,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                       )}
                       {todo.notes && (
                         <div className="bg-secondary/40 p-2.5 rounded-xl border border-border/60">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1">
                             <MessageSquare size={11} />
                             Execution Notes
                           </span>

@@ -13,7 +13,7 @@ import {
   RefreshCcw,
   Tag,
   User,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { format } from 'date-fns';
 import { Button } from '../../components/ui/button';
 import { StatusBadge } from '../../components/ui/page';
@@ -55,7 +55,7 @@ const LeadDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl animate-pulse space-y-4">
+      <div className="mx-auto max-w-7xl space-y-4">
         <div className="h-8 w-64 rounded-xl bg-secondary/70" />
         <div className="h-96 rounded-3xl border border-border bg-card" />
       </div>
@@ -94,8 +94,8 @@ const LeadDetails = () => {
       <div className="space-y-6">
         <NotionSection title="Contact">
           <NotionPropertyGrid>
-            <NotionProperty icon={Phone} label="Phone" value={lead.phone} accent="text-emerald-500" />
-            <NotionProperty icon={Mail} label="Email" value={lead.email} accent="text-blue-500" />
+            <NotionProperty icon={Phone} label="Phone" value={lead.phone} accent="text-muted-foreground" />
+            <NotionProperty icon={Mail} label="Email" value={lead.email} accent="text-muted-foreground" />
             <NotionProperty icon={Building2} label="Company" value={lead.company} />
           </NotionPropertyGrid>
         </NotionSection>
@@ -103,22 +103,22 @@ const LeadDetails = () => {
         <NotionSection title="Deal Details">
           <NotionPropertyGrid>
             <NotionProperty icon={Tag} label="Source" value={lead.source} />
-            <NotionProperty icon={Globe} label="Service Interested" value={lead.serviceInterest} accent="text-violet-500" />
+            <NotionProperty icon={Globe} label="Service Interested" value={lead.serviceInterest} accent="text-muted-foreground" />
             <NotionProperty icon={User} label="Decision Maker" value={lead.decisionMaker} />
             <NotionProperty
               icon={IndianRupee}
               label="Deal Value"
               value={dealValue ? formatINR(dealValue) : null}
-              accent="text-emerald-500"
+              accent="text-muted-foreground"
             />
           </NotionPropertyGrid>
         </NotionSection>
 
         <NotionSection title="Assignment & Timeline">
           <NotionPropertyGrid>
-            <NotionProperty icon={User} label="Assigned To" value={lead.assignedTo?.name} accent="text-indigo-500" />
-            <NotionProperty icon={CalendarClock} label="Follow-up Date" value={fmt(lead.followUpDate || lead.expectedCloseDate)} accent="text-amber-500" />
-            <NotionProperty icon={RefreshCcw} label="Refollow Date" value={fmt(lead.refollowDate)} accent="text-orange-400" />
+            <NotionProperty icon={User} label="Assigned To" value={lead.assignedTo?.name} accent="text-muted-foreground" />
+            <NotionProperty icon={CalendarClock} label="Follow-up Date" value={fmt(lead.followUpDate || lead.expectedCloseDate)} accent="text-muted-foreground" />
+            <NotionProperty icon={RefreshCcw} label="Refollow Date" value={fmt(lead.refollowDate)} accent="text-muted-foreground" />
           </NotionPropertyGrid>
         </NotionSection>
 

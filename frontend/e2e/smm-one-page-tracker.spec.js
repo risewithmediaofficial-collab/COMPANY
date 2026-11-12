@@ -4,7 +4,7 @@ test.describe('SMM One-Page Tracker & Delete Option Suite', () => {
 
   test.beforeEach(async ({ page }) => {
     // Navigate and login
-    await page.goto('http://localhost:5173/login');
+    await page.goto('http://localhost:5175/login');
     await page.waitForLoadState('networkidle');
 
     const emailInput = page.locator('form input[type="email"]').first();
@@ -19,7 +19,7 @@ test.describe('SMM One-Page Tracker & Delete Option Suite', () => {
   });
 
   test('1. Tracker Header, Navigation, and Sub-tabs Render Correctly', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/tracker');
+    await page.goto('http://localhost:5175/smm/tracker');
     await page.waitForLoadState('networkidle');
 
     // Verify main header
@@ -41,7 +41,7 @@ test.describe('SMM One-Page Tracker & Delete Option Suite', () => {
   });
 
   test('2. Tracker Grid, Client Row, and Delete Action Button', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/tracker');
+    await page.goto('http://localhost:5175/smm/tracker');
     await page.waitForLoadState('networkidle');
 
     // Table elements
@@ -73,7 +73,7 @@ test.describe('SMM One-Page Tracker & Delete Option Suite', () => {
   });
 
   test('3. Client Completion Dashboard and Visual Analytics Render', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/tracker');
+    await page.goto('http://localhost:5175/smm/tracker');
     await page.waitForLoadState('networkidle');
 
     // Check completion dashboard heading
@@ -85,7 +85,7 @@ test.describe('SMM One-Page Tracker & Delete Option Suite', () => {
   });
 
   test('4. Add Client Modal opens and closes properly', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/tracker');
+    await page.goto('http://localhost:5175/smm/tracker');
     await page.waitForLoadState('networkidle');
 
     const addClientBtn = page.getByRole('button', { name: /Add Client/i }).first();

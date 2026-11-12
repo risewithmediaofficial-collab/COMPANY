@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, Clock, Plus, Upload } from 'lucide-react';
+import { AlertCircle, Clock, Plus, Upload } from '@/components/ui/muiIcons';
 import { useAddProgressUpdate } from '../../hooks/useTasks';
 import { uploadFiles } from '../../utils/taskFields';
 
@@ -45,9 +45,9 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
     return (
       <button
         onClick={() => setShowForm(true)}
-        className="inline-flex items-center rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+        className="inline-flex items-center rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
       >
-        <Plus size={16} className="mr-2" />
+        <Plus size={16} className="mr-2 shrink-0" />
         Add Work Update
       </button>
     );
@@ -86,7 +86,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
               step="0.5"
               value={hours}
               onChange={(event) => setHours(event.target.value)}
-              className="w-full rounded-2xl border border-border bg-background py-3 pl-11 pr-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="w-full rounded-2xl border border-border bg-background py-3 pl-11 pr-4 text-sm tabular-nums outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
               placeholder="0"
             />
           </div>
@@ -98,7 +98,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
             type="date"
             value={workDate}
             onChange={(event) => setWorkDate(event.target.value)}
-            className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm tabular-nums outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
           />
         </div>
 
@@ -106,7 +106,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
           <label className="text-sm font-semibold text-foreground">Update Attachments</label>
           <div className="mt-2 rounded-2xl border border-dashed border-border bg-background px-4 py-3">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
-              <Upload size={15} />
+              <Upload size={15} className="shrink-0" />
               Upload supporting files
             </div>
             <input
@@ -128,7 +128,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
       </div>
 
       {!description.trim() && (
-        <div className="flex gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <div className="flex gap-2 rounded-2xl border border-border bg-secondary px-4 py-3 text-sm text-foreground">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>Add a short summary of completed work before saving the update.</span>
         </div>
@@ -145,7 +145,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
         <button
           type="submit"
           disabled={addProgress.isPending || !description.trim()}
-          className="rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {addProgress.isPending ? 'Saving...' : 'Save Update'}
         </button>

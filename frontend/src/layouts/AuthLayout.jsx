@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from '@/components/ui/muiIcons';
 import { toggleDarkMode } from '../store/slices/uiSlice';
 import MobileAppInstallButton from '../components/ui/MobileAppInstallButton';
 
@@ -15,24 +15,19 @@ const AuthLayout = () => {
         <button
           type="button"
           onClick={() => dispatch(toggleDarkMode())}
-          className="min-h-[40px] px-3 py-2 rounded-xl border border-border/80 bg-card/80 backdrop-blur-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shadow-sm flex items-center gap-1.5 text-xs font-semibold"
+          className="min-h-[40px] px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shadow-xs flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
           title={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           aria-label="Toggle dark mode"
         >
-          {darkMode ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-indigo-600" />}
+          {darkMode ? <Sun size={16} className="text-zinc-200" /> : <Moon size={16} className="text-zinc-700" />}
           <span className="hidden sm:inline">{darkMode ? 'Light' : 'Dark'}</span>
         </button>
       </div>
 
-      {/* Background Decorative Ambient Glows */}
-      <div className="absolute top-0 -left-12 w-48 sm:w-96 h-48 sm:h-96 bg-primary/20 rounded-full filter blur-3xl opacity-60 dark:opacity-25 pointer-events-none animate-blob" />
-      <div className="absolute top-1/4 -right-12 w-48 sm:w-96 h-48 sm:h-96 bg-blue-500/20 rounded-full filter blur-3xl opacity-60 dark:opacity-20 pointer-events-none animate-blob animation-delay-2000" />
-      <div className="absolute -bottom-12 left-1/3 w-48 sm:w-96 h-48 sm:h-96 bg-purple-500/20 rounded-full filter blur-3xl opacity-60 dark:opacity-25 pointer-events-none animate-blob animation-delay-4000" />
-
       {/* Auth Card Container */}
-      <div className="w-full max-w-md p-5 sm:p-8 rounded-3xl border border-border/80 bg-card/90 dark:bg-card/80 backdrop-blur-2xl shadow-2xl shadow-primary/5 dark:shadow-black/50 relative z-10 transition-all">
+      <div className="w-full max-w-md p-5 sm:p-8 rounded-3xl border border-border bg-card shadow-sm relative z-10 transition-colors">
         <div className="flex flex-col items-center mb-8">
-          <div className="mb-4 flex h-16 sm:h-20 w-16 sm:w-20 items-center justify-center rounded-2xl bg-white dark:bg-secondary/80 border border-border/80 p-2.5 shadow-lg shadow-primary/10 dark:shadow-none transition-colors">
+          <div className="mb-4 flex h-16 sm:h-20 w-16 sm:w-20 items-center justify-center rounded-2xl bg-background border border-border p-2.5 shadow-xs transition-colors">
             <img
               src="/branding/rise-with-media-logo.png"
               alt="RISE WITH MEDIA logo"
@@ -40,7 +35,7 @@ const AuthLayout = () => {
             />
           </div>
           <h1 className="text-center text-xl sm:text-2xl font-black tracking-tight text-foreground">RISE WITH MEDIA</h1>
-          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Welcome back to your workspace</p>
+          <p className="text-center text-muted-foreground text-xs sm:text-sm mt-1">Welcome back to your workspace</p>
         </div>
         <Outlet />
       </div>

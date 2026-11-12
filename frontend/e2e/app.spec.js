@@ -2,13 +2,13 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Agency CRM UI Redesign E2E Suite', () => {
   test('App loading and navigation', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:5175/');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveTitle(/Agency|CRM|Rise/i);
   });
 
   test('Clients page custom dropdown popover floating test', async ({ page }) => {
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     // Find and click the custom dropdown "All statuses" button
@@ -25,7 +25,7 @@ test.describe('Agency CRM UI Redesign E2E Suite', () => {
   });
 
   test('Task Calendar collapsible filter toggle test', async ({ page }) => {
-    await page.goto('http://localhost:5173/calendar');
+    await page.goto('http://localhost:5175/calendar');
     await page.waitForLoadState('networkidle');
 
     const filterButton = page.getByRole('button', { name: /Filters/i });

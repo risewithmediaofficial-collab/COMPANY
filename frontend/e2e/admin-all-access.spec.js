@@ -21,7 +21,7 @@ test.describe('Admin All-Access & Edit Option Verification Across All Areas', ()
   });
 
   test('1. Admin has edit options in Tasks (Table view & Kanban cards)', async ({ page }) => {
-    await page.goto('http://localhost:5173/tasks');
+    await page.goto('http://localhost:5175/tasks');
     await page.waitForLoadState('networkidle');
 
     // Check Kanban Board has Edit buttons on task cards
@@ -35,7 +35,7 @@ test.describe('Admin All-Access & Edit Option Verification Across All Areas', ()
     if (await tableToggle.isVisible({ timeout: 3000 }).catch(() => false)) {
       await tableToggle.click();
       await page.waitForTimeout(600);
-      const tableEditBtns = page.locator('table button[title*="Edit"], table button:has(svg.lucide-edit)');
+      const tableEditBtns = page.locator('table button[title*="Edit"], table button:has([data-testid="EditNoteOutlinedIcon"], [data-testid="EditOutlinedIcon"], [data-testid="CreateOutlinedIcon"])');
       if (await tableEditBtns.first().isVisible({ timeout: 4000 }).catch(() => false)) {
         await expect(tableEditBtns.first()).toBeVisible();
       }
@@ -43,7 +43,7 @@ test.describe('Admin All-Access & Edit Option Verification Across All Areas', ()
   });
 
   test('2. Admin has edit options in Projects (Kanban cards & Project Details header)', async ({ page }) => {
-    await page.goto('http://localhost:5173/projects');
+    await page.goto('http://localhost:5175/projects');
     await page.waitForLoadState('networkidle');
 
     // New Project button is visible for admin
@@ -57,7 +57,7 @@ test.describe('Admin All-Access & Edit Option Verification Across All Areas', ()
   });
 
   test('3. Admin has edit options in Clients (Kanban cards & Client Details)', async ({ page }) => {
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     // Kanban cards have Edit Client button
@@ -77,17 +77,17 @@ test.describe('Admin All-Access & Edit Option Verification Across All Areas', ()
 
   test('4. Admin has all-access in SOP, Proposals, and User Directory', async ({ page }) => {
     // Check SOP Library
-    await page.goto('http://localhost:5173/sop');
+    await page.goto('http://localhost:5175/sop');
     await page.waitForLoadState('networkidle');
     await expect(page.getByRole('button', { name: /new sop|create sop/i }).first()).toBeVisible({ timeout: 5000 });
 
     // Check Proposals
-    await page.goto('http://localhost:5173/proposals');
+    await page.goto('http://localhost:5175/proposals');
     await page.waitForLoadState('networkidle');
     await expect(page.getByRole('button', { name: /new proposal|create proposal/i }).first()).toBeVisible({ timeout: 5000 });
 
     // Check User Directory
-    await page.goto('http://localhost:5173/admin/users');
+    await page.goto('http://localhost:5175/admin/users');
     await page.waitForLoadState('networkidle');
     await expect(page.getByRole('button', { name: /refresh/i })).toBeVisible({ timeout: 5000 });
   });

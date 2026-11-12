@@ -8,7 +8,7 @@ import {
   GitPullRequest,
   Bug,
   Rocket,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 
 const DEV_NAV_ITEMS = [
   { name: 'Overview', path: '/development', icon: LayoutDashboard, exact: true },

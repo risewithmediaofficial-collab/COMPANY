@@ -6,6 +6,7 @@ import GlobalSearchModal from '../components/modals/GlobalSearchModal';
 import MobileAppInstallButton from '../components/ui/MobileAppInstallButton';
 import EnableBannerNotificationBar from '../components/notifications/EnableBannerNotificationBar';
 import ErrorBoundary from '../components/ui/ErrorBoundary';
+import GlobalDateSortBar from '../components/layout/GlobalDateSortBar';
 
 const PageLoadingFallback = () => (
   <div className="w-full py-12 flex flex-col items-center justify-center space-y-3">
@@ -47,6 +48,7 @@ const MainLayout = () => {
           className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-5 md:p-6 custom-scrollbar overscroll-contain pb-safe"
         >
           <div className="mx-auto min-w-0 max-w-7xl pb-16">
+            <GlobalDateSortBar />
             <ErrorBoundary key={location.pathname} locationKey={location.pathname}>
               <Suspense fallback={<PageLoadingFallback />}>
                 <Outlet key={location.pathname} />

@@ -4,23 +4,23 @@ test.describe('Complete Agency CRM Full Project E2E Suite', () => {
 
   test('1. Auth Pages (Login, Register, Forgot Password)', async ({ page }) => {
     // Login
-    await page.goto('http://localhost:5173/login');
+    await page.goto('http://localhost:5175/login');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('form, input[type="email"], input[type="text"]').first()).toBeVisible();
 
     // Register
-    await page.goto('http://localhost:5173/register');
+    await page.goto('http://localhost:5175/register');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('form, input[type="email"]').first()).toBeVisible();
 
     // Forgot Password
-    await page.goto('http://localhost:5173/forgot-password');
+    await page.goto('http://localhost:5175/forgot-password');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('form, input[type="email"]').first()).toBeVisible();
   });
 
   test('2. Dashboard & Navigation Shell', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:5175/');
     await page.waitForLoadState('networkidle');
 
     // Page must render body without breaking
@@ -36,7 +36,7 @@ test.describe('Complete Agency CRM Full Project E2E Suite', () => {
   });
 
   test('3. Clients Module & Custom SelectDropdown Floating Popover', async ({ page }) => {
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     if (!page.url().includes('/login')) {
@@ -56,7 +56,7 @@ test.describe('Complete Agency CRM Full Project E2E Suite', () => {
   });
 
   test('4. Task Management & Collapsible Filters', async ({ page }) => {
-    await page.goto('http://localhost:5173/calendar');
+    await page.goto('http://localhost:5175/calendar');
     await page.waitForLoadState('networkidle');
 
     if (!page.url().includes('/login')) {
@@ -71,7 +71,7 @@ test.describe('Complete Agency CRM Full Project E2E Suite', () => {
   });
 
   test('5. Projects Module Page Load', async ({ page }) => {
-    await page.goto('http://localhost:5173/projects');
+    await page.goto('http://localhost:5175/projects');
     await page.waitForLoadState('networkidle');
 
     if (!page.url().includes('/login')) {
@@ -82,7 +82,7 @@ test.describe('Complete Agency CRM Full Project E2E Suite', () => {
   });
 
   test('6. CRM Leads & Pipeline Page Load', async ({ page }) => {
-    await page.goto('http://localhost:5173/crm/leads');
+    await page.goto('http://localhost:5175/crm/leads');
     await page.waitForLoadState('networkidle');
 
     if (!page.url().includes('/login')) {
@@ -95,7 +95,7 @@ test.describe('Complete Agency CRM Full Project E2E Suite', () => {
   test('7. Operations (Finance, Reports, SOP, HR, Settings)', async ({ page }) => {
     const routes = ['/finance', '/reports', '/sop', '/hr', '/settings'];
     for (const route of routes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('networkidle');
       await expect(page.locator('body')).toBeVisible();
     }
@@ -104,7 +104,7 @@ test.describe('Complete Agency CRM Full Project E2E Suite', () => {
   test('8. Social Media Management (SMM) Module Pages', async ({ page }) => {
     const smmRoutes = ['/smm/dashboard', '/smm/projects', '/smm/campaigns'];
     for (const route of smmRoutes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('networkidle');
       await expect(page.locator('body')).toBeVisible();
     }

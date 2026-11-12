@@ -7,26 +7,26 @@ import {
   Receipt, TrendingUp, TrendingDown, AlertCircle, ArrowUpRight,
   Layers, Star, Activity, Calendar, FileText, IndianRupee,
   Film, Sparkles, CheckSquare, ArrowRight, ExternalLink,
-  Megaphone, CreditCard, Download, ShieldCheck
-} from 'lucide-react';
+  Megaphone, CreditCard, Download, ShieldCheck, Check
+} from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
 import { exportProposalToPDF, exportInvoiceToPDF } from '../../../utils/pdfExport';
 import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
 import { useProposals } from '../../../hooks/useProposals';
 
-const KPICard = ({ label, value, icon: Icon, color, sub }) => (
+const KPICard = ({ label, value, icon: Icon, sub }) => (
   <motion.div
     whileHover={{ y: -3 }}
-    className="rounded-2xl p-4 flex flex-col gap-3 transition-all bg-card border border-border shadow-xs hover:border-primary/40"
+    className="rounded-2xl p-4 flex flex-col gap-3 transition-all bg-card border border-border shadow-xs hover:border-foreground/30"
   >
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18` }}>
-        <Icon size={16} style={{ color }} />
+      <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
+        <Icon size={16} />
       </div>
     </div>
-    <p className="text-2xl font-black tracking-tight text-foreground">{value}</p>
+    <p className="text-2xl font-black tracking-tight tabular-nums leading-none text-foreground">{value}</p>
     {sub && <p className="text-[11px] truncate text-muted-foreground">{sub}</p>}
   </motion.div>
 );
@@ -152,29 +152,24 @@ export default function PortalDashboard({ user, setPendingCount }) {
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl p-6 sm:p-8"
-        style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%)' }}
+        className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-zinc-950 text-zinc-50 border border-zinc-800"
       >
-        <div
-          className="absolute inset-0 opacity-15"
-          style={{ backgroundImage: 'radial-gradient(circle at 85% 15%, #fff 0%, transparent 55%)' }}
-        />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-indigo-200 text-xs font-bold tracking-wider uppercase bg-white/10 px-2.5 py-0.5 rounded-full">
+              <span className="text-zinc-300 text-xs font-bold tracking-wider uppercase bg-zinc-900 border border-zinc-800 px-2.5 py-0.5 rounded-full">
                 Client Portal
               </span>
               {client.company && (
-                <span className="text-white/80 text-xs font-semibold">
+                <span className="text-zinc-400 text-xs font-semibold">
                   • {client.company}
                 </span>
               )}
             </div>
-            <h1 className="text-white text-2xl sm:text-3xl font-black mb-1 tracking-tight">
+            <h1 className="text-zinc-50 text-2xl sm:text-3xl font-black mb-1 tracking-tight">
               Welcome back, {client.name || user?.name || 'Client'}
             </h1>
-            <p className="text-indigo-100/90 text-xs sm:text-sm max-w-xl">
+            <p className="text-zinc-400 text-xs sm:text-sm max-w-xl">
               Track project deliverables, monitor SMM posts, review tasks, manage ad campaigns, and view invoices in one secure place.
             </p>
 
@@ -182,49 +177,49 @@ export default function PortalDashboard({ user, setPendingCount }) {
             <div className="mt-5 flex flex-wrap items-center gap-2.5">
               <Link
                 to="/projects"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs font-black text-indigo-700 shadow-md shadow-indigo-950/20 transition-all hover:bg-indigo-50"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-50 px-3.5 py-2 text-xs font-black text-zinc-950 shadow-xs transition-all hover:bg-zinc-200"
               >
                 <FolderKanban size={15} />
-                My Projects
+                <span>My Projects</span>
               </Link>
               <Link
                 to="/tasks"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 border border-zinc-700 px-3.5 py-2 text-xs font-bold text-zinc-100 transition-all hover:bg-zinc-800"
               >
                 <CheckSquare size={15} />
-                My Tasks & Status
+                <span>My Tasks &amp; Status</span>
               </Link>
               <Link
                 to="/calendar"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 border border-zinc-700 px-3.5 py-2 text-xs font-bold text-zinc-100 transition-all hover:bg-zinc-800"
               >
                 <Calendar size={15} />
-                Content Calendar
+                <span>Content Calendar</span>
               </Link>
               <Link
                 to="/portal/invoices"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 border border-zinc-700 px-3.5 py-2 text-xs font-bold text-zinc-100 transition-all hover:bg-zinc-800"
               >
                 <Receipt size={15} />
-                Invoices & Billing
+                <span>Invoices &amp; Billing</span>
               </Link>
               <Link
                 to="/client/proposals"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 border border-zinc-700 px-3.5 py-2 text-xs font-bold text-zinc-100 transition-all hover:bg-zinc-800"
               >
                 <FileText size={15} />
-                Proposals & Agreements
+                <span>Proposals &amp; Agreements</span>
               </Link>
             </div>
           </div>
 
-          <div className="text-left sm:text-right shrink-0 bg-white/10 sm:bg-transparent p-4 sm:p-0 rounded-2xl border border-white/10 sm:border-0">
-            <div className="text-white/80 text-xs font-semibold mb-1">Onboarding Progress</div>
-            <div className="text-white text-3xl font-black">{onboardingPct}%</div>
-            <div className="w-36 h-2 rounded-full bg-white/20 mt-1.5 overflow-hidden">
-              <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${onboardingPct}%` }} />
+          <div className="text-left sm:text-right shrink-0 bg-zinc-900 sm:bg-transparent p-4 sm:p-0 rounded-2xl border border-zinc-800 sm:border-0">
+            <div className="text-zinc-400 text-xs font-semibold mb-1">Onboarding Progress</div>
+            <div className="text-zinc-50 text-3xl font-black tabular-nums leading-none">{onboardingPct}%</div>
+            <div className="w-36 h-2 rounded-full bg-zinc-800 mt-2 overflow-hidden">
+              <div className="h-full rounded-full bg-zinc-100 transition-all duration-500" style={{ width: `${onboardingPct}%` }} />
             </div>
-            <span className="text-indigo-200 text-[10px] mt-1 block">
+            <span className="text-zinc-400 text-[10px] mt-1 block tabular-nums">
               {onboardingSteps.filter(s => s.done).length} of {onboardingSteps.length} stages ready
             </span>
           </div>
@@ -236,7 +231,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
                 <Sparkles size={17} />
               </div>
               <h2 className="text-base font-bold text-foreground">
@@ -248,7 +243,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-secondary border border-border text-foreground tabular-nums">
               {smmMetrics.total.posted} of {smmMetrics.total.planned} Completed ({smmMetrics.total.completionRate}%)
             </span>
           </div>
@@ -257,10 +252,10 @@ export default function PortalDashboard({ user, setPendingCount }) {
         {/* Deliverables 3-Column Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* 1. Reels / Short Videos */}
-          <div className="rounded-2xl p-4 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-800/30 flex flex-col justify-between space-y-3">
+          <div className="rounded-2xl p-4 bg-secondary/40 border border-border flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-card border border-border text-foreground flex items-center justify-center shrink-0">
                   <Film size={16} />
                 </div>
                 <div>
@@ -268,25 +263,25 @@ export default function PortalDashboard({ user, setPendingCount }) {
                   <span className="text-[10px] text-muted-foreground font-medium">Video Deliverables</span>
                 </div>
               </div>
-              <span className="text-xs font-black text-purple-600 dark:text-purple-400">
+              <span className="text-xs font-black text-foreground tabular-nums">
                 {smmMetrics.reels.planned > 0
                   ? `${Math.round((smmMetrics.reels.posted / smmMetrics.reels.planned) * 100)}%`
                   : '0%'}
               </span>
             </div>
             <div>
-              <div className="flex items-baseline justify-between mb-1">
-                <span className="text-2xl font-black text-purple-700 dark:text-purple-300">
+              <div className="flex items-baseline justify-between mb-1 tabular-nums">
+                <span className="text-2xl font-black text-foreground">
                   {smmMetrics.reels.posted}
                   <span className="text-xs font-semibold text-muted-foreground ml-1">/ {smmMetrics.reels.planned} posted</span>
                 </span>
-                <span className="text-[11px] font-semibold text-purple-600/80 dark:text-purple-400">
+                <span className="text-[11px] font-semibold text-muted-foreground">
                   {smmMetrics.reels.pending} to post
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-purple-200/60 dark:bg-purple-900/50 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-secondary overflow-hidden border border-border/50">
                 <div
-                  className="h-full rounded-full bg-purple-600 transition-all duration-500"
+                  className="h-full rounded-full bg-foreground transition-all duration-500"
                   style={{
                     width: `${smmMetrics.reels.planned > 0 ? Math.min(100, Math.round((smmMetrics.reels.posted / smmMetrics.reels.planned) * 100)) : 0}%`,
                   }}
@@ -296,36 +291,36 @@ export default function PortalDashboard({ user, setPendingCount }) {
           </div>
 
           {/* 2. Feed Posts & Carousels */}
-          <div className="rounded-2xl p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-800/30 flex flex-col justify-between space-y-3">
+          <div className="rounded-2xl p-4 bg-secondary/40 border border-border flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-card border border-border text-foreground flex items-center justify-center shrink-0">
                   <Layers size={16} />
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-foreground">Feed Posts</h3>
-                  <span className="text-[10px] text-muted-foreground font-medium">Graphics & Carousels</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Graphics &amp; Carousels</span>
                 </div>
               </div>
-              <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+              <span className="text-xs font-black text-foreground tabular-nums">
                 {smmMetrics.posts.planned > 0
                   ? `${Math.round((smmMetrics.posts.posted / smmMetrics.posts.planned) * 100)}%`
                   : '0%'}
               </span>
             </div>
             <div>
-              <div className="flex items-baseline justify-between mb-1">
-                <span className="text-2xl font-black text-indigo-700 dark:text-indigo-300">
+              <div className="flex items-baseline justify-between mb-1 tabular-nums">
+                <span className="text-2xl font-black text-foreground">
                   {smmMetrics.posts.posted}
                   <span className="text-xs font-semibold text-muted-foreground ml-1">/ {smmMetrics.posts.planned} posted</span>
                 </span>
-                <span className="text-[11px] font-semibold text-indigo-600/80 dark:text-indigo-400">
+                <span className="text-[11px] font-semibold text-muted-foreground">
                   {smmMetrics.posts.pending} to post
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-indigo-200/60 dark:bg-indigo-900/50 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-secondary overflow-hidden border border-border/50">
                 <div
-                  className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+                  className="h-full rounded-full bg-foreground transition-all duration-500"
                   style={{
                     width: `${smmMetrics.posts.planned > 0 ? Math.min(100, Math.round((smmMetrics.posts.posted / smmMetrics.posts.planned) * 100)) : 0}%`,
                   }}
@@ -335,36 +330,36 @@ export default function PortalDashboard({ user, setPendingCount }) {
           </div>
 
           {/* 3. Daily Stories */}
-          <div className="rounded-2xl p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/30 flex flex-col justify-between space-y-3">
+          <div className="rounded-2xl p-4 bg-secondary/40 border border-border flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-300 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-card border border-border text-foreground flex items-center justify-center shrink-0">
                   <Sparkles size={16} />
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-foreground">Daily Stories</h3>
-                  <span className="text-[10px] text-muted-foreground font-medium">Stories & Updates</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Stories &amp; Updates</span>
                 </div>
               </div>
-              <span className="text-xs font-black text-amber-600 dark:text-amber-400">
+              <span className="text-xs font-black text-foreground tabular-nums">
                 {smmMetrics.stories.planned > 0
                   ? `${Math.round((smmMetrics.stories.posted / smmMetrics.stories.planned) * 100)}%`
                   : '0%'}
               </span>
             </div>
             <div>
-              <div className="flex items-baseline justify-between mb-1">
-                <span className="text-2xl font-black text-amber-700 dark:text-amber-300">
+              <div className="flex items-baseline justify-between mb-1 tabular-nums">
+                <span className="text-2xl font-black text-foreground">
                   {smmMetrics.stories.posted}
                   <span className="text-xs font-semibold text-muted-foreground ml-1">/ {smmMetrics.stories.planned} posted</span>
                 </span>
-                <span className="text-[11px] font-semibold text-amber-600/80 dark:text-amber-400">
+                <span className="text-[11px] font-semibold text-muted-foreground">
                   {smmMetrics.stories.pending} to post
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-amber-200/60 dark:bg-amber-900/50 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-secondary overflow-hidden border border-border/50">
                 <div
-                  className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                  className="h-full rounded-full bg-foreground transition-all duration-500"
                   style={{
                     width: `${smmMetrics.stories.planned > 0 ? Math.min(100, Math.round((smmMetrics.stories.posted / smmMetrics.stories.planned) * 100)) : 0}%`,
                   }}
@@ -381,7 +376,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-border/50">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
                 <FolderKanban size={17} />
               </div>
               <div>
@@ -391,24 +386,24 @@ export default function PortalDashboard({ user, setPendingCount }) {
             </div>
             <Link
               to="/projects"
-              className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-foreground hover:underline flex items-center gap-1"
             >
               View Projects <ArrowRight size={13} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 text-center">
+          <div className="grid grid-cols-3 gap-2 tabular-nums">
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
               <p className="text-xl font-black text-foreground">{projectMetrics.total}</p>
             </div>
-            <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Active</span>
-              <p className="text-xl font-black text-blue-600 dark:text-blue-400">{projectMetrics.active}</p>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Active</span>
+              <p className="text-xl font-black text-foreground">{projectMetrics.active}</p>
             </div>
-            <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Completed</span>
-              <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{projectMetrics.completed}</p>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Completed</span>
+              <p className="text-xl font-black text-foreground">{projectMetrics.completed}</p>
             </div>
           </div>
 
@@ -420,25 +415,25 @@ export default function PortalDashboard({ user, setPendingCount }) {
               </div>
             ) : (
               (projectMetrics.projects || []).slice(0, 3).map((p) => (
-                <div key={p._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border/50 space-y-2">
+                <div key={p._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="text-xs font-bold text-foreground">{p.name}</h4>
                       {p.dueDate && (
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[10px] text-muted-foreground tabular-nums">
                           Due: {new Date(p.dueDate).toLocaleDateString('en-IN')}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400">
+                      <span className="text-xs font-extrabold text-foreground tabular-nums">
                         {p.progress || 0}%
                       </span>
                       {p.proposalText?.trim() && (
                         <button
                           type="button"
                           onClick={() => handleProposalDownload(p)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-0.5 text-[10px] font-bold text-foreground hover:bg-secondary transition-colors"
+                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-0.5 text-[10px] font-bold text-foreground hover:bg-secondary transition-colors cursor-pointer"
                         >
                           <FileCheck size={11} /> PDF
                         </button>
@@ -447,7 +442,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-blue-600 transition-all duration-500"
+                      className="h-full rounded-full bg-foreground transition-all duration-500"
                       style={{ width: `${p.progress || 0}%` }}
                     />
                   </div>
@@ -461,38 +456,38 @@ export default function PortalDashboard({ user, setPendingCount }) {
         <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-border/50">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
                 <CheckSquare size={17} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground">Tasks & Deliverables</h3>
-                <p className="text-[11px] text-muted-foreground">Task status, progress & approvals</p>
+                <h3 className="text-sm font-bold text-foreground">Tasks &amp; Deliverables</h3>
+                <p className="text-[11px] text-muted-foreground">Task status, progress &amp; approvals</p>
               </div>
             </div>
             <Link
               to="/tasks"
-              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-foreground hover:underline flex items-center gap-1"
             >
               View Tasks <ArrowRight size={13} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
-            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 text-center">
+          <div className="grid grid-cols-4 gap-2 tabular-nums">
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
               <p className="text-xl font-black text-foreground">{taskMetrics.total}</p>
             </div>
-            <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Done</span>
-              <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{taskMetrics.completed}</p>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Done</span>
+              <p className="text-xl font-black text-foreground">{taskMetrics.completed}</p>
             </div>
-            <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Process</span>
-              <p className="text-xl font-black text-blue-600 dark:text-blue-400">{taskMetrics.inProgress}</p>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Process</span>
+              <p className="text-xl font-black text-foreground">{taskMetrics.inProgress}</p>
             </div>
-            <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Review</span>
-              <p className="text-xl font-black text-amber-600 dark:text-amber-400">{taskMetrics.review}</p>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Review</span>
+              <p className="text-xl font-black text-foreground">{taskMetrics.review}</p>
             </div>
           </div>
 
@@ -504,15 +499,15 @@ export default function PortalDashboard({ user, setPendingCount }) {
               </div>
             ) : (
               (taskMetrics.tasks || []).slice(0, 4).map((t) => (
-                <div key={t._id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/30 border border-border/40">
+                <div key={t._id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/30 border border-border/60">
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold truncate text-foreground">{t.taskTitle || t.title}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-muted-foreground tabular-nums">
                       {t.taskCategory === 'non_content' ? 'Development / Operations' : 'Content Deliverable'}
                       {t.dueDate && ` • Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
                     </p>
                   </div>
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-secondary border border-border text-foreground shrink-0">
                     {t.status}
                   </span>
                 </div>
@@ -526,45 +521,45 @@ export default function PortalDashboard({ user, setPendingCount }) {
       <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
               <Receipt size={17} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground">Invoices & Billing Summary</h2>
+              <h2 className="text-base font-bold text-foreground">Invoices &amp; Billing Summary</h2>
               <p className="text-xs text-muted-foreground">Individual invoicing details, amounts quoted, payments received, and balance</p>
             </div>
           </div>
           <Link
             to="/portal/invoices"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 transition-all self-start sm:self-center"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all self-start sm:self-center"
           >
             View All Invoices <ArrowRight size={13} />
           </Link>
         </div>
 
         {/* 4 Financial Metrics for the Client */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Total Quoted</span>
-            <p className="text-xl font-black text-indigo-700 dark:text-indigo-300">{fmt(invoiceMetrics.totalQuoted)}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 tabular-nums">
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Quoted</span>
+            <p className="text-xl font-black text-foreground">{fmt(invoiceMetrics.totalQuoted)}</p>
             <span className="text-[10px] text-muted-foreground block">Cumulative invoice value</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Paid</span>
-            <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">{fmt(invoiceMetrics.totalPaid)}</p>
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Paid</span>
+            <p className="text-xl font-black text-foreground">{fmt(invoiceMetrics.totalPaid)}</p>
             <span className="text-[10px] text-muted-foreground block">Verified payments received</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Balance Due</span>
-            <p className="text-xl font-black text-amber-700 dark:text-amber-300">{fmt(invoiceMetrics.balanceDue)}</p>
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Balance Due</span>
+            <p className="text-xl font-black text-foreground">{fmt(invoiceMetrics.balanceDue)}</p>
             <span className="text-[10px] text-muted-foreground block">Pending balance to clear</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/50 dark:border-rose-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Open Invoices</span>
-            <p className="text-xl font-black text-rose-700 dark:text-rose-300">{invoiceMetrics.openCount}</p>
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Open Invoices</span>
+            <p className="text-xl font-black text-foreground">{invoiceMetrics.openCount}</p>
             <span className="text-[10px] text-muted-foreground block">Awaiting payment</span>
           </div>
         </div>
@@ -585,19 +580,19 @@ export default function PortalDashboard({ user, setPendingCount }) {
                     <th className="py-2.5 px-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/30">
+                <tbody className="divide-y divide-border/30 tabular-nums">
                   {invoiceMetrics.recentInvoices.map((inv) => (
                     <tr key={inv._id} className="hover:bg-secondary/30 transition-colors">
                       <td className="py-3 px-3 font-bold text-foreground">{inv.invoiceNumber}</td>
                       <td className="py-3 px-3 text-muted-foreground">{inv.project?.name || 'Project'}</td>
                       <td className="py-3 px-3 font-semibold text-foreground">{fmt(inv.totalAmount || inv.total)}</td>
-                      <td className="py-3 px-3 font-semibold text-emerald-600 dark:text-emerald-400">{fmt(inv.paidAmount)}</td>
-                      <td className="py-3 px-3 font-semibold text-amber-600 dark:text-amber-400">{fmt(inv.balanceAmount || ((inv.totalAmount || inv.total || 0) - (inv.paidAmount || 0)))}</td>
+                      <td className="py-3 px-3 font-semibold text-foreground">{fmt(inv.paidAmount)}</td>
+                      <td className="py-3 px-3 font-semibold text-muted-foreground">{fmt(inv.balanceAmount || ((inv.totalAmount || inv.total || 0) - (inv.paidAmount || 0)))}</td>
                       <td className="py-3 px-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          inv.status === 'paid' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-                          inv.status === 'overdue' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400' :
-                          'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                          inv.status === 'paid'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary border border-border text-foreground'
                         }`}>
                           {inv.status ? inv.status.toUpperCase() : 'SENT'}
                         </span>
@@ -606,7 +601,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                         <button
                           type="button"
                           onClick={() => exportInvoiceToPDF(inv, { save: true })}
-                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors"
+                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors cursor-pointer"
                         >
                           <Download size={12} /> PDF
                         </button>
@@ -624,45 +619,45 @@ export default function PortalDashboard({ user, setPendingCount }) {
       <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
               <FileText size={17} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground">Proposals & Scope Agreements</h2>
+              <h2 className="text-base font-bold text-foreground">Proposals &amp; Scope Agreements</h2>
               <p className="text-xs text-muted-foreground">Review project proposals, service scopes, deliverables, and confirm acceptance</p>
             </div>
           </div>
           <Link
             to="/client/proposals"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition-all self-start sm:self-center"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all self-start sm:self-center"
           >
             Proposal Dashboard <ArrowRight size={13} />
           </Link>
         </div>
 
         {/* Proposal KPI Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Total Proposals</span>
-            <p className="text-xl font-black text-amber-700 dark:text-amber-300">{proposalMetrics.total}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 tabular-nums">
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Proposals</span>
+            <p className="text-xl font-black text-foreground">{proposalMetrics.total}</p>
             <span className="text-[10px] text-muted-foreground block">Formal agreements</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Accepted</span>
-            <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">{proposalMetrics.accepted}</p>
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Accepted</span>
+            <p className="text-xl font-black text-foreground">{proposalMetrics.accepted}</p>
             <span className="text-[10px] text-muted-foreground block">Active signed agreements</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Awaiting Decision</span>
-            <p className="text-xl font-black text-blue-700 dark:text-blue-300">{proposalMetrics.pending}</p>
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Awaiting Decision</span>
+            <p className="text-xl font-black text-foreground">{proposalMetrics.pending}</p>
             <span className="text-[10px] text-muted-foreground block">Pending your review</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/40 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Agreement Value</span>
-            <p className="text-xl font-black text-indigo-700 dark:text-indigo-300">{fmt(proposalMetrics.totalValue)}</p>
+          <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Agreement Value</span>
+            <p className="text-xl font-black text-foreground">{fmt(proposalMetrics.totalValue)}</p>
             <span className="text-[10px] text-muted-foreground block">Total contract value</span>
           </div>
         </div>
@@ -675,14 +670,14 @@ export default function PortalDashboard({ user, setPendingCount }) {
                 <thead>
                   <tr className="border-b border-border/50 text-[11px] font-semibold text-muted-foreground uppercase">
                     <th className="py-2.5 px-3">Proposal #</th>
-                    <th className="py-2.5 px-3">Title & Scope</th>
+                    <th className="py-2.5 px-3">Title &amp; Scope</th>
                     <th className="py-2.5 px-3">Category</th>
                     <th className="py-2.5 px-3">Amount</th>
                     <th className="py-2.5 px-3">Status</th>
                     <th className="py-2.5 px-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/30">
+                <tbody className="divide-y divide-border/30 tabular-nums">
                   {proposalMetrics.list.map((prop) => (
                     <tr key={prop._id} className="hover:bg-secondary/30 transition-colors">
                       <td className="py-3 px-3 font-bold text-foreground font-mono">{prop.proposalNumber || 'PROP-DRAFT'}</td>
@@ -698,9 +693,9 @@ export default function PortalDashboard({ user, setPendingCount }) {
                       <td className="py-3 px-3 font-semibold text-foreground">{fmt(prop.amount)}</td>
                       <td className="py-3 px-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          prop.status === 'accepted' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-                          prop.status === 'rejected' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400' :
-                          'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                          prop.status === 'accepted'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary border border-border text-foreground'
                         }`}>
                           {(prop.status || 'draft').toUpperCase()}
                         </span>
@@ -708,7 +703,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                       <td className="py-3 px-3 text-right">
                         <Link
                           to={`/proposals/${prop._id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-amber-600/10 text-amber-700 dark:text-amber-400 hover:bg-amber-600 hover:text-white transition-all font-semibold text-xs"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-secondary border border-border text-foreground hover:bg-primary hover:text-primary-foreground transition-all font-semibold text-xs"
                         >
                           <span>{prop.status === 'accepted' ? 'View' : 'Review & Sign'}</span>
                           <ArrowRight size={12} />
@@ -733,38 +728,38 @@ export default function PortalDashboard({ user, setPendingCount }) {
         <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
                 <Megaphone size={17} />
               </div>
               <div>
-                <h2 className="text-base font-bold text-foreground">Ad Budget & Live Campaigns</h2>
+                <h2 className="text-base font-bold text-foreground">Ad Budget &amp; Live Campaigns</h2>
                 <p className="text-xs text-muted-foreground">Live campaign spend configured by your media team</p>
               </div>
             </div>
             {adBudget.notes && (
-              <div className="text-[11px] px-3 py-1 rounded-xl bg-primary/10 text-primary font-medium flex items-center gap-1.5 max-w-md truncate">
+              <div className="text-[11px] px-3 py-1 rounded-xl bg-secondary border border-border text-foreground font-medium flex items-center gap-1.5 max-w-md truncate">
                 <FileText size={13} className="shrink-0" />
                 <span className="truncate">Note: {adBudget.notes}</span>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 tabular-nums">
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Monthly Budget</span>
               <p className="text-xl font-black text-foreground">{fmt(adBudget.monthlyBudget)}</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Daily Budget</span>
               <p className="text-xl font-black text-foreground">{fmt(adBudget.dailyBudget)}</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Amount Added</span>
-              <p className="text-xl font-black text-amber-500">{fmt(adBudget.amountAdded)}</p>
+              <p className="text-xl font-black text-foreground">{fmt(adBudget.amountAdded)}</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Available Balance</span>
-              <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{fmt(adBudget.balance)}</p>
+              <p className="text-xl font-black text-foreground">{fmt(adBudget.balance)}</p>
             </div>
           </div>
 
@@ -774,34 +769,34 @@ export default function PortalDashboard({ user, setPendingCount }) {
               <h3 className="text-xs font-bold mb-2 text-foreground">Configured Campaigns</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {adBudget.campaigns.map((c) => (
-                  <div key={c._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border/50 flex flex-col justify-between space-y-2">
+                  <div key={c._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border flex flex-col justify-between space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-secondary border border-border text-foreground">
                           {c.platform || 'Meta Ads'}
                         </span>
                         <h4 className="text-xs font-bold mt-1.5 text-foreground">{c.name}</h4>
                         {c.objective && <p className="text-[10px] text-muted-foreground">{c.objective}</p>}
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        c.status === 'Active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-secondary text-muted-foreground'
+                        c.status === 'Active' ? 'bg-primary text-primary-foreground' : 'bg-secondary border border-border text-muted-foreground'
                       }`}>
                         {c.status || 'Active'}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/30 text-[11px]">
+                    <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/30 text-[11px] tabular-nums">
                       <div>
                         <span className="text-[9px] font-semibold uppercase text-muted-foreground">Added</span>
                         <p className="font-bold text-foreground">{fmt(c.amountAdded)}</p>
                       </div>
                       <div>
                         <span className="text-[9px] font-semibold uppercase text-muted-foreground">Spent</span>
-                        <p className="font-bold text-rose-500">{fmt(c.amountSpent)}</p>
+                        <p className="font-bold text-muted-foreground">{fmt(c.amountSpent)}</p>
                       </div>
                       <div>
                         <span className="text-[9px] font-semibold uppercase text-muted-foreground">Balance</span>
-                        <p className="font-bold text-emerald-600 dark:text-emerald-400">{fmt(c.balance)}</p>
+                        <p className="font-bold text-foreground">{fmt(c.balance)}</p>
                       </div>
                     </div>
                   </div>
@@ -817,7 +812,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         <div className="lg:col-span-2 rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
                 <Calendar size={17} />
               </div>
               <div>
@@ -831,7 +826,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
             </div>
             <Link
               to="/portal/tracker"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-purple-700 transition-all self-start sm:self-center"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all self-start sm:self-center"
             >
               Full Tracker Sheet <ArrowRight size={13} />
             </Link>
@@ -854,7 +849,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                     <th className="py-2.5 px-3 w-24 text-center">Story</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/30">
+                <tbody className="divide-y divide-border/30 tabular-nums">
                   {(tracker?.days || []).slice(0, 15).map((d) => {
                     const nowDay = new Date().getDate();
                     const isToday = d.day === nowDay;
@@ -864,12 +859,12 @@ export default function PortalDashboard({ user, setPendingCount }) {
                       <tr
                         key={d.day}
                         className={`transition-colors ${
-                          isToday ? 'bg-primary/10 font-medium' : isSunday ? 'bg-amber-500/5' : 'hover:bg-secondary/30'
+                          isToday ? 'bg-secondary font-medium' : isSunday ? 'bg-muted/30' : 'hover:bg-secondary/30'
                         }`}
                       >
                         <td className="py-2.5 px-3 font-bold">
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] ${
-                            isToday ? 'bg-primary text-primary-foreground font-black' : isSunday ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold' : 'text-muted-foreground'
+                            isToday ? 'bg-primary text-primary-foreground font-black' : 'text-muted-foreground'
                           }`}>
                             {d.day}
                           </span>
@@ -885,9 +880,11 @@ export default function PortalDashboard({ user, setPendingCount }) {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                            d.postStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-                            d.postStatus === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' :
-                            'bg-secondary text-muted-foreground'
+                            d.postStatus === 'done'
+                              ? 'bg-primary text-primary-foreground'
+                              : d.postStatus === 'pending'
+                              ? 'bg-secondary border border-border text-foreground'
+                              : 'bg-muted text-muted-foreground'
                           }`}>
                             {d.postStatus === 'done' ? 'DONE' : d.postStatus === 'pending' ? 'PENDING' : 'TODO'}
                           </span>
@@ -897,9 +894,11 @@ export default function PortalDashboard({ user, setPendingCount }) {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                            d.storyStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-                            d.storyStatus === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' :
-                            'bg-secondary text-muted-foreground'
+                            d.storyStatus === 'done'
+                              ? 'bg-primary text-primary-foreground'
+                              : d.storyStatus === 'pending'
+                              ? 'bg-secondary border border-border text-foreground'
+                              : 'bg-muted text-muted-foreground'
                           }`}>
                             {d.storyStatus === 'done' ? 'DONE' : d.storyStatus === 'pending' ? 'PENDING' : 'TODO'}
                           </span>
@@ -914,7 +913,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                 <div className="pt-3 text-center border-t border-border/40">
                   <Link
                     to="/portal/tracker"
-                    className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1"
+                    className="text-xs font-bold text-foreground hover:underline inline-flex items-center gap-1"
                   >
                     View All {tracker?.days?.length || 0} Days in SMM Tracker <ArrowRight size={12} />
                   </Link>
@@ -931,11 +930,11 @@ export default function PortalDashboard({ user, setPendingCount }) {
             {onboardingSteps.map((s) => (
               <div key={s.label} className="flex items-center gap-2.5">
                 <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black shrink-0 ${
-                    s.done ? 'bg-emerald-500' : 'bg-muted border border-border text-muted-foreground'
+                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                    s.done ? 'bg-primary text-primary-foreground' : 'bg-muted border border-border text-muted-foreground'
                   }`}
                 >
-                  {s.done ? '✓' : ''}
+                  {s.done ? <Check size={11} /> : null}
                 </div>
                 <span className={`text-xs font-medium ${s.done ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
                   {s.label}
@@ -951,27 +950,27 @@ export default function PortalDashboard({ user, setPendingCount }) {
 
 function StatusDot({ status }) {
   const colors = {
-    'Draft': '#64748b', 'Editing': '#3b82f6', 'Send to Client': '#f59e0b',
-    'Revision Requested': '#ef4444', 'Approved': '#10b981',
-    'Scheduled': '#8b5cf6', 'Posted': '#14b8a6', 'Done': '#6366f1',
+    'Draft': '#a1a1aa', 'Editing': '#71717a', 'Send to Client': '#52525b',
+    'Revision Requested': '#3f3f46', 'Approved': '#18181b',
+    'Scheduled': '#71717a', 'Posted': '#27272a', 'Done': '#18181b',
   };
-  return <div className="w-2 h-2 rounded-full shrink-0" style={{ background: colors[status] || '#64748b' }} />;
+  return <div className="w-2 h-2 rounded-full shrink-0" style={{ background: colors[status] || '#71717a' }} />;
 }
 
 export function StatusBadge({ status }) {
   const map = {
-    'Draft':              { bg: 'bg-slate-500/15', color: 'text-slate-600 dark:text-slate-400', label: 'Draft' },
-    'Editing':            { bg: 'bg-blue-500/15', color: 'text-blue-600 dark:text-blue-400', label: 'Editing' },
-    'Send to Client':     { bg: 'bg-amber-500/15', color: 'text-amber-600 dark:text-amber-400', label: 'For Review' },
-    'Revision Requested': { bg: 'bg-rose-500/15', color: 'text-rose-600 dark:text-rose-400', label: 'Revision' },
-    'Approved':           { bg: 'bg-emerald-500/15', color: 'text-emerald-600 dark:text-emerald-400', label: 'Approved' },
-    'Scheduled':          { bg: 'bg-purple-500/15', color: 'text-purple-600 dark:text-purple-400', label: 'Scheduled' },
-    'Posted':             { bg: 'bg-teal-500/15', color: 'text-teal-600 dark:text-teal-400', label: 'Posted' },
-    'Done':               { bg: 'bg-indigo-500/15', color: 'text-indigo-600 dark:text-indigo-400', label: 'Done' },
+    'Draft':              { bg: 'bg-secondary', color: 'text-muted-foreground', label: 'Draft' },
+    'Editing':            { bg: 'bg-secondary', color: 'text-foreground', label: 'Editing' },
+    'Send to Client':     { bg: 'bg-secondary', color: 'text-foreground', label: 'For Review' },
+    'Revision Requested': { bg: 'bg-secondary', color: 'text-foreground', label: 'Revision' },
+    'Approved':           { bg: 'bg-primary', color: 'text-primary-foreground', label: 'Approved' },
+    'Scheduled':          { bg: 'bg-secondary', color: 'text-foreground', label: 'Scheduled' },
+    'Posted':             { bg: 'bg-primary', color: 'text-primary-foreground', label: 'Posted' },
+    'Done':               { bg: 'bg-primary', color: 'text-primary-foreground', label: 'Done' },
   };
   const s = map[status] || { bg: 'bg-secondary', color: 'text-muted-foreground', label: status };
   return (
-    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.bg} ${s.color}`}>
+    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-border/60 ${s.bg} ${s.color}`}>
       {s.label}
     </span>
   );

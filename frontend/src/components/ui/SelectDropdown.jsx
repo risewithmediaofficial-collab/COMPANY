@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { ChevronDown, Check, Search, X, PenTool, Edit3 } from 'lucide-react';
+import { ChevronDown, Check, Search, X, PenTool, Edit3 } from '@/components/ui/muiIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../utils/cn';
 
@@ -309,7 +309,7 @@ export const SelectDropdown = ({
             exit={{ opacity: 0, scale: 0.98, y: openUpward ? 4 : -4 }}
             transition={{ duration: 0.16, ease: 'easeOut' }}
             className={cn(
-              'absolute left-0 z-50 w-full min-w-[200px] max-h-72 flex flex-col rounded-2xl border border-border bg-card p-1.5 shadow-2xl backdrop-blur-xl',
+              'absolute left-0 z-50 w-full min-w-[200px] max-h-72 flex flex-col rounded-2xl border border-border bg-card p-1.5 shadow-xl',
               openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
             )}
           >

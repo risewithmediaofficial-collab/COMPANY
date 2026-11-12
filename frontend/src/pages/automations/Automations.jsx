@@ -11,7 +11,7 @@ import {
   Pencil,
   Trash2,
   Settings,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useAutomations, useDeleteAutomation, useToggleAutomation } from '../../hooks/useAutomations';
 import { AddAutomationModal } from '../../components/modals/AddAutomationModal';
 import { Button } from '../../components/ui/button';
@@ -59,7 +59,7 @@ const Automations = () => {
       label: 'Automation Workflow',
       render: (row) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="h-8 w-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             <Zap size={14} />
           </div>
           <div>
@@ -73,8 +73,9 @@ const Automations = () => {
       key: 'trigger',
       label: 'When Triggered',
       render: (row) => (
-        <span className="px-2.5 py-0.5 rounded-lg bg-secondary text-foreground text-xs font-semibold">
-          ⚡ {row.trigger}
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground text-xs font-semibold">
+          <Zap size={11} className="shrink-0" />
+          <span>{row.trigger}</span>
         </span>
       ),
     },
@@ -83,7 +84,7 @@ const Automations = () => {
       label: 'Perform Action',
       render: (row) => (
         <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-          <ArrowRight size={11} className="text-primary" />
+          <ArrowRight size={11} className="text-foreground shrink-0" />
           <span>{row.action}</span>
         </span>
       ),
@@ -96,8 +97,8 @@ const Automations = () => {
           onClick={() => toggleAutomation.mutate({ id: row._id, enabled: !row.enabled })}
           className={`px-2.5 py-0.5 rounded-full text-xs font-bold border transition-all ${
             row.enabled
-              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-              : 'bg-slate-500/10 text-slate-600 border-slate-500/20'
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-secondary text-muted-foreground border-border'
           }`}
         >
           {row.enabled ? 'Active' : 'Paused'}
@@ -108,7 +109,7 @@ const Automations = () => {
       key: 'runCount',
       label: 'Executions',
       render: (row) => (
-        <span className="font-bold text-xs text-foreground">
+        <span className="font-bold text-xs text-foreground tabular-nums">
           {Number(row.runCount || 0).toLocaleString()} runs
         </span>
       ),
@@ -130,7 +131,7 @@ const Automations = () => {
           </button>
           <button
             onClick={() => setDeleteId(row._id)}
-            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -144,15 +145,15 @@ const Automations = () => {
   const renderCard = (row) => (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary uppercase tracking-wider">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border text-foreground uppercase tracking-wider">
           Workflow
         </span>
         <button
           onClick={() => toggleAutomation.mutate({ id: row._id, enabled: !row.enabled })}
           className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
             row.enabled
-              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-              : 'bg-slate-500/10 text-slate-600 border-slate-500/20'
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-secondary text-muted-foreground border-border'
           }`}
         >
           {row.enabled ? 'Active' : 'Paused'}
@@ -176,20 +177,20 @@ const Automations = () => {
       </div>
 
       <div className="flex items-center justify-between pt-1 border-t border-border/40 text-xs">
-        <span className="text-muted-foreground">{Number(row.runCount || 0).toLocaleString()} runs</span>
+        <span className="text-muted-foreground tabular-nums">{Number(row.runCount || 0).toLocaleString()} runs</span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => {
               setSelectedAutomation(row);
               setShowModal(true);
             }}
-            className="p-1 rounded hover:bg-secondary text-muted-foreground"
+            className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
           >
             <Pencil size={13} />
           </button>
           <button
             onClick={() => setDeleteId(row._id)}
-            className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
           >
             <Trash2 size={13} />
           </button>
@@ -202,7 +203,7 @@ const Automations = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'System & Comms', 'Workflows & Automations']}
       title="Agency Workflows & Automations"
-      icon="⚡"
+      icon={Zap}
       properties={[
         { label: 'Active Workflows', value: activeAutomations, tone: 'success', icon: PlayCircle },
         { label: 'Total Executions', value: totalRuns.toLocaleString(), tone: 'info', icon: Zap },

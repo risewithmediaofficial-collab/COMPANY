@@ -136,7 +136,7 @@ export const SocketProvider = ({ children }) => {
       'financeUpdated', 'invoicePaid', 'expenseApproved',
       'attendanceUpdated', 'eodSubmitted', 'accessRequestCreated', 'accessRequestUpdated',
       'smmTrackerUpdated', 'smmClientCreated', 'smmClientUpdated', 'smmClientDeleted',
-      'dmCalendarUpdated', 'contentProductionUpdated',
+      'contentProductionUpdated',
       'userCreated', 'userUpdated',
     ]);
 
@@ -179,12 +179,6 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('smmClientCreated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
     newSocket.on('smmClientUpdated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
     newSocket.on('smmClientDeleted', () => handleInvalidate(['clients', 'client', 'smm-clients']));
-
-    newSocket.on('dmCalendarUpdated', () => handleInvalidate([
-      'dm-master-events', 'dm-dashboard-summary', 'dm-video-shoots',
-      'dm-client-performance', 'dm-team-performance', 'dm-audit-logs',
-      'dm-rj-promotions', 'dm-vj-promotions',
-    ]));
 
     newSocket.on('contentProductionUpdated', () => handleInvalidate(['tasks', 'task']));
 

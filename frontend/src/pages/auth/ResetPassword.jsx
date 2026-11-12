@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Lock, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Lock, Loader2, ArrowLeft, Eye, EyeOff } from '@/components/ui/muiIcons';
 import toast from 'react-hot-toast';
 
 const ResetPassword = () => {
@@ -107,7 +107,7 @@ const ResetPassword = () => {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : 'Update password'}
         </button>

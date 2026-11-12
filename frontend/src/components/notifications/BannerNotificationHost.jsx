@@ -11,7 +11,7 @@ import {
   AlertTriangle,
   Info,
   Clock,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 
 /**
  * BannerNotificationHost
@@ -44,7 +44,7 @@ export const BannerNotificationHost = () => {
 
       const newBanner = {
         id: bannerData.id || `banner-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        title: bannerData.title || '🔔 RISE WITH MEDIA Notification',
+        title: bannerData.title || 'RISE WITH MEDIA Notification',
         message: bannerData.message || bannerData.body || '',
         link: bannerData.link || bannerData.url || '/',
         type: bannerData.type || 'system',
@@ -141,39 +141,34 @@ const BannerItem = ({ banner, isMuted, onToggleSound, onDismiss, onNavigate }) =
 
   const typeConfig = {
     success: {
-      gradient: 'from-emerald-500/20 via-teal-500/10 to-transparent',
-      borderColor: 'border-emerald-500/40',
-      badgeBg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
-      barColor: 'bg-gradient-to-r from-emerald-500 to-teal-400',
-      icon: <CheckCircle2 size={18} className="text-emerald-500" />,
+      borderColor: 'border-border',
+      badgeBg: 'bg-secondary text-foreground',
+      barColor: 'bg-zinc-800 dark:bg-zinc-200',
+      icon: <CheckCircle2 size={18} className="text-foreground" />,
     },
     warning: {
-      gradient: 'from-amber-500/20 via-yellow-500/10 to-transparent',
-      borderColor: 'border-amber-500/40',
-      badgeBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-      barColor: 'bg-gradient-to-r from-amber-500 to-yellow-400',
-      icon: <AlertTriangle size={18} className="text-amber-500" />,
+      borderColor: 'border-border',
+      badgeBg: 'bg-secondary text-foreground',
+      barColor: 'bg-zinc-600 dark:bg-zinc-400',
+      icon: <AlertTriangle size={18} className="text-foreground" />,
     },
     task: {
-      gradient: 'from-indigo-500/20 via-blue-500/10 to-transparent',
-      borderColor: 'border-indigo-500/40',
-      badgeBg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
-      barColor: 'bg-gradient-to-r from-indigo-500 to-blue-400',
-      icon: <BellRing size={18} className="text-indigo-500 animate-bounce" />,
+      borderColor: 'border-border',
+      badgeBg: 'bg-secondary text-foreground',
+      barColor: 'bg-zinc-800 dark:bg-zinc-200',
+      icon: <BellRing size={18} className="text-foreground" />,
     },
     lead: {
-      gradient: 'from-purple-500/20 via-pink-500/10 to-transparent',
-      borderColor: 'border-purple-500/40',
-      badgeBg: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
-      barColor: 'bg-gradient-to-r from-purple-500 to-pink-400',
-      icon: <BellRing size={18} className="text-purple-500" />,
+      borderColor: 'border-border',
+      badgeBg: 'bg-secondary text-foreground',
+      barColor: 'bg-zinc-700 dark:bg-zinc-300',
+      icon: <BellRing size={18} className="text-foreground" />,
     },
     system: {
-      gradient: 'from-indigo-500/25 via-primary/15 to-transparent',
-      borderColor: 'border-primary/40',
-      badgeBg: 'bg-primary/15 text-primary',
-      barColor: 'bg-gradient-to-r from-primary to-indigo-500',
-      icon: <BellRing size={18} className="text-primary animate-pulse" />,
+      borderColor: 'border-border',
+      badgeBg: 'bg-secondary text-foreground',
+      barColor: 'bg-primary',
+      icon: <BellRing size={18} className="text-foreground" />,
     },
   };
 
@@ -188,18 +183,14 @@ const BannerItem = ({ banner, isMuted, onToggleSound, onDismiss, onNavigate }) =
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className={`pointer-events-auto w-full relative overflow-hidden rounded-2xl border ${style.borderColor} bg-card/95 backdrop-blur-2xl shadow-2xl transition-all hover:shadow-indigo-500/10`}
+      className={`pointer-events-auto w-full relative overflow-hidden rounded-2xl border ${style.borderColor} bg-card shadow-xl transition-all`}
     >
-      {/* Background glow gradient */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${style.gradient} pointer-events-none opacity-60`} />
-
       <div className="relative p-3.5 sm:p-4 flex items-start gap-3">
-        {/* Animated Icon Avatar */}
-        <div className={`relative shrink-0 p-2.5 rounded-xl ${style.badgeBg} shadow-inner`}>
+        {/* Icon Avatar */}
+        <div className={`relative shrink-0 p-2.5 rounded-xl ${style.badgeBg} border border-border`}>
           {style.icon}
           <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-foreground" />
           </span>
         </div>
 

@@ -21,7 +21,7 @@ test.describe('Client Portal Ad Budget & SMM Streamlined Budget E2E', () => {
   });
 
   test('1. SMM Budget Dashboard features Monthly Budget, Daily Budget, Added, Spent, Balance, and Notes', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/budget');
+    await page.goto('http://localhost:5175/smm/budget');
     await page.waitForLoadState('networkidle');
 
     // KPI cards
@@ -46,7 +46,7 @@ test.describe('Client Portal Ad Budget & SMM Streamlined Budget E2E', () => {
   });
 
   test('2. Log Budget Entry drawer shows Campaign Budget Baseline and calculated entry balance', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/budget');
+    await page.goto('http://localhost:5175/smm/budget');
     await page.waitForLoadState('networkidle');
 
     await page.locator('#log-budget-entry-btn').click();
@@ -59,7 +59,7 @@ test.describe('Client Portal Ad Budget & SMM Streamlined Budget E2E', () => {
   });
 
   test('3. Client Portal features Ad Budget in sidebar navigation and dedicated section', async ({ page }) => {
-    await page.goto('http://localhost:5173/portal');
+    await page.goto('http://localhost:5175/portal');
     await page.waitForLoadState('networkidle');
 
     // Sidebar navigation contains "Ad Budget"

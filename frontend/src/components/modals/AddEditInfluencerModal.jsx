@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, IndianRupee, MapPin, User, Globe, Phone, X } from 'lucide-react';
+import { Sparkles, IndianRupee, MapPin, User, Globe, Phone, X } from '@/components/ui/muiIcons';
 import { useCreateInfluencer, useUpdateInfluencer } from '../../hooks/useInfluencers';
 
 const influencerSchema = z.object({
@@ -187,8 +187,8 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
       <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
         <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0 shadow-2xs">
-              <Sparkles size={20} />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+              <Sparkles size={20} className="shrink-0" />
             </div>
             <div className="min-w-0">
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
@@ -229,8 +229,8 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Local Influencer">📍 Local Influencer (City / Regional)</SelectItem>
-                          <SelectItem value="Standard Influencer">🌐 Standard Influencer (Commercial / Macro)</SelectItem>
+                          <SelectItem value="Local Influencer">Local Influencer (City / Regional)</SelectItem>
+                          <SelectItem value="Standard Influencer">Standard Influencer (Commercial / Macro)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -387,7 +387,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                 {/* Commercial Rates */}
                 <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
                   <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                    <IndianRupee className="h-4 w-4 text-emerald-500" /> Commercial Rates Breakdown
+                    <IndianRupee className="h-4 w-4 text-foreground shrink-0" /> Commercial Rates Breakdown
                   </h3>
                   <div className="space-y-4">
                     <FormField
@@ -602,11 +602,11 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="5">⭐⭐⭐⭐⭐ 5 Stars (Top Performing)</SelectItem>
-                          <SelectItem value="4">⭐⭐⭐⭐ 4 Stars (Great ROI)</SelectItem>
-                          <SelectItem value="3">⭐⭐⭐ 3 Stars (Average)</SelectItem>
-                          <SelectItem value="2">⭐⭐ 2 Stars (Below Avg)</SelectItem>
-                          <SelectItem value="1">⭐ 1 Star (Not Recommended)</SelectItem>
+                          <SelectItem value="5">5 Stars (Top Performing)</SelectItem>
+                          <SelectItem value="4">4 Stars (Great ROI)</SelectItem>
+                          <SelectItem value="3">3 Stars (Average)</SelectItem>
+                          <SelectItem value="2">2 Stars (Below Avg)</SelectItem>
+                          <SelectItem value="1">1 Star (Not Recommended)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -635,7 +635,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -657,7 +657,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
                 >
                   {isLoading ? 'Saving...' : isEditing ? 'Update Profile' : 'Save Influencer'}
                 </Button>

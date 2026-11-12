@@ -1,14 +1,14 @@
-import { Inbox, Search } from 'lucide-react';
+import { Inbox, Search } from '@/components/ui/muiIcons';
 import { cn } from '../../utils/cn';
 
 const toneStyles = {
-  primary: 'bg-primary/10 text-primary',
-  success: 'bg-emerald-500/10 text-emerald-600',
-  info: 'bg-blue-500/10 text-blue-600',
-  warning: 'bg-amber-500/10 text-amber-600',
-  danger: 'bg-red-500/10 text-red-600',
-  violet: 'bg-violet-500/10 text-violet-600',
-  neutral: 'bg-secondary text-muted-foreground',
+  primary: 'bg-secondary text-foreground border border-border',
+  success: 'bg-secondary text-zinc-800 dark:text-zinc-200 border border-border',
+  info: 'bg-secondary text-zinc-700 dark:text-zinc-300 border border-border',
+  warning: 'bg-secondary text-zinc-800 dark:text-zinc-200 border border-border',
+  danger: 'bg-zinc-900 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900 border border-border',
+  violet: 'bg-secondary text-zinc-800 dark:text-zinc-200 border border-border',
+  neutral: 'bg-secondary text-muted-foreground border border-border',
 };
 
 export const PageHeader = ({
@@ -47,14 +47,14 @@ export const MetricCard = ({ label, title, value, icon: Icon, tone = 'primary', 
   return (
     <div
       className={cn(
-        'rounded-[24px] border border-border/80 bg-card/90 px-4 py-4 shadow-sm backdrop-blur-sm',
+        'rounded-[24px] border border-border bg-card px-4 py-4 shadow-xs',
         className,
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">{cardLabel}</p>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{value}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">{value}</p>
         </div>
         {Icon ? (
           <div className={cn('rounded-2xl p-3 flex-shrink-0', toneStyles[tone] || toneStyles.primary)}>
@@ -90,7 +90,7 @@ export const EmptyState = ({ title = 'No data', description = 'There is no data 
 );
 
 export const PageToolbar = ({ children, className }) => (
-  <div className={cn('rounded-[24px] border border-border/80 bg-card/85 p-3 shadow-sm backdrop-blur-sm', className)}>
+  <div className={cn('rounded-[24px] border border-border bg-card p-3 shadow-xs', className)}>
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">{children}</div>
   </div>
 );

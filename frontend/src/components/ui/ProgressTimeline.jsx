@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Clock8 } from 'lucide-react';
+import { CheckCircle2, Clock, Clock8 } from '@/components/ui/muiIcons';
 
 const formatDistanceToNow = (date) => {
   const now = new Date();
@@ -51,13 +51,13 @@ export const ProgressTimeline = ({ task }) => {
       {(hasProgress || task.actualStartDate) && (
         <div className="relative space-y-3">
           {hasProgress && (
-            <div className="absolute bottom-0 left-2.5 top-8 w-0.5 bg-gradient-to-b from-primary/70 to-emerald-500/70" />
+            <div className="absolute bottom-0 left-2.5 top-8 w-0.5 bg-border" />
           )}
 
           {task.actualStartDate && (
             <div className="flex gap-3 pb-4">
               <div className="relative z-10">
-                <Clock className="h-5 w-5 rounded-full bg-card p-0.5 text-primary" />
+                <Clock className="h-5 w-5 rounded-full bg-card p-0.5 text-foreground" />
               </div>
               <div>
                 <p className="font-medium text-foreground">Work Started</p>
@@ -82,7 +82,7 @@ export const ProgressTimeline = ({ task }) => {
               {task.progressUpdates.map((update) => (
                 <div key={update._id} className="flex gap-3">
                   <div className="relative z-10">
-                    <CheckCircle2 className="h-5 w-5 rounded-full bg-card p-0.5 text-emerald-600" />
+                    <CheckCircle2 className="h-5 w-5 rounded-full bg-card p-0.5 text-foreground" />
                   </div>
                   <div className="flex-1 pb-2">
                     <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">

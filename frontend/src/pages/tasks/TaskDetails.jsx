@@ -37,7 +37,19 @@ import {
   Flame,
   ChevronDown,
   Trash2,
-} from 'lucide-react';
+  FileEdit,
+  Mic,
+  Scissors,
+  Smartphone,
+  MapPin,
+  ClipboardList,
+  Lock,
+  Link2,
+  TrendingUp,
+  Paperclip,
+  Laptop,
+  AlertTriangle,
+} from '@/components/ui/muiIcons';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
@@ -58,37 +70,37 @@ import { getAssetUrl } from '../../utils/assetUrl';
 import toast from 'react-hot-toast';
 
 const STATUS_TONES = {
-  'To Do': 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700',
-  'On Process': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700/50',
-  'Waiting for Client': 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700/50',
-  Completed: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700/50',
-  Rework: 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-700/50',
-  Approved: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700/50',
-  'Rework Completed': 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:border-violet-700/50',
-  'Review Required': 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-700/50',
+  'To Do': 'bg-secondary/70 text-muted-foreground border-border',
+  'On Process': 'bg-secondary text-foreground border-foreground/25',
+  'Waiting for Client': 'bg-secondary/90 text-foreground border-border',
+  Completed: 'bg-primary text-primary-foreground border-primary',
+  Rework: 'bg-foreground/10 text-foreground border-foreground/35',
+  Approved: 'bg-primary text-primary-foreground border-primary',
+  'Rework Completed': 'bg-secondary text-foreground border-foreground/30',
+  'Review Required': 'bg-secondary text-foreground border-border',
 };
 
 const PRIORITY_TONES = {
-  Low: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400',
-  Medium: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400',
-  High: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400',
-  Urgent: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 font-bold',
+  Low: 'bg-secondary/60 text-muted-foreground border-border',
+  Medium: 'bg-secondary text-foreground border-border',
+  High: 'bg-foreground/10 text-foreground border-foreground/30 font-semibold',
+  Urgent: 'bg-primary text-primary-foreground border-primary font-bold',
 };
 
 const getCategoryIcon = (category, type) => {
   const cat = (category || '').toLowerCase();
   const t = (type || '').toLowerCase();
-  if (t.includes('reel') || t.includes('video') || t.includes('youtube')) return <Film className="text-purple-500" size={20} />;
-  if (t.includes('poster') || t.includes('design') || t.includes('carousel')) return <Sparkles className="text-amber-500" size={20} />;
-  if (t.includes('website') || t.includes('landing')) return <Globe className="text-blue-500" size={20} />;
-  if (cat.includes('content')) return <FileText className="text-emerald-500" size={20} />;
-  return <Layers className="text-primary" size={20} />;
+  if (t.includes('reel') || t.includes('video') || t.includes('youtube')) return <Film className="text-foreground" size={20} />;
+  if (t.includes('poster') || t.includes('design') || t.includes('carousel')) return <Sparkles className="text-foreground" size={20} />;
+  if (t.includes('website') || t.includes('landing')) return <Globe className="text-foreground" size={20} />;
+  if (cat.includes('content')) return <FileText className="text-foreground" size={20} />;
+  return <Layers className="text-foreground" size={20} />;
 };
 
 const NotionPropertyRow = ({ icon: Icon, label, children }) => (
   <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 py-2.5 px-3 rounded-xl hover:bg-secondary/40 transition-colors">
     <div className="flex items-center gap-2 w-auto sm:w-36 md:w-44 shrink-0 text-xs font-semibold text-muted-foreground select-none">
-      <Icon size={14} className="shrink-0 text-muted-foreground/70" />
+      <Icon size={14} className="shrink-0 text-muted-foreground" />
       <span className="truncate">{label}</span>
     </div>
     <div className="flex-1 min-w-0 text-xs sm:text-sm font-medium text-foreground flex items-center justify-start">
@@ -112,10 +124,10 @@ const CopyButton = ({ text, label = 'Copy' }) => {
     <button
       onClick={handleCopy}
       type="button"
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/60 transition-all active:scale-95 cursor-pointer select-none"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border transition-all active:scale-95 cursor-pointer select-none"
       title={`Copy ${label}`}
     >
-      {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+      {copied ? <Check size={13} className="text-foreground" /> : <Copy size={13} />}
       <span>{copied ? 'Copied!' : label}</span>
     </button>
   );
@@ -235,7 +247,7 @@ export const TaskDetails = () => {
             variant="outline"
             size="sm"
             onClick={handleShareLink}
-            className="flex items-center gap-1.5 rounded-xl border-border text-xs font-bold hover:bg-secondary"
+            className="inline-flex items-center gap-1.5 rounded-xl border-border text-xs font-bold hover:bg-secondary cursor-pointer"
           >
             <Share2 size={13} />
             <span>Share</span>
@@ -247,7 +259,7 @@ export const TaskDetails = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowAssignAnotherModal(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border-primary/30 text-xs font-bold text-primary hover:bg-primary/5"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border-border text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
               >
                 <Plus size={13} />
                 <span>Assign Another</span>
@@ -256,7 +268,7 @@ export const TaskDetails = () => {
               <Button
                 size="sm"
                 onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-primary text-white text-xs font-bold shadow-sm hover:bg-primary/95"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm hover:bg-primary/90 cursor-pointer"
               >
                 <Edit3 size={13} />
                 <span>Edit Task</span>
@@ -269,10 +281,10 @@ export const TaskDetails = () => {
               variant="outline"
               size="sm"
               onClick={() => setShowDeleteConfirm((prev) => !prev)}
-              className={`flex items-center gap-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 showDeleteConfirm
-                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 ring-1 ring-rose-400'
-                  : 'border-rose-200 text-rose-600 dark:border-rose-900/50 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
               }`}
               title="Delete Task"
             >
@@ -285,16 +297,16 @@ export const TaskDetails = () => {
 
       {/* Delete Confirmation Alert Banner */}
       {showDeleteConfirm && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50/95 dark:bg-rose-950/50 dark:border-rose-900/60 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
-          <div className="text-xs text-rose-900 dark:text-rose-200">
+        <div className="rounded-2xl border border-border bg-secondary p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="text-xs text-foreground">
             <span className="font-bold">Are you sure you want to delete this task?</span>
-            <p className="text-[11px] text-rose-700 dark:text-rose-300 mt-0.5">This action cannot be undone and will delete all associated subtasks.</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">This action cannot be undone and will delete all associated subtasks.</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-white dark:text-slate-200 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 cursor-pointer"
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-foreground bg-background hover:bg-card border border-border cursor-pointer"
             >
               Cancel
             </button>
@@ -310,7 +322,7 @@ export const TaskDetails = () => {
                   toast.error(err?.response?.data?.message || 'Failed to delete task');
                 }
               }}
-              className="rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-rose-700 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <Trash2 size={13} />
               <span>{deleteTaskMutation.isLoading ? 'Deleting...' : 'Confirm Delete'}</span>
@@ -322,7 +334,7 @@ export const TaskDetails = () => {
       {/* ── Notion Page Hero & Title ── */}
       <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs space-y-6">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/80 border border-border shrink-0 shadow-xs">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary border border-border shrink-0 shadow-xs">
             {getCategoryIcon(task.taskCategory, task.taskType)}
           </div>
           <div className="flex-1 min-w-0 space-y-2">
@@ -341,24 +353,25 @@ export const TaskDetails = () => {
                 </Badge>
               )}
               {task.isOverTarget && (
-                <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-xs font-extrabold uppercase text-rose-600 dark:text-rose-400 flex items-center gap-1.5 shadow-2xs">
-                  🔴 Over Target Deliverable
+                <span className="px-2.5 py-1 rounded-lg bg-primary border border-primary text-xs font-bold uppercase text-primary-foreground inline-flex items-center gap-1.5 shadow-2xs">
+                  <AlertTriangle size={12} />
+                  <span>Over Target Deliverable</span>
                 </span>
               )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               {task.taskTitle || task.title}
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground flex flex-wrap items-center gap-2">
+            <p className="text-xs sm:text-sm text-muted-foreground flex flex-wrap items-center gap-2 tabular-nums">
               {task.client?.name && (
-                <span className="font-semibold text-foreground flex items-center gap-1">
-                  <Building2 size={13} className="text-primary" /> {task.client.name}
+                <span className="font-semibold text-foreground inline-flex items-center gap-1">
+                  <Building2 size={13} className="text-muted-foreground" /> {task.client.name}
                 </span>
               )}
               {task.project?.name && (
                 <>
                   <span>•</span>
-                  <span className="flex items-center gap-1 text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <Briefcase size={13} /> {task.project.name}
                   </span>
                 </>
@@ -366,7 +379,7 @@ export const TaskDetails = () => {
               {task.createdAt && (
                 <>
                   <span>•</span>
-                  <span className="flex items-center gap-1 text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <Calendar size={13} /> Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 </>
@@ -374,7 +387,7 @@ export const TaskDetails = () => {
               {task.dueDate && (
                 <>
                   <span>•</span>
-                  <span className="flex items-center gap-1 text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <Calendar size={13} /> Due {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 </>
@@ -384,13 +397,13 @@ export const TaskDetails = () => {
         </div>
 
         {task.isOverTarget && (
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 sm:p-4 text-rose-700 dark:text-rose-300 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="rounded-2xl border border-foreground/30 bg-secondary p-3.5 sm:p-4 text-foreground flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 font-bold">
-              <span className="text-base">🔴</span>
+              <AlertTriangle size={15} className="shrink-0" />
               <span>This task exceeded the configured monthly deliverable quota for this project.</span>
             </div>
             {task.targetExceededBy > 0 && (
-              <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-700 dark:text-rose-300 font-extrabold text-[11px] border border-rose-500/30">
+              <span className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-bold text-[11px] border border-primary tabular-nums">
                 +{task.targetExceededBy} Exceeded Over Target
               </span>
             )}
@@ -456,11 +469,11 @@ export const TaskDetails = () => {
           {/* Manager */}
           {task.assignedManager && (
             <NotionPropertyRow icon={User} label="Manager">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-secondary/80 border border-border text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-secondary border border-border text-xs font-semibold">
                 {task.assignedManager.avatar ? (
                   <img src={getAssetUrl(task.assignedManager.avatar)} alt="" className="w-4 h-4 rounded-full object-cover" />
                 ) : (
-                  <User size={12} className="text-primary" />
+                  <User size={12} className="text-muted-foreground" />
                 )}
                 <span>{task.assignedManager.name || 'Manager'}</span>
               </span>
@@ -483,14 +496,14 @@ export const TaskDetails = () => {
 
           {/* Created Date */}
           <NotionPropertyRow icon={Calendar} label="Created Date">
-            <span className="text-foreground font-semibold">
+            <span className="text-foreground font-semibold tabular-nums">
               {task.createdAt ? new Date(task.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
             </span>
           </NotionPropertyRow>
 
           {/* Due Date & Time */}
           <NotionPropertyRow icon={Clock} label="Due Date">
-            <span className="text-foreground font-semibold">
+            <span className="text-foreground font-semibold tabular-nums">
               {task.dueDate ? new Date(task.dueDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'}
             </span>
           </NotionPropertyRow>
@@ -505,7 +518,7 @@ export const TaskDetails = () => {
           {/* Posting Scheduled */}
           {task.postingScheduleDate && (
             <NotionPropertyRow icon={Calendar} label="Posting Date">
-              <span className="font-semibold text-primary">
+              <span className="font-semibold text-foreground tabular-nums">
                 {new Date(task.postingScheduleDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
               </span>
             </NotionPropertyRow>
@@ -515,21 +528,22 @@ export const TaskDetails = () => {
           {(task.allocatedHours > 0 || task.allocatedMinutes > 0 || task.timerExpiresAt) && (
             <NotionPropertyRow icon={Clock} label="Timer Allocation">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-foreground">
+                <span className="font-semibold text-foreground tabular-nums">
                   {task.allocatedHours || 0}h {task.allocatedMinutes || 0}m
                 </span>
                 {task.isAccepted ? (
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                    Accepted & Started
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border">
+                    Accepted &amp; Started
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-muted-foreground border border-border">
                     Awaiting Acceptance
                   </span>
                 )}
                 {task.isOverdue && (
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse">
-                    🚨 Overdue
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary text-primary-foreground border border-primary">
+                    <AlertTriangle size={11} />
+                    <span>Overdue</span>
                   </span>
                 )}
               </div>
@@ -541,17 +555,17 @@ export const TaskDetails = () => {
             <NotionPropertyRow icon={AlertCircle} label="Submission / Delay Reason">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                    task.submissionStatus === 'on_time' ? 'bg-emerald-500/10 text-emerald-600' :
-                    task.submissionStatus === 'completed_with_delay' ? 'bg-amber-500/10 text-amber-600' :
-                    'bg-rose-500/10 text-rose-600'
+                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${
+                    task.submissionStatus === 'on_time'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-secondary text-foreground border-border'
                   }`}>
                     {task.submissionStatus === 'on_time' ? 'Submitted On Time' :
                      task.submissionStatus === 'completed_with_delay' ? 'Submitted With Delay' :
                      'Incomplete With Reason'}
                   </span>
                   {task.actualTimeSpentMinutes > 0 && (
-                    <span className="text-xs text-muted-foreground font-medium">
+                    <span className="text-xs text-muted-foreground font-medium tabular-nums">
                       Spent: {Math.floor(task.actualTimeSpentMinutes / 60)}h {task.actualTimeSpentMinutes % 60}m
                     </span>
                   )}
@@ -569,13 +583,13 @@ export const TaskDetails = () => {
 
       {/* ── Notion Production Pipeline & Multi-Person Sub-Assignments ── */}
       {hasPipeline && (
-        <div className="rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/5 via-card to-card p-6 shadow-xs space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
-              <Flame size={16} className="text-primary" /> Production Workflow & Team Assignments
+        <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-widest inline-flex items-center gap-2">
+              <Flame size={16} className="text-foreground" /> Production Workflow &amp; Team Assignments
             </h3>
             {task.postingScheduleDate && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-xs">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary border border-border text-foreground font-bold text-xs tabular-nums">
                 <Clock size={12} /> Scheduled: {new Date(task.postingScheduleDate).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
@@ -583,9 +597,9 @@ export const TaskDetails = () => {
 
           <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-5">
             {/* 1. Script Writer */}
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                ✍️ 1. Script Writer
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5">
+                <FileEdit size={11} /> 1. Script Writer
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.scriptWriterAssigned?.name || task.scriptWriterName || 'Unassigned'}
@@ -594,9 +608,9 @@ export const TaskDetails = () => {
             </div>
 
             {/* 2. RJ / Voice Artist */}
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                🎙️ 2. RJ / Voice Artist
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5">
+                <Mic size={11} /> 2. RJ / Voice Artist
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.voiceArtistAssigned?.name || task.voiceArtistName || 'Unassigned'}
@@ -605,9 +619,9 @@ export const TaskDetails = () => {
             </div>
 
             {/* 3. Videographer */}
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                🎥 3. Videographer
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5">
+                <Video size={11} /> 3. Videographer
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.videographerAssigned?.name || task.videographerName || 'Unassigned'}
@@ -616,9 +630,9 @@ export const TaskDetails = () => {
             </div>
 
             {/* 4. Editor */}
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                ✂️ 4. Video Editor
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5">
+                <Scissors size={11} /> 4. Video Editor
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.editorAssigned?.name || task.editorName || 'Unassigned'}
@@ -627,9 +641,9 @@ export const TaskDetails = () => {
             </div>
 
             {/* 5. Publisher */}
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                📱 5. Publisher / Socials
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5">
+                <Smartphone size={11} /> 5. Publisher / Socials
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.publisherAssigned?.name || task.publisherName || 'Unassigned'}
@@ -638,20 +652,20 @@ export const TaskDetails = () => {
             </div>
           </div>
 
-          {/* 🎙️ RJ / Voice Script & Instructions Card */}
+          {/* RJ / Voice Script & Instructions Card */}
           {(task.voiceScriptText || task.voiceInstructions) && (
-            <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-4 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
-                🎙️ RJ / Voice-Over Script & Brief
+            <div className="rounded-2xl bg-secondary/40 border border-border p-4 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-foreground inline-flex items-center gap-1.5">
+                <Mic size={13} /> RJ / Voice-Over Script &amp; Brief
               </span>
               {task.voiceScriptText && (
-                <div className="rounded-xl bg-background/80 p-3 border border-border/60">
+                <div className="rounded-xl bg-background p-3 border border-border">
                   <span className="text-[10px] font-bold uppercase text-muted-foreground block">Voice Script / Lines</span>
                   <p className="text-sm font-medium text-foreground whitespace-pre-line mt-1">{task.voiceScriptText}</p>
                 </div>
               )}
               {task.voiceInstructions && (
-                <div className="rounded-xl bg-background/80 p-3 border border-border/60">
+                <div className="rounded-xl bg-background p-3 border border-border">
                   <span className="text-[10px] font-bold uppercase text-muted-foreground block">Voice Instructions (Tone / Pace / Dialect)</span>
                   <p className="text-xs font-medium text-foreground mt-0.5">{task.voiceInstructions}</p>
                 </div>
@@ -659,13 +673,13 @@ export const TaskDetails = () => {
             </div>
           )}
 
-          {/* 🎥 Videographer Content Requirements Card */}
+          {/* Videographer Content Requirements Card */}
           {task.videographerContentNeeded && (
-            <div className="rounded-2xl bg-sky-500/5 border border-sky-500/20 p-4 space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
-                🎥 What Content / Shots Needed for Videographer
+            <div className="rounded-2xl bg-secondary/40 border border-border p-4 space-y-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-foreground inline-flex items-center gap-1.5">
+                <Video size={13} /> What Content / Shots Needed for Videographer
               </span>
-              <div className="rounded-xl bg-background/80 p-3 border border-border/60">
+              <div className="rounded-xl bg-background p-3 border border-border">
                 <p className="text-sm font-medium text-foreground whitespace-pre-line">{task.videographerContentNeeded}</p>
               </div>
             </div>
@@ -673,23 +687,27 @@ export const TaskDetails = () => {
 
           {/* Shoot & Footage Details Row */}
           {(task.shootDate || task.shootLocation || task.rawFootageLink || task.finalVideoDriveLink || task.editingReferenceVideo) && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 pt-3 border-t border-border/50 text-xs">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 pt-3 border-t border-border text-xs">
               {task.shootDate && (
-                <div className="rounded-xl bg-background/80 p-3 border border-border/60">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">📅 Shoot Date &amp; Time</span>
-                  <span className="font-semibold text-foreground mt-0.5 block">
+                <div className="rounded-xl bg-background p-3 border border-border">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground inline-flex items-center gap-1">
+                    <Calendar size={10} /> Shoot Date &amp; Time
+                  </span>
+                  <span className="font-semibold text-foreground mt-0.5 block tabular-nums">
                     {new Date(task.shootDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                     {task.shootTime ? ` at ${task.shootTime}` : ''}
                   </span>
                 </div>
               )}
               {task.shootLocation && (
-                <div className="rounded-xl bg-background/80 p-3 border border-border/60">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">📍 Shoot Location</span>
+                <div className="rounded-xl bg-background p-3 border border-border">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground inline-flex items-center gap-1">
+                    <MapPin size={10} /> Shoot Location
+                  </span>
                   <div className="flex items-center justify-between gap-1 mt-0.5">
                     <span className="font-semibold text-foreground truncate">{task.shootLocation}</span>
                     {task.shootLocationLink && (
-                      <a href={task.shootLocationLink} target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold text-[11px] shrink-0 flex items-center gap-0.5">
+                      <a href={task.shootLocationLink} target="_blank" rel="noreferrer" className="text-foreground hover:underline font-bold text-[11px] shrink-0 inline-flex items-center gap-0.5">
                         <span>Map</span>
                         <ExternalLink size={10} />
                       </a>
@@ -698,28 +716,28 @@ export const TaskDetails = () => {
                 </div>
               )}
               {task.rawFootageLink && (
-                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 space-y-1">
+                <div className="rounded-xl bg-secondary border border-border p-3 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400">
-                      ☁️ Raw Footage Link
+                    <span className="text-[10px] font-bold uppercase text-foreground inline-flex items-center gap-1">
+                      <UploadCloud size={11} /> Raw Footage Link
                     </span>
                     <CopyButton text={task.rawFootageLink} label="Copy" />
                   </div>
-                  <a href={task.rawFootageLink} target="_blank" rel="noreferrer" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-between text-xs">
+                  <a href={task.rawFootageLink} target="_blank" rel="noreferrer" className="font-bold text-foreground hover:underline flex items-center justify-between text-xs">
                     <span className="truncate">Open Drive Folder</span>
                     <ExternalLink size={11} className="shrink-0" />
                   </a>
                 </div>
               )}
               {task.finalVideoDriveLink && (
-                <div className="rounded-xl bg-purple-500/10 border border-purple-500/30 p-3 space-y-1">
+                <div className="rounded-xl bg-secondary border border-border p-3 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase text-purple-700 dark:text-purple-400">
-                      🎬 Final Video Drive
+                    <span className="text-[10px] font-bold uppercase text-foreground inline-flex items-center gap-1">
+                      <Film size={11} /> Final Video Drive
                     </span>
                     <CopyButton text={task.finalVideoDriveLink} label="Copy" />
                   </div>
-                  <a href={task.finalVideoDriveLink} target="_blank" rel="noreferrer" className="font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center justify-between text-xs">
+                  <a href={task.finalVideoDriveLink} target="_blank" rel="noreferrer" className="font-bold text-foreground hover:underline flex items-center justify-between text-xs">
                     <span className="truncate">Open Video Link</span>
                     <ExternalLink size={11} className="shrink-0" />
                   </a>
@@ -733,7 +751,7 @@ export const TaskDetails = () => {
             <div className="pt-2 flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-muted-foreground">Target Channels:</span>
               {task.postingPlatforms.map((platform, idx) => (
-                <span key={idx} className="px-2.5 py-1 rounded-xl bg-card border border-border text-xs font-semibold text-foreground shadow-2xs">
+                <span key={idx} className="px-2.5 py-1 rounded-xl bg-secondary border border-border text-xs font-semibold text-foreground shadow-2xs">
                   {platform}
                 </span>
               ))}
@@ -753,9 +771,9 @@ export const TaskDetails = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap shrink-0 transition-all cursor-pointer select-none rounded-t-lg ${
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap shrink-0 transition-all cursor-pointer select-none rounded-t-lg tabular-nums ${
               activeTab === tab.id
-                ? 'border-primary text-primary bg-primary/5'
+                ? 'border-primary text-foreground bg-secondary/60'
                 : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40'
             }`}
           >
@@ -771,12 +789,12 @@ export const TaskDetails = () => {
           {/* Description / Requirements */}
           <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                📋 Brief & Task Requirements
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+                <ClipboardList size={15} /> Brief &amp; Task Requirements
               </h3>
               {task.description && <CopyButton text={task.description} label="Copy Brief" />}
             </div>
-            <div className="rounded-2xl border border-border/70 bg-background/60 p-4 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-2xl border border-border bg-background p-4 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
               {task.description || 'No detailed brief or requirements provided for this task.'}
             </div>
           </div>
@@ -786,11 +804,11 @@ export const TaskDetails = () => {
             <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    📜 Video Script & Hook
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+                    <FileText size={15} /> Video Script &amp; Hook
                   </h3>
                   {task.scriptText && (
-                    <span className="text-[11px] font-semibold text-muted-foreground">
+                    <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
                       ({task.scriptText.split(/\s+/).filter(Boolean).length} words • ~{Math.ceil(task.scriptText.split(/\s+/).filter(Boolean).length / 2.5)}s read)
                     </span>
                   )}
@@ -824,8 +842,8 @@ export const TaskDetails = () => {
           {task.taskCategory === 'content' && (
             <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  💬 Social Caption & Tags
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+                  <MessageSquare size={15} /> Social Caption &amp; Tags
                 </h3>
                 {task.caption && <CopyButton text={`${task.caption}\n\n${task.hashtags || ''}`} label="Copy Caption + Tags" />}
               </div>
@@ -836,18 +854,18 @@ export const TaskDetails = () => {
                 </div>
 
                 {task.hashtags && (
-                  <div className="p-3.5 rounded-2xl border border-border bg-secondary/30 space-y-1.5">
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                  <div className="p-3.5 rounded-2xl border border-border bg-secondary/40 space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground inline-flex items-center gap-1">
                       <Hash size={11} /> Hashtags
                     </span>
-                    <p className="text-xs font-semibold text-primary break-all">{task.hashtags}</p>
+                    <p className="text-xs font-semibold text-foreground break-all">{task.hashtags}</p>
                   </div>
                 )}
 
                 {task.keywords && (
-                  <div className="p-3.5 rounded-2xl border border-border bg-secondary/30 space-y-1.5">
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                      <Tag size={11} /> SEO Keywords & Hooks
+                  <div className="p-3.5 rounded-2xl border border-border bg-secondary/40 space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground inline-flex items-center gap-1">
+                      <Tag size={11} /> SEO Keywords &amp; Hooks
                     </span>
                     <p className="text-xs font-semibold text-foreground">{task.keywords}</p>
                   </div>
@@ -859,8 +877,8 @@ export const TaskDetails = () => {
           {/* Website / Technical Specifications */}
           {isWebsiteTaskType(task.taskType) && (
             <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                💻 Website & Development Architecture
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+                <Laptop size={15} /> Website &amp; Development Architecture
               </h3>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -890,7 +908,7 @@ export const TaskDetails = () => {
                 </div>
 
                 <div className="p-4 rounded-2xl border border-border bg-background space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Hosting & Server</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Hosting &amp; Server</span>
                   <p className="text-sm font-semibold text-foreground">{task.hostingDetails || 'Not specified'}</p>
                 </div>
               </div>
@@ -899,14 +917,14 @@ export const TaskDetails = () => {
               {task.adminCredentials && (
                 <div className="rounded-2xl border border-border bg-secondary/40 p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                      🔒 Admin Credentials / Access Info
+                    <span className="text-xs font-bold text-foreground inline-flex items-center gap-1.5">
+                      <Lock size={13} /> Admin Credentials / Access Info
                     </span>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setShowCredentials(!showCredentials)}
-                        className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1"
+                        className="text-xs font-semibold text-muted-foreground hover:text-foreground inline-flex items-center gap-1 cursor-pointer"
                       >
                         {showCredentials ? <EyeOff size={13} /> : <Eye size={13} />}
                         <span>{showCredentials ? 'Hide' : 'Show'}</span>
@@ -925,16 +943,16 @@ export const TaskDetails = () => {
           {/* Reference Links & Inspiration */}
           {(task.referenceLink || task.audioReference || task.editorGuide || task.internalNotes) && (
             <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                🔗 Inspiration, Audio & Editorial Guidelines
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+                <Link2 size={15} /> Inspiration, Audio &amp; Editorial Guidelines
               </h3>
 
               <div className="grid gap-3.5 sm:grid-cols-2">
                 {task.referenceLink && (
                   <div className="p-4 rounded-2xl border border-border bg-background space-y-1.5">
                     <span className="text-[10px] font-bold uppercase text-muted-foreground">Inspiration Reference Link</span>
-                    <a href={task.referenceLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary hover:underline flex items-center gap-1 truncate block">
-                      <span>{task.referenceLink}</span>
+                    <a href={task.referenceLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-foreground hover:underline flex items-center gap-1 truncate">
+                      <span className="truncate">{task.referenceLink}</span>
                       <ArrowUpRight size={12} className="shrink-0" />
                     </a>
                   </div>
@@ -943,8 +961,8 @@ export const TaskDetails = () => {
                 {task.audioReference && (
                   <div className="p-4 rounded-2xl border border-border bg-background space-y-1.5">
                     <span className="text-[10px] font-bold uppercase text-muted-foreground">Audio / Music Reference</span>
-                    <a href={task.audioReference} target="_blank" rel="noreferrer" className="text-xs font-bold text-primary hover:underline flex items-center gap-1 truncate block">
-                      <span>{task.audioReference}</span>
+                    <a href={task.audioReference} target="_blank" rel="noreferrer" className="text-xs font-bold text-foreground hover:underline flex items-center gap-1 truncate">
+                      <span className="truncate">{task.audioReference}</span>
                       <ArrowUpRight size={12} className="shrink-0" />
                     </a>
                   </div>
@@ -952,14 +970,14 @@ export const TaskDetails = () => {
 
                 {task.editorGuide && (
                   <div className="p-4 rounded-2xl border border-border bg-background space-y-1 sm:col-span-2">
-                    <span className="text-[10px] font-bold uppercase text-muted-foreground">Editor Direction & Guidelines</span>
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground">Editor Direction &amp; Guidelines</span>
                     <p className="text-xs text-foreground whitespace-pre-wrap">{task.editorGuide}</p>
                   </div>
                 )}
 
                 {task.internalNotes && (
-                  <div className="p-4 rounded-2xl border border-amber-200/60 bg-amber-500/5 space-y-1 sm:col-span-2">
-                    <span className="text-[10px] font-bold uppercase text-amber-700 dark:text-amber-400">Internal Agency Notes</span>
+                  <div className="p-4 rounded-2xl border border-border bg-secondary/40 space-y-1 sm:col-span-2">
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground">Internal Agency Notes</span>
                     <p className="text-xs text-foreground whitespace-pre-wrap">{task.internalNotes}</p>
                   </div>
                 )}
@@ -975,8 +993,8 @@ export const TaskDetails = () => {
           {/* Upload Completed Files (Team only) */}
           {!isClient && (
             <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                <UploadCloud size={18} className="text-primary" /> Upload Final Deliverables
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+                <UploadCloud size={18} className="text-foreground" /> Upload Final Deliverables
               </h3>
               <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/20 p-6 text-center space-y-3">
                 <input
@@ -988,7 +1006,7 @@ export const TaskDetails = () => {
                 />
                 <label
                   htmlFor="task-file-upload"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-sm hover:bg-primary/95 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm hover:bg-primary/90 cursor-pointer"
                 >
                   <Plus size={14} /> Choose Files
                 </label>
@@ -1002,7 +1020,7 @@ export const TaskDetails = () => {
                     {completedFiles.map((file, idx) => (
                       <div key={idx} className="flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2 text-xs">
                         <span className="font-semibold text-foreground truncate">{file.name}</span>
-                        <span className="text-muted-foreground">{Math.round(file.size / 1024)} KB</span>
+                        <span className="text-muted-foreground tabular-nums">{Math.round(file.size / 1024)} KB</span>
                       </div>
                     ))}
                   </div>
@@ -1020,8 +1038,8 @@ export const TaskDetails = () => {
 
           {/* Completed Files Gallery */}
           <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" /> Completed Deliverables ({(task.completedFiles || []).length})
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2 tabular-nums">
+              <CheckCircle2 size={16} className="text-foreground" /> Completed Deliverables ({(task.completedFiles || []).length})
             </h3>
 
             {(task.completedFiles || []).length > 0 ? (
@@ -1042,12 +1060,12 @@ export const TaskDetails = () => {
                         {isImg ? (
                           <img src={fileUrl} alt="" className="w-12 h-12 rounded-xl object-cover border border-border shrink-0" />
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                          <div className="w-12 h-12 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground shrink-0">
                             <FileText size={20} />
                           </div>
                         )}
                         <div className="min-w-0">
-                          <p className="font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">
+                          <p className="font-bold text-foreground text-sm truncate group-hover:underline transition-colors">
                             {file.name || 'Deliverable File'}
                           </p>
                           <p className="text-[11px] text-muted-foreground">{file.type || 'File Asset'}</p>
@@ -1067,8 +1085,8 @@ export const TaskDetails = () => {
 
           {/* Brief Attachments */}
           <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-              📎 Initial Brief Attachments ({(task.attachments || []).length})
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2 tabular-nums">
+              <Paperclip size={15} /> Initial Brief Attachments ({(task.attachments || []).length})
             </h3>
 
             {(task.attachments || []).length > 0 ? (
@@ -1094,7 +1112,7 @@ export const TaskDetails = () => {
                           </div>
                         )}
                         <div className="min-w-0">
-                          <p className="font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">
+                          <p className="font-bold text-foreground text-sm truncate group-hover:underline transition-colors">
                             {file.name || 'Attachment'}
                           </p>
                           <p className="text-[11px] text-muted-foreground">{file.type || 'Attachment'}</p>
@@ -1119,16 +1137,16 @@ export const TaskDetails = () => {
         <div className="space-y-6">
           {!isClient && (
             <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                ✍️ Log Today&apos;s Work Progress
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+                <FileEdit size={15} /> Log Today&apos;s Work Progress
               </h3>
               <ProgressUpdateForm taskId={task._id} onSuccess={refetch} />
             </div>
           )}
 
           <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-              📈 Progress Timeline ({(task.progressUpdates || []).length})
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2 tabular-nums">
+              <TrendingUp size={15} /> Progress Timeline ({(task.progressUpdates || []).length})
             </h3>
 
             {(task.progressUpdates || []).length > 0 ? (
@@ -1137,7 +1155,7 @@ export const TaskDetails = () => {
                   <div key={idx} className="rounded-2xl border border-border bg-background p-4 space-y-2 shadow-2xs">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="font-bold text-foreground text-sm">{update.description}</p>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground tabular-nums">
                         {update.completedAt ? new Date(update.completedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently'}
                       </span>
                     </div>
@@ -1145,7 +1163,7 @@ export const TaskDetails = () => {
                       <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{update.workNotes}</p>
                     )}
                     {update.hours ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary px-2 py-0.5 rounded-md bg-primary/10">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-foreground px-2 py-0.5 rounded-md bg-secondary border border-border tabular-nums">
                         <Clock size={11} /> {update.hours} hours logged
                       </span>
                     ) : null}
@@ -1164,8 +1182,8 @@ export const TaskDetails = () => {
       {/* ── TAB CONTENT: Client Feedback & Approval ── */}
       {activeTab === 'review' && (
         <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-6">
-          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-            💬 Client Approval & Review Status
+          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-2">
+            <MessageSquare size={15} /> Client Approval &amp; Review Status
           </h3>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -1181,7 +1199,7 @@ export const TaskDetails = () => {
 
             <div className="p-4 rounded-2xl border border-border bg-background space-y-1">
               <span className="text-[10px] font-bold uppercase text-muted-foreground">Response Date</span>
-              <p className="text-sm font-semibold text-foreground">
+              <p className="text-sm font-semibold text-foreground tabular-nums">
                 {task.clientResponseDate ? new Date(task.clientResponseDate).toLocaleString() : 'Not submitted yet'}
               </p>
             </div>
@@ -1200,11 +1218,11 @@ export const TaskDetails = () => {
           )}
 
           {task.rejectionReason && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-500/10 p-4 space-y-1.5 text-rose-700 dark:text-rose-400">
-              <span className="text-xs font-bold flex items-center gap-1.5">
+            <div className="rounded-2xl border border-foreground/30 bg-secondary p-4 space-y-1.5 text-foreground">
+              <span className="text-xs font-bold inline-flex items-center gap-1.5">
                 <AlertCircle size={14} /> Rejection / Rework Reason:
               </span>
-              <p className="text-xs whitespace-pre-wrap leading-relaxed">{task.rejectionReason}</p>
+              <p className="text-xs whitespace-pre-wrap leading-relaxed text-muted-foreground">{task.rejectionReason}</p>
             </div>
           )}
         </div>

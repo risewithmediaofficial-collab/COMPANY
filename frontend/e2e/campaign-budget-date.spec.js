@@ -21,7 +21,7 @@ test.describe('Campaign Budget & Date Flow E2E', () => {
   });
 
   test('Campaign drawer verifies dates directly below client/project, manual assigned/daily budgets, and daily deposited budget below destination', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/campaigns');
+    await page.goto('http://localhost:5175/smm/campaigns');
     await page.waitForLoadState('networkidle');
 
     // Click Create Campaign button
@@ -78,7 +78,7 @@ test.describe('Campaign Budget & Date Flow E2E', () => {
   });
 
   test('Mouse wheel or trackpad scroll does not increment or decrement number inputs', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/campaigns');
+    await page.goto('http://localhost:5175/smm/campaigns');
     await page.waitForLoadState('networkidle');
 
     // Click Create Campaign button
@@ -106,7 +106,7 @@ test.describe('Campaign Budget & Date Flow E2E', () => {
   });
 
   test('Multi-deposit tranche flow calculates minus remaining from assigned budget and allows adding multiple tranches', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/campaigns');
+    await page.goto('http://localhost:5175/smm/campaigns');
     await page.waitForLoadState('networkidle');
 
     // Click Create Campaign button

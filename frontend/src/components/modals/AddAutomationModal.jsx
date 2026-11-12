@@ -34,7 +34,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useCreateAutomation, useUpdateAutomation } from '../../hooks/useAutomations';
-import { Zap, X } from 'lucide-react';
+import { Zap, X } from '@/components/ui/muiIcons';
 
 const automationFormSchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -234,7 +234,7 @@ export const AddAutomationModal = ({ open, onOpenChange, automation = null }) =>
                   control={form.control}
                   name="enabled"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-2xl border border-border bg-card/60 p-4">
+                    <FormItem className="flex flex-row items-center justify-between rounded-2xl border border-border bg-secondary/40 p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-sm font-semibold text-foreground cursor-pointer">Enable Automation</FormLabel>
                         <p className="text-xs text-muted-foreground">
@@ -251,7 +251,7 @@ export const AddAutomationModal = ({ open, onOpenChange, automation = null }) =>
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -273,7 +273,7 @@ export const AddAutomationModal = ({ open, onOpenChange, automation = null }) =>
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
                 >
                   {isLoading ? 'Saving...' : automation ? 'Update Automation' : 'Create Automation'}
                 </Button>

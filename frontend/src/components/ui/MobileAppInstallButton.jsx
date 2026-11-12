@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Smartphone, X, Share2, PlusSquare, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { Download, Smartphone, X, Share2, PlusSquare, ArrowUpRight, CheckCircle2 } from '@/components/ui/muiIcons';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
 import { toast } from 'sonner';
 
@@ -94,22 +94,19 @@ export function MobileAppInstallButton() {
       {/* Floating Bottom-Right Install Button (Mobile Only) */}
       <div className="md:hidden fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-50 flex items-center animate-in fade-in slide-in-from-bottom-4 duration-300">
         <div className="relative group">
-          {/* Glowing Aura Effect */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-emerald-500 rounded-full blur-xs opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
-
           <button
             type="button"
             onClick={handleInstallClick}
-            className="relative flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 bg-black text-white rounded-full border border-primary/40 shadow-2xl hover:scale-105 active:scale-95 transition-all text-xs font-bold select-none min-h-[44px]"
+            className="relative flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 bg-zinc-950 text-white rounded-full border border-zinc-700 shadow-lg hover:scale-105 active:scale-95 transition-all text-xs font-bold select-none min-h-[44px]"
             aria-label="Download App"
           >
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Download size={13} className="stroke-[2.5]" />
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-100 text-zinc-950">
+              <Download size={13} />
             </div>
 
             <div className="flex flex-col text-left leading-tight pr-1">
               <span className="text-[11px] font-black tracking-tight text-white">Download App</span>
-              <span className="text-[9px] font-medium text-emerald-400">Install for Mobile</span>
+              <span className="text-[9px] font-medium text-zinc-400">Install for Mobile</span>
             </div>
 
             <span
@@ -128,7 +125,7 @@ export function MobileAppInstallButton() {
         <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-black text-white flex items-center gap-2">
-              <Smartphone className="text-primary" size={20} />
+              <Smartphone className="text-zinc-200" size={20} />
               <span>Install on iPhone / iPad</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-400">
@@ -138,7 +135,7 @@ export function MobileAppInstallButton() {
 
           <div className="space-y-3 pt-2 text-xs text-zinc-300">
             <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-              <div className="p-1.5 rounded-lg bg-primary/20 text-primary shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <Share2 size={16} />
               </div>
               <div>
@@ -148,7 +145,7 @@ export function MobileAppInstallButton() {
             </div>
 
             <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-              <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <PlusSquare size={16} />
               </div>
               <div>
@@ -158,7 +155,7 @@ export function MobileAppInstallButton() {
             </div>
 
             <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-              <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <CheckCircle2 size={16} />
               </div>
               <div>
@@ -175,7 +172,7 @@ export function MobileAppInstallButton() {
         <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-black text-white flex items-center gap-2">
-              <Smartphone className="text-primary" size={20} />
+              <Smartphone className="text-zinc-200" size={20} />
               <span>Install on Android / Chrome</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-400">
@@ -185,7 +182,7 @@ export function MobileAppInstallButton() {
 
           <div className="space-y-3 pt-2 text-xs text-zinc-300">
             <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-              <div className="p-1.5 rounded-lg bg-primary/20 text-primary shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <ArrowUpRight size={16} />
               </div>
               <div>
@@ -195,7 +192,7 @@ export function MobileAppInstallButton() {
             </div>
 
             <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-              <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <Download size={16} />
               </div>
               <div>

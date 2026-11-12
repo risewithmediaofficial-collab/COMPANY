@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import api from '../../../api';
 import { motion } from 'framer-motion';
-import { HeadphonesIcon, Send, CheckCircle2, MessageSquare, Mail, Phone, Clock } from 'lucide-react';
+import { HeadphonesIcon, Send, CheckCircle2, MessageSquare, Mail, Phone, Clock } from '@/components/ui/muiIcons';
 import toast from 'react-hot-toast';
 
 const TOPICS = ['Content Feedback','Technical Issue','Billing Query','Campaign Performance','Revision Request','General Question','Other'];
@@ -42,25 +42,22 @@ export default function PortalSupport() {
         {/* Contact cards */}
         <div className="space-y-3">
           {[
-            { icon: MessageSquare, label: 'Live Chat', detail: 'Available Mon–Fri, 9am–6pm', color: '#6366f1' },
-            { icon: Mail,          label: 'Email Us',  detail: 'support@agency.com',          color: '#10b981' },
-            { icon: Phone,         label: 'Call Us',   detail: '+1 (555) 000-0000',           color: '#f59e0b' },
-            { icon: Clock,         label: 'Response',  detail: 'Within 24 business hours',    color: '#8b5cf6' },
+            { icon: MessageSquare, label: 'Live Chat', detail: 'Available Mon–Fri, 9am–6pm' },
+            { icon: Mail,          label: 'Email Us',  detail: 'support@agency.com' },
+            { icon: Phone,         label: 'Call Us',   detail: '+1 (555) 000-0000' },
+            { icon: Clock,         label: 'Response',  detail: 'Within 24 business hours' },
           ].map(c => (
             <motion.div
               key={c.label}
               whileHover={{ x: 3 }}
-              className="flex items-center gap-3 p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-primary/40 transition-all"
+              className="flex items-center gap-3 p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-foreground/40 transition-all"
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: `${c.color}18` }}
-              >
-                <c.icon size={18} style={{ color: c.color }} />
+              <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
+                <c.icon size={18} className="shrink-0" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold text-foreground">{c.label}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{c.detail}</p>
+                <p className="text-[11px] text-muted-foreground truncate tabular-nums">{c.detail}</p>
               </div>
             </motion.div>
           ))}
@@ -70,8 +67,8 @@ export default function PortalSupport() {
         <div className="lg:col-span-2 rounded-2xl p-5 sm:p-6 bg-card border border-border shadow-xs">
           {submitted ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-500">
-                <CheckCircle2 size={40} />
+              <div className="w-16 h-16 rounded-full bg-secondary border border-border flex items-center justify-center mb-4 text-foreground">
+                <CheckCircle2 size={40} className="shrink-0" />
               </div>
               <h3 className="text-lg font-black text-foreground mb-2">Ticket Submitted!</h3>
               <p className="text-xs text-muted-foreground mb-6 max-w-sm">
@@ -79,7 +76,7 @@ export default function PortalSupport() {
               </p>
               <button
                 onClick={() => { setSubmit(false); setForm({ topic:'', subject:'', message:'', priority:'medium' }); }}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 transition-all"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-primary-foreground bg-primary hover:bg-primary/90 shadow-xs transition-all cursor-pointer"
               >
                 Submit Another Request
               </button>
@@ -87,8 +84,8 @@ export default function PortalSupport() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/60">
-                <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
-                  <HeadphonesIcon size={16} />
+                <div className="p-1.5 rounded-lg bg-secondary border border-border text-foreground shrink-0">
+                  <HeadphonesIcon size={16} className="shrink-0" />
                 </div>
                 <h3 className="text-sm font-bold text-foreground">Submit a Support Ticket</h3>
               </div>
@@ -153,9 +150,9 @@ export default function PortalSupport() {
               <button
                 type="submit"
                 disabled={loading || !form.message.trim()}
-                className="w-full py-3 rounded-xl text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
+                className="w-full py-3 rounded-xl text-xs sm:text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
               >
-                <Send size={14} /> {loading ? 'Submitting…' : 'Submit Ticket'}
+                <Send size={14} className="shrink-0" /> {loading ? 'Submitting…' : 'Submit Ticket'}
               </button>
             </form>
           )}

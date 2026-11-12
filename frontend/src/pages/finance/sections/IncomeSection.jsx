@@ -15,7 +15,7 @@ import {
   X,
   Edit2,
   Trash2,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   Dialog,
   DialogContent,
@@ -33,12 +33,12 @@ import {
 } from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
+import { useDateFilter } from '../../../context/DateFilterContext';
 
 export default function IncomeSection({ onQuickAdd }) {
+  const { startDate: fromDate, endDate: toDate, isDateInRange } = useDateFilter();
   const [clientFilter, setClientFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
   const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
 
   // Edit Receipt State
@@ -95,14 +95,7 @@ export default function IncomeSection({ onQuickAdd }) {
   const filteredReceipts = useMemo(() => {
     return receipts.filter((r) => {
       const rDate = r.receivedDate || r.paidAt || r.createdAt;
-      if (fromDate && rDate) {
-        const d = new Date(rDate).toISOString().slice(0, 10);
-        if (d < fromDate) return false;
-      }
-      if (toDate && rDate) {
-        const d = new Date(rDate).toISOString().slice(0, 10);
-        if (d > toDate) return false;
-      }
+      if (!isDateInRange(rDate)) return false;
       if (!search.trim()) return true;
       const q = search.toLowerCase();
       const clientName = (r.client?.company || r.client?.name || '').toLowerCase();
@@ -110,7 +103,7 @@ export default function IncomeSection({ onQuickAdd }) {
       const mode = (r.paymentMode || '').toLowerCase();
       return clientName.includes(q) || ref.includes(q) || mode.includes(q);
     });
-  }, [receipts, fromDate, toDate, search]);
+  }, [receipts, isDateInRange, search]);
 
   const sortedReceipts = useMemo(() => {
     return [...filteredReceipts].sort((a, b) => {
@@ -150,49 +143,49 @@ export default function IncomeSection({ onQuickAdd }) {
     <div className="space-y-6">
       {/* Top Banner KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-            <span>TOTAL COLLECTED REVENUE</span>
-            <ArrowDownRight className="h-4 w-4 text-emerald-600" />
+        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+            <span>Total Collected Revenue</span>
+            <ArrowDownRight className="h-4 w-4 text-muted-foreground shrink-0" />
           </div>
-          <div className="text-2xl font-bold text-emerald-600">{formatINR(totalCollected)}</div>
+          <div className="text-2xl font-bold text-foreground tabular-nums">{formatINR(totalCollected)}</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-            <span>UNAPPLIED ADVANCE CREDITS</span>
-            <Clock className="h-4 w-4 text-amber-500" />
+        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+            <span>Unapplied Advance Credits</span>
+            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
           </div>
-          <div className="text-2xl font-bold text-amber-600">{formatINR(totalUnappliedCredit)}</div>
+          <div className="text-2xl font-bold text-foreground tabular-nums">{formatINR(totalUnappliedCredit)}</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
-            <span>RECEIPTS COUNT</span>
-            <Receipt className="h-4 w-4 text-blue-600" />
+        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
+            <span>Receipts Count</span>
+            <Receipt className="h-4 w-4 text-muted-foreground shrink-0" />
           </div>
-          <div className="text-2xl font-bold text-slate-800">{filteredReceipts.length} Transactions</div>
+          <div className="text-2xl font-bold text-foreground tabular-nums">{filteredReceipts.length} Transactions</div>
         </div>
       </div>
 
       {/* Filter and Action Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-card p-4 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           <div className="relative w-full sm:w-56">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search by client, UTR, or mode..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-border text-xs text-foreground focus:ring-1 focus:ring-ring bg-background"
             />
           </div>
 
           <select
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
-            className="w-full sm:w-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium"
+            className="w-full sm:w-auto rounded-lg border border-border px-3 py-1.5 text-xs bg-background text-foreground font-medium"
           >
             <option value="all">All Clients</option>
             {clients.map((c) => (
@@ -201,88 +194,41 @@ export default function IncomeSection({ onQuickAdd }) {
               </option>
             ))}
           </select>
-
-          {/* Date to Date Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1 flex-wrap">
-            <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-            <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-              title="From Date"
-              className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
-            />
-            <span className="text-[10px] text-slate-400 font-bold">to</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-              title="To Date"
-              className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
-            />
-            {(fromDate || toDate) && (
-              <button
-                onClick={() => {
-                  setFromDate('');
-                  setToDate('');
-                }}
-                className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
-                title="Reset Date Range"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </div>
-
-          {/* Date Sorting Dropdown */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto">
-            <select
-              value={dateSort}
-              onChange={(e) => setDateSort(e.target.value)}
-              className="w-full sm:w-auto rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
-            >
-              <option value="desc">Date: Newest First (Desc)</option>
-              <option value="asc">Date: Oldest First (Asc)</option>
-            </select>
-          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
           <button
             onClick={handleExport}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 flex-1 sm:flex-initial min-h-[36px]"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground font-semibold hover:bg-secondary flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
           >
-            <Download className="h-3.5 w-3.5" />
+            <Download className="h-3.5 w-3.5 shrink-0" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => onQuickAdd('receipt')}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-2xs flex-1 sm:flex-initial min-h-[36px]"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-2xs flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5 shrink-0" />
             <span>Record Payment</span>
           </button>
         </div>
       </div>
 
       {/* Receipts Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+      <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden flex flex-col">
         <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
           <table className="w-full min-w-[700px] text-left">
-            <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
+            <thead className="bg-secondary sticky top-0 z-10 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
               <tr>
                 <th
                   onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-                  className="p-3 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                  className="p-3 cursor-pointer select-none hover:bg-muted transition-colors"
                   title="Click to toggle date sort (Newest / Oldest)"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Received Date</span>
-                    <ArrowUpDown className="h-3 w-3 text-slate-400" />
-                    <span className="text-indigo-600 font-bold">{dateSort === 'desc' ? '↓' : '↑'}</span>
+                    <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <span className="text-foreground font-bold">{dateSort === 'desc' ? '↓' : '↑'}</span>
                   </div>
                 </th>
                 <th className="p-3">Client</th>
@@ -294,44 +240,44 @@ export default function IncomeSection({ onQuickAdd }) {
                 <th className="p-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {sortedReceipts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="p-8 text-center text-slate-400">
+                  <td colSpan="8" className="p-8 text-center text-muted-foreground">
                     No payment receipts found matching your filters.
                   </td>
                 </tr>
               ) : (
                 sortedReceipts.map((r) => (
-                  <tr key={r._id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="p-3 text-slate-600 font-medium">{formatDateIST(r.receivedDate || r.paidAt)}</td>
-                    <td className="p-3 font-semibold text-slate-900">
+                  <tr key={r._id} className="hover:bg-secondary/40 transition-colors">
+                    <td className="p-3 text-muted-foreground font-medium tabular-nums whitespace-nowrap">{formatDateIST(r.receivedDate || r.paidAt)}</td>
+                    <td className="p-3 font-semibold text-foreground">
                       {r.client?.company || r.client?.name || 'Client'}
                     </td>
                     <td className="p-3">
                       {r.invoice ? (
-                        <span className="inline-flex items-center gap-1 font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                        <span className="inline-flex items-center gap-1 font-semibold text-foreground bg-secondary border border-border px-2 py-0.5 rounded text-[11px] tabular-nums">
                           {r.invoice.invoiceNumber}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[10px]">
+                        <span className="inline-flex items-center gap-1 font-medium text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded text-[10px]">
                           Advance Credit
                         </span>
                       )}
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 font-medium text-slate-700 text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-secondary border border-border font-medium text-foreground text-[10px]">
                         {r.paymentMode || r.method || 'Direct'}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-600">{r.destinationAccount?.accountName || '-'}</td>
-                    <td className="p-3 font-mono text-slate-500">{r.reference || '-'}</td>
-                    <td className="p-3 text-right font-bold text-emerald-600 text-sm">+{formatINR(r.amount)}</td>
+                    <td className="p-3 text-muted-foreground">{r.destinationAccount?.accountName || '-'}</td>
+                    <td className="p-3 font-mono text-muted-foreground tabular-nums">{r.reference || '-'}</td>
+                    <td className="p-3 text-right font-bold text-foreground text-sm tabular-nums whitespace-nowrap">+{formatINR(r.amount)}</td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleStartEditReceipt(r)}
-                          className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                           title="Edit Receipt"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
@@ -339,7 +285,7 @@ export default function IncomeSection({ onQuickAdd }) {
                         <button
                           onClick={() => handleDeleteReceipt(r)}
                           disabled={deleteReceipt.isPending}
-                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                           title="Delete Receipt"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -360,28 +306,28 @@ export default function IncomeSection({ onQuickAdd }) {
           <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
             <form onSubmit={handleSaveEditReceipt} className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
-              <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
                     <Receipt className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                       Edit Payment Receipt
                     </DialogTitle>
-                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate tabular-nums">
                       Receipt for {editingReceipt.client?.company || editingReceipt.client?.name || 'Client'} ({formatINR(editingReceipt.amount)})
                     </DialogDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
                     ESC
                   </span>
                   <DialogClose asChild>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -399,7 +345,7 @@ export default function IncomeSection({ onQuickAdd }) {
                     value={receiptForm.receivedDate}
                     onChange={(e) => setReceiptForm({ ...receiptForm, receivedDate: e.target.value })}
                     onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
@@ -408,7 +354,7 @@ export default function IncomeSection({ onQuickAdd }) {
                   <select
                     value={receiptForm.paymentMode}
                     onChange={(e) => setReceiptForm({ ...receiptForm, paymentMode: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                   >
                     <option value="Bank">Bank Transfer / NEFT / IMPS</option>
                     <option value="UPI">UPI / QR</option>
@@ -425,7 +371,7 @@ export default function IncomeSection({ onQuickAdd }) {
                     value={receiptForm.reference}
                     onChange={(e) => setReceiptForm({ ...receiptForm, reference: e.target.value })}
                     placeholder="e.g. UTR12345678"
-                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono tabular-nums transition-all outline-hidden"
                   />
                 </div>
 
@@ -436,13 +382,13 @@ export default function IncomeSection({ onQuickAdd }) {
                     value={receiptForm.notes}
                     onChange={(e) => setReceiptForm({ ...receiptForm, notes: e.target.value })}
                     placeholder="Optional internal remarks..."
-                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
+                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden resize-none"
                   />
                 </div>
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <Button

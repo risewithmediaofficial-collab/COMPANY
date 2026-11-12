@@ -9,15 +9,15 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { getAssetUrl } from '../../utils/assetUrl';
 
 const CATEGORY_TABS = [
-  { id: 'all', label: 'All Team', icon: Users, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-  { id: 'media', label: '🎬 Media & Creative', icon: Video, color: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20' },
-  { id: 'dev', label: '💻 Developers & Tech', icon: Code2, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-  { id: 'smm', label: '📢 SMM & Growth', icon: Share2, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  { id: 'management', label: '👔 Management', icon: ShieldCheck, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { id: 'all', label: 'All Team', icon: Users },
+  { id: 'media', label: 'Media & Creative', icon: Video },
+  { id: 'dev', label: 'Developers & Tech', icon: Code2 },
+  { id: 'smm', label: 'SMM & Growth', icon: Share2 },
+  { id: 'management', label: 'Management', icon: ShieldCheck },
 ];
 
 export const getEmployeeDepartmentCategory = (user) => {
@@ -130,18 +130,18 @@ export const TeamQuickAssignRoster = ({
   }, [users]);
 
   return (
-    <div className="relative mb-6 rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-xl transition-all duration-300 dark:border-slate-800/80 dark:bg-slate-900/90 dark:shadow-slate-950/40">
+    <div className="relative mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors duration-200">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-3 pb-3 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800/60">
+      <div className="flex flex-col gap-3 pb-3 border-b border-border sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/20">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
             <Users className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            <h3 className="text-sm font-semibold tracking-tight text-foreground">
               Team Roster & Quick Task Assignment
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Pick any team member by role to instantly assign a task directly into their Kanban queue
             </p>
           </div>
@@ -150,13 +150,13 @@ export const TeamQuickAssignRoster = ({
         <div className="flex items-center gap-2">
           {/* Quick Search */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Filter employee or role..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 w-44 rounded-lg border border-slate-200 bg-slate-50/70 pl-8 pr-3 text-xs text-slate-800 placeholder-slate-400 transition-colors focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-indigo-400 sm:w-56"
+              className="h-8 w-44 rounded-lg border border-border bg-background pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none sm:w-56"
             />
           </div>
 
@@ -164,7 +164,7 @@ export const TeamQuickAssignRoster = ({
           <button
             type="button"
             onClick={() => setIsCollapsed((prev) => !prev)}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="inline-flex h-8 items-center gap-1 rounded-lg border border-border bg-secondary px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
             title={isCollapsed ? 'Expand Team Roster' : 'Collapse Team Roster'}
           >
             {isCollapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -180,22 +180,24 @@ export const TeamQuickAssignRoster = ({
         {CATEGORY_TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const count = categoryCounts[tab.id] || 0;
+          const TabIcon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`group inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`group inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-slate-900 text-white shadow-sm shadow-slate-900/20 dark:bg-indigo-600 dark:text-white dark:shadow-indigo-600/30'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-200'
+                  ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
+              <TabIcon className="h-3.5 w-3.5 shrink-0" />
               <span>{tab.label}</span>
               <span
-                className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
                   isActive
-                    ? 'bg-white/20 text-white'
-                    : 'bg-slate-200/70 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground'
                 }`}
               >
                 {count}
@@ -208,7 +210,7 @@ export const TeamQuickAssignRoster = ({
       {/* Employee Cards Grid / Carousel */}
       <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {filteredUsers.length === 0 ? (
-          <div className="col-span-full py-6 text-center text-xs text-slate-400 dark:text-slate-500">
+          <div className="col-span-full py-6 text-center text-xs text-muted-foreground">
             No team members found for this filter.
           </div>
         ) : (
@@ -231,7 +233,7 @@ export const TeamQuickAssignRoster = ({
             return (
               <div
                 key={user._id}
-                className="group relative flex flex-col justify-between rounded-xl border border-slate-200/90 bg-slate-50/60 p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400 hover:bg-white hover:shadow-md hover:shadow-indigo-500/10 dark:border-slate-800/80 dark:bg-slate-950/40 dark:hover:border-indigo-500/60 dark:hover:bg-slate-900/90"
+                className="group relative flex flex-col justify-between rounded-xl border border-border bg-background p-2.5 transition-colors hover:border-foreground/40 hover:bg-secondary/40 hover:shadow-sm"
               >
                 {/* Employee Details */}
                 <div className="flex items-start gap-2.5">
@@ -240,23 +242,23 @@ export const TeamQuickAssignRoster = ({
                       <img
                         src={avatarSrc}
                         alt={user.name}
-                        className="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow-sm dark:ring-slate-800"
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-background shadow-sm"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-800">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm ring-2 ring-background">
                         {initials}
                       </div>
                     )}
                     {/* Workload Indicator dot */}
                     <span
                       title={`${activeCount} active tasks`}
-                      className={`absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full ring-2 ring-white text-[9px] font-bold text-white dark:ring-slate-900 ${
+                      className={`absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-2 ring-background text-[9px] font-bold tabular-nums ${
                         activeCount > 3
-                          ? 'bg-rose-500'
+                          ? 'bg-primary text-primary-foreground'
                           : activeCount > 0
-                          ? 'bg-amber-500'
-                          : 'bg-emerald-500'
+                          ? 'bg-foreground/80 text-background'
+                          : 'bg-secondary text-muted-foreground border border-border'
                       }`}
                     >
                       {activeCount > 0 ? activeCount : '•'}
@@ -266,50 +268,40 @@ export const TeamQuickAssignRoster = ({
                   <div className="min-w-0 flex-1">
                     <p
                       title={user.name}
-                      className="truncate text-xs font-semibold text-slate-800 dark:text-slate-100"
+                      className="truncate text-xs font-semibold text-foreground"
                     >
                       {user.name}
                     </p>
                     <p
                       title={user.position || user.designation || user.role}
-                      className="truncate text-[11px] text-slate-500 dark:text-slate-400"
+                      className="truncate text-[11px] text-muted-foreground"
                     >
                       {user.position || user.designation || user.role || 'Member'}
                     </p>
 
-                    <span
-                      className={`mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider ${
-                        category === 'media'
-                          ? 'bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300'
-                          : category === 'dev'
-                          ? 'bg-sky-500/10 text-sky-700 dark:text-sky-300'
-                          : category === 'smm'
-                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                      }`}
-                    >
+                    <span className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-secondary text-muted-foreground border border-border">
                       {category}
                     </span>
                   </div>
                 </div>
 
                 {/* Bottom Quick-Assign Action */}
-                <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                    {activeCount === 0 ? '✨ Idle' : `${activeCount} in progress`}
+                <div className="mt-2.5 pt-2 border-t border-border flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground tabular-nums">
+                    {activeCount === 0 ? 'Idle' : `${activeCount} in progress`}
                   </span>
 
                   {canCreate ? (
                     <button
                       onClick={() => onQuickAssign && onQuickAssign(user)}
                       title={`Create task for ${user.name}`}
-                      className="inline-flex h-6 items-center gap-1 rounded-md bg-indigo-50 px-2 text-[11px] font-semibold text-indigo-600 transition-all hover:bg-indigo-600 hover:text-white dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-600 dark:hover:text-white"
+                      className="inline-flex h-6 items-center gap-1 rounded-md bg-secondary border border-border px-2 text-[11px] font-semibold text-foreground transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer"
                     >
                       <Plus className="h-3 w-3 stroke-[2.5]" />
                       <span>Assign</span>
                     </button>
                   ) : (
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] font-semibold text-muted-foreground">
                       Team Member
                     </span>
                   )}

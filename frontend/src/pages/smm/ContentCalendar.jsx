@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Clock, Tag, Filter } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Clock, Tag, Filter, AlertCircle, Rocket, CheckCircle2, Eye } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { PageHeader } from '../../components/ui/page';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
@@ -8,10 +8,10 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, en
 import { toast } from 'react-hot-toast';
 
 const EVENT_TYPES = [
-  { id: 'Post', label: 'Scheduled Post', color: 'bg-blue-500 text-white' },
-  { id: 'Launch', label: 'Campaign Launch', color: 'bg-emerald-500 text-white' },
-  { id: 'Deadline', label: 'Creative Deadline', color: 'bg-amber-500 text-white' },
-  { id: 'Approval', label: 'Approval Deadline', color: 'bg-purple-500 text-white' },
+  { id: 'Post', label: 'Scheduled Post', color: 'bg-secondary text-foreground border border-border' },
+  { id: 'Launch', label: 'Campaign Launch', color: 'bg-foreground text-background' },
+  { id: 'Deadline', label: 'Creative Deadline', color: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100 border border-border' },
+  { id: 'Approval', label: 'Approval Deadline', color: 'bg-card text-foreground border border-foreground/40' },
 ];
 
 export default function ContentCalendar() {
@@ -83,25 +83,41 @@ export default function ContentCalendar() {
   const getEventsForDay = (targetDay) => {
     const dayTasks = tasks.filter((t) => t.deadline && isSameDay(new Date(t.deadline), targetDay));
     const dayCamps = campaigns.filter((c) => c.startDate && isSameDay(new Date(c.startDate), targetDay));
-    
+
     return [
-      ...dayCamps.map((c) => ({ id: c._id, title: `🚀 Launch: ${c.name}`, type: 'Launch', color: 'bg-emerald-500 text-white' })),
+      ...dayCamps.map((c) => ({
+        id: c._id,
+        title: `Launch: ${c.name}`,
+        type: 'Launch',
+        icon: 'launch',
+        color: 'bg-foreground text-background font-semibold',
+      })),
       ...dayTasks.map((t) => {
         const isUrgent = t.priority === 'Urgent' || t.priority === 'urgent';
         const isHigh = t.priority === 'High' || t.priority === 'high';
         const isApproved = t.status === 'Completed' || t.status === 'Approved' || t.status === 'approved';
         const isReview = t.status === 'Review Required' || t.status === 'review';
 
-        let color = 'bg-blue-500 text-white';
-        if (isUrgent) color = 'bg-rose-600 text-white font-black ring-1 ring-rose-700 animate-pulse';
-        else if (isApproved) color = 'bg-emerald-600 text-white font-semibold';
-        else if (isReview) color = 'bg-purple-600 text-white font-semibold';
-        else if (isHigh) color = 'bg-amber-600 text-white font-semibold';
+        let color = 'bg-secondary text-foreground border border-border';
+        let icon = 'post';
+        if (isUrgent) {
+          color = 'bg-primary text-primary-foreground font-bold';
+          icon = 'urgent';
+        } else if (isApproved) {
+          color = 'bg-foreground text-background font-semibold';
+          icon = 'approved';
+        } else if (isReview) {
+          color = 'bg-card text-foreground border border-foreground/40 font-semibold';
+          icon = 'review';
+        } else if (isHigh) {
+          color = 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100 border border-border font-semibold';
+        }
 
         return {
           id: t._id,
-          title: `${isUrgent ? '🔴 ' : ''}${t.title}`,
+          title: t.title,
           type: isUrgent ? 'Urgent' : 'Deadline',
+          icon,
           color,
         };
       }),
@@ -114,9 +130,9 @@ export default function ContentCalendar() {
         title="Content & Campaign Calendar"
         subtitle="Schedule posts, campaign launches, creative deadlines & approvals"
         actions={
-          <button onClick={() => setIsDrawerOpen(true)} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
+          <button onClick={() => setIsDrawerOpen(true)} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-sm hover:opacity-90 cursor-pointer">
             <Plus size={18} />
-            Add Calendar Event
+            <span>Add Calendar Event</span>
           </button>
         }
       />
@@ -127,14 +143,14 @@ export default function ContentCalendar() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-4 rounded-2xl border border-border">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-bold text-foreground">{format(currentDate, 'MMMM yyyy')}</h3>
-          <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl">
-            <button onClick={prevPeriod} className="p-1 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground">
+          <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl border border-border">
+            <button onClick={prevPeriod} className="p-1 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground cursor-pointer">
               <ChevronLeft size={18} />
             </button>
-            <button onClick={() => setCurrentDate(new Date())} className="px-2.5 py-1 text-xs font-semibold rounded-lg hover:bg-card">
+            <button onClick={() => setCurrentDate(new Date())} className="px-2.5 py-1 text-xs font-semibold rounded-lg hover:bg-card text-foreground cursor-pointer">
               Today
             </button>
-            <button onClick={nextPeriod} className="p-1 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground">
+            <button onClick={nextPeriod} className="p-1 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground cursor-pointer">
               <ChevronRight size={18} />
             </button>
           </div>
@@ -142,20 +158,20 @@ export default function ContentCalendar() {
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
-            <span className="text-foreground font-bold">🔴 Urgent Priority</span>
+          <div className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+            <span className="text-foreground font-bold">Urgent Priority</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+          <div className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-secondary border border-border" />
             <span className="text-muted-foreground font-medium">In Process / Post</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
+          <div className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-card border border-foreground/50" />
             <span className="text-muted-foreground font-medium">Review Needed</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <div className="inline-flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-foreground" />
             <span className="text-muted-foreground font-medium">Approved / Launch</span>
           </div>
         </div>
@@ -186,10 +202,10 @@ export default function ContentCalendar() {
                 key={i}
                 className={`p-2 min-h-[100px] flex flex-col justify-start transition-colors ${
                   !isSelectedMonth ? 'bg-secondary/20 text-muted-foreground/40' : 'bg-card'
-                } ${isToday ? 'bg-primary/5' : ''}`}
+                } ${isToday ? 'bg-secondary/40' : ''}`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                  <span className={`text-xs font-bold tabular-nums px-1.5 py-0.5 rounded-full ${
                     isToday ? 'bg-primary text-primary-foreground' : 'text-foreground'
                   }`}>
                     {format(d, 'd')}
@@ -200,10 +216,14 @@ export default function ContentCalendar() {
                   {dayEvents.map((ev, idx) => (
                     <div
                       key={idx}
-                      className={`text-[10px] font-semibold px-2 py-1 rounded-lg truncate shadow-2xs ${ev.color}`}
+                      className={`text-[10px] font-semibold px-2 py-1 rounded-lg flex items-center gap-1 min-w-0 ${ev.color}`}
                       title={ev.title}
                     >
-                      {ev.title}
+                      {ev.icon === 'launch' && <Rocket size={10} className="shrink-0" />}
+                      {ev.icon === 'urgent' && <AlertCircle size={10} className="shrink-0" />}
+                      {ev.icon === 'approved' && <CheckCircle2 size={10} className="shrink-0" />}
+                      {ev.icon === 'review' && <Eye size={10} className="shrink-0" />}
+                      <span className="truncate">{ev.title}</span>
                     </div>
                   ))}
                 </div>

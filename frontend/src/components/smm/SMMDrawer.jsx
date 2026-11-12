@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X } from '@/components/ui/muiIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const SMMDrawer = ({ isOpen, onClose, title, subtitle, children, maxWidth = 'max-w-2xl' }) => {
@@ -13,7 +13,7 @@ export const SMMDrawer = ({ isOpen, onClose, title, subtitle, children, maxWidth
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/60 transition-opacity"
           />
 
           {/* Slide-over panel */}
@@ -26,7 +26,7 @@ export const SMMDrawer = ({ isOpen, onClose, title, subtitle, children, maxWidth
               className={`w-screen ${maxWidth} bg-card border-l border-border shadow-2xl flex flex-col h-full`}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-card/80 backdrop-blur-md shrink-0">
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-card shrink-0">
                 <div className="min-w-0 pr-2">
                   <h3 className="text-base sm:text-lg font-bold text-foreground truncate">{title}</h3>
                   {subtitle && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{subtitle}</p>}

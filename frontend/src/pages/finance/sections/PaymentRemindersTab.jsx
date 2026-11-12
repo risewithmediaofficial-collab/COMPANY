@@ -18,7 +18,7 @@ import {
   User,
   Share2,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   Dialog,
   DialogContent,
@@ -220,105 +220,105 @@ export default function PaymentRemindersTab() {
   return (
     <div className="space-y-6">
       {/* ── ISOLATION NOTICE ── */}
-      <div className="rounded-xl border border-indigo-200/80 bg-indigo-50/70 p-4 text-xs text-indigo-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+      <div className="rounded-xl border border-border bg-secondary/50 p-4 text-xs text-foreground flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-start gap-2.5">
-          <ShieldCheck className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+          <ShieldCheck className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
           <div>
             <span className="font-bold">Independent Payment Tracking</span>
-            <p className="text-[11px] text-indigo-700/90 mt-0.5">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               These payment reminders are kept completely separate for referral commissions, partner cuts, and client settlements.
-              They are <strong className="font-bold underline">not connected</strong> to agency operating expenses, revenue, P&L, or cash profit metrics.
+              They are <strong className="font-bold underline text-foreground">not connected</strong> to agency operating expenses, revenue, P&L, or cash profit metrics.
             </p>
           </div>
         </div>
-        <span className="px-2.5 py-1 rounded-lg bg-indigo-100/80 text-indigo-800 text-[10px] font-bold uppercase tracking-wider shrink-0 border border-indigo-200">
-          🔒 Isolated Ledger
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card text-foreground text-[10px] font-bold uppercase tracking-wider shrink-0 border border-border">
+          <ShieldCheck className="h-3 w-3 shrink-0" /> Isolated Ledger
         </span>
       </div>
 
       {/* ── SUMMARY KPI METRIC CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Tracked</span>
-            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Tracked</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border text-foreground shrink-0">
               <DollarSign className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-900">{formatINR(summary.totalTracked)}</div>
-          <div className="mt-1 text-[11px] text-slate-500">
+          <div className="text-xl font-bold text-foreground tabular-nums">{formatINR(summary.totalTracked)}</div>
+          <div className="mt-1 text-[11px] text-muted-foreground tabular-nums">
             Across {summary.totalCount} payment records
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Collected / Settled</span>
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Collected / Settled</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border text-foreground shrink-0">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-xl font-bold text-emerald-600">{formatINR(summary.totalPaid)}</div>
-          <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-1.5">
+          <div className="text-xl font-bold text-foreground tabular-nums">{formatINR(summary.totalPaid)}</div>
+          <div className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1.5 tabular-nums">
             <span>{summary.paidCount} fully settled</span>
             {summary.totalTracked > 0 && (
-              <span className="font-bold text-emerald-700">
+              <span className="font-bold text-foreground">
                 ({Math.round((summary.totalPaid / summary.totalTracked) * 100)}%)
               </span>
             )}
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Pending Balance</span>
-            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pending Balance</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border text-foreground shrink-0">
               <Clock className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-xl font-bold text-amber-600">{formatINR(summary.totalPending)}</div>
-          <div className="mt-1 text-[11px] text-slate-500">
+          <div className="text-xl font-bold text-foreground tabular-nums">{formatINR(summary.totalPending)}</div>
+          <div className="mt-1 text-[11px] text-muted-foreground tabular-nums">
             {summary.pendingCount} unpaid, {summary.partiallyPaidCount} partial
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Settlement Status</span>
-            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Settlement Status</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border text-foreground shrink-0">
               <Filter className="h-4 w-4" />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 mt-1">
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-700">
+          <div className="flex flex-wrap items-center gap-1.5 mt-1 tabular-nums">
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-muted text-muted-foreground border border-border">
               {summary.pendingCount} Unpaid
             </span>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-700">
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-secondary text-foreground border border-border">
               {summary.partiallyPaidCount} Partial
             </span>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700">
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-primary text-primary-foreground">
               {summary.paidCount} Paid
             </span>
           </div>
-          <div className="mt-2 text-[11px] text-slate-500">Active follow-up pipeline</div>
+          <div className="mt-2 text-[11px] text-muted-foreground">Active follow-up pipeline</div>
         </div>
       </div>
 
       {/* ── SEARCH & FILTER ACTION BAR ── */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-card p-4 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search title, party, notes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-border text-xs text-foreground focus:ring-1 focus:ring-ring bg-background"
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg overflow-x-auto max-w-full">
+          <div className="flex items-center gap-1 bg-secondary p-0.5 rounded-lg border border-border overflow-x-auto max-w-full">
             {[
               { id: 'all', label: 'All' },
               { id: 'pending', label: 'Unpaid' },
@@ -331,8 +331,8 @@ export default function PaymentRemindersTab() {
                 onClick={() => setStatusFilter(st.id)}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer shrink-0 min-h-[32px] sm:min-h-[36px] ${
                   statusFilter === st.id
-                    ? 'bg-white text-indigo-600 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-card text-foreground shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {st.label}
@@ -343,9 +343,9 @@ export default function PaymentRemindersTab() {
 
         <button
           onClick={handleOpenAdd}
-          className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-2xs cursor-pointer w-full sm:w-auto min-h-[36px]"
+          className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-2xs cursor-pointer w-full sm:w-auto min-h-[36px] transition-colors"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="h-3.5 w-3.5 shrink-0" />
           New Payment Reminder
         </button>
       </div>
@@ -353,11 +353,11 @@ export default function PaymentRemindersTab() {
       {/* ── MOBILE REMINDERS CARDS (block md:hidden) ── */}
       <div className="block md:hidden space-y-3">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+          <div className="p-8 text-center text-muted-foreground bg-card rounded-xl border border-border">
             Loading payment reminders...
           </div>
         ) : reminders.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+          <div className="p-8 text-center text-muted-foreground bg-card rounded-xl border border-border">
             No payment reminders recorded.
           </div>
         ) : (
@@ -368,37 +368,37 @@ export default function PaymentRemindersTab() {
             const isOverdue = reminder.dueDate && new Date(reminder.dueDate) < new Date() && reminder.status !== 'paid';
 
             return (
-              <div key={reminder._id} className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+              <div key={reminder._id} className="p-4 rounded-xl bg-card border border-border shadow-2xs space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap text-[10px] mb-1">
                       {reminder.category && (
-                        <span className="font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                        <span className="font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-secondary border border-border text-foreground">
                           {reminder.category.replace('_', ' ')}
                         </span>
                       )}
                       {reminder.dueDate && (
-                        <span className={`font-semibold ${isOverdue ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
+                        <span className={`font-semibold tabular-nums ${isOverdue ? 'text-foreground font-bold underline underline-offset-2' : 'text-muted-foreground'}`}>
                           Due: {formatDateIST(reminder.dueDate)} {isOverdue && '(Overdue)'}
                         </span>
                       )}
                     </div>
-                    <h4 className="font-bold text-sm text-slate-900 leading-snug">{reminder.title}</h4>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-                      <User className="h-3 w-3 text-slate-400 shrink-0" />
+                    <h4 className="font-bold text-sm text-foreground leading-snug">{reminder.title}</h4>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                      <User className="h-3 w-3 text-muted-foreground shrink-0" />
                       <span>{reminder.partyName}</span>
-                      {reminder.contactInfo && <span className="text-slate-400">({reminder.contactInfo})</span>}
+                      {reminder.contactInfo && <span className="text-muted-foreground tabular-nums">({reminder.contactInfo})</span>}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-base font-extrabold text-slate-900">{formatINR(total)}</div>
+                    <div className="text-base font-extrabold text-foreground tabular-nums">{formatINR(total)}</div>
                     <span
                       className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase mt-0.5 ${
                         reminder.status === 'paid'
-                          ? 'bg-emerald-100 text-emerald-700'
+                          ? 'bg-primary text-primary-foreground'
                           : reminder.status === 'partially_paid'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-amber-100 text-amber-700'
+                          ? 'bg-secondary text-foreground border border-border'
+                          : 'bg-muted text-muted-foreground border border-border'
                       }`}
                     >
                       {reminder.status === 'paid' ? 'Paid' : reminder.status === 'partially_paid' ? 'Partial' : 'Unpaid'}
@@ -406,38 +406,38 @@ export default function PaymentRemindersTab() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
-                  <span className="text-slate-500">Paid: <strong className="text-emerald-600">{formatINR(paid)}</strong></span>
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-border tabular-nums">
+                  <span className="text-muted-foreground">Paid: <strong className="text-foreground">{formatINR(paid)}</strong></span>
                   {balance > 0 && (
-                    <span className="text-amber-600 font-bold">Balance: {formatINR(balance)}</span>
+                    <span className="text-foreground font-bold">Balance: {formatINR(balance)}</span>
                   )}
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                   {reminder.status !== 'paid' && (
                     <>
                       <button
                         type="button"
                         onClick={() => handleOpenRecordPayment(reminder)}
-                        className="flex-1 min-h-[36px] flex items-center justify-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold text-xs"
+                        className="flex-1 min-h-[36px] flex items-center justify-center px-3 py-1.5 rounded-lg bg-secondary border border-border text-foreground hover:bg-muted font-bold text-xs cursor-pointer"
                       >
                         Record Pay
                       </button>
                       <button
                         type="button"
                         onClick={() => handleQuickMarkPaid(reminder)}
-                        className="min-h-[36px] px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs flex items-center gap-1"
+                        className="min-h-[36px] px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs flex items-center gap-1 cursor-pointer"
                         title="Mark fully paid"
                       >
-                        <Check className="h-3.5 w-3.5" />
+                        <Check className="h-3.5 w-3.5 shrink-0" />
                         <span>Paid</span>
                       </button>
                     </>
                   )}
                   <button
                     type="button"
-                    onClick={() => handleOpenHistory(reminder)}
-                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1"
+                    onClick={() => setHistoryReminder(reminder)}
+                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary hover:text-foreground text-xs font-semibold flex items-center gap-1 cursor-pointer"
                     title="History"
                   >
                     <History className="h-3.5 w-3.5" />
@@ -445,7 +445,7 @@ export default function PaymentRemindersTab() {
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(reminder)}
-                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1"
+                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary hover:text-foreground text-xs font-semibold flex items-center gap-1 cursor-pointer"
                     title="Edit"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
@@ -453,7 +453,7 @@ export default function PaymentRemindersTab() {
                   <button
                     type="button"
                     onClick={() => handleDelete(reminder)}
-                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold flex items-center gap-1"
+                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:bg-secondary hover:text-foreground text-xs font-semibold flex items-center gap-1 cursor-pointer"
                     title="Delete"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -466,42 +466,42 @@ export default function PaymentRemindersTab() {
       </div>
 
       {/* ── REMINDERS TABLE (hidden md:block) ── */}
-      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="hidden md:block bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
         <div className="responsive-table-container text-xs">
           <table className="w-full min-w-[780px] text-left">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="bg-secondary border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3">Party / Client</th>
                 <th className="p-3">Title & Purpose</th>
-                <th className="p-3">Total Amount</th>
-                <th className="p-3">Paid Amount</th>
-                <th className="p-3">Remaining Balance</th>
+                <th className="p-3 text-right">Total Amount</th>
+                <th className="p-3 text-right">Paid Amount</th>
+                <th className="p-3 text-right">Remaining Balance</th>
                 <th className="p-3">Due / Reminder Date</th>
                 <th className="p-3">Status</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan="8" className="p-8 text-center text-slate-400">
+                  <td colSpan="8" className="p-8 text-center text-muted-foreground">
                     Loading payment reminders...
                   </td>
                 </tr>
               ) : reminders.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="p-12 text-center text-slate-400">
+                  <td colSpan="8" className="p-12 text-center text-muted-foreground">
                     <div className="max-w-sm mx-auto space-y-2">
-                      <Clock className="h-8 w-8 text-slate-300 mx-auto" />
-                      <p className="font-semibold text-slate-600 text-sm">No payment reminders recorded</p>
-                      <p className="text-xs text-slate-400">
+                      <Clock className="h-8 w-8 text-muted-foreground/50 mx-auto" />
+                      <p className="font-semibold text-foreground text-sm">No payment reminders recorded</p>
+                      <p className="text-xs text-muted-foreground">
                         Add referral fees, partner commissions, or client settlements to track them independently.
                       </p>
                       <button
                         onClick={handleOpenAdd}
-                        className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold text-xs transition-colors cursor-pointer"
+                        className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs transition-colors cursor-pointer"
                       >
-                        <Plus className="h-3 w-3" />
+                        <Plus className="h-3 w-3 shrink-0" />
                         Create first reminder
                       </button>
                     </div>
@@ -516,20 +516,20 @@ export default function PaymentRemindersTab() {
                   const isOverdue = reminder.dueDate && new Date(reminder.dueDate) < new Date() && reminder.status !== 'paid';
 
                   return (
-                    <tr key={reminder._id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr key={reminder._id} className="hover:bg-secondary/40 transition-colors">
                       {/* Party / Client */}
                       <td className="p-3">
-                        <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                          <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <div className="font-bold text-foreground flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <span>{reminder.partyName}</span>
                         </div>
                         {reminder.contactInfo && (
-                          <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                          <div className="text-[11px] text-muted-foreground truncate mt-0.5 tabular-nums">
                             {reminder.contactInfo}
                           </div>
                         )}
                         {reminder.category && (
-                          <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                          <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-secondary border border-border text-foreground">
                             {reminder.category.replace('_', ' ')}
                           </span>
                         )}
@@ -537,31 +537,31 @@ export default function PaymentRemindersTab() {
 
                       {/* Title & Notes */}
                       <td className="p-3">
-                        <div className="font-semibold text-slate-800">{reminder.title}</div>
+                        <div className="font-semibold text-foreground">{reminder.title}</div>
                         {reminder.notes && (
-                          <div className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          <div className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
                             {reminder.notes}
                           </div>
                         )}
                         {reminder.paymentMode && (
-                          <div className="text-[10px] text-slate-400 mt-0.5">
+                          <div className="text-[10px] text-muted-foreground mt-0.5">
                             Mode: {reminder.paymentMode}
                           </div>
                         )}
                       </td>
 
                       {/* Total Amount */}
-                      <td className="p-3 font-bold text-slate-900 whitespace-nowrap">
+                      <td className="p-3 text-right font-bold text-foreground tabular-nums whitespace-nowrap">
                         {formatINR(total)}
                       </td>
 
                       {/* Paid Amount */}
-                      <td className="p-3 whitespace-nowrap">
-                        <div className="font-semibold text-emerald-600">{formatINR(paid)}</div>
+                      <td className="p-3 text-right tabular-nums whitespace-nowrap">
+                        <div className="font-semibold text-foreground">{formatINR(paid)}</div>
                         {total > 0 && (
-                          <div className="w-20 bg-slate-100 rounded-full h-1.5 mt-1 overflow-hidden">
+                          <div className="w-20 ml-auto bg-muted rounded-full h-1.5 mt-1 overflow-hidden">
                             <div
-                              className="bg-emerald-500 h-1.5 rounded-full transition-all"
+                              className="bg-primary h-1.5 rounded-full transition-all"
                               style={{ width: `${percentPaid}%` }}
                             />
                           </div>
@@ -569,43 +569,43 @@ export default function PaymentRemindersTab() {
                       </td>
 
                       {/* Remaining Balance */}
-                      <td className="p-3 whitespace-nowrap">
-                        <div className={`font-bold ${balance > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
+                      <td className="p-3 text-right tabular-nums whitespace-nowrap">
+                        <div className={`font-bold ${balance > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>
                           {formatINR(balance)}
                         </div>
                       </td>
 
                       {/* Due / Reminder Date */}
-                      <td className="p-3 whitespace-nowrap">
+                      <td className="p-3 whitespace-nowrap tabular-nums">
                         {reminder.dueDate ? (
                           <div className="flex items-center gap-1.5">
-                            <span className={isOverdue ? 'text-rose-600 font-bold' : 'text-slate-600'}>
+                            <span className={isOverdue ? 'text-foreground font-bold' : 'text-muted-foreground'}>
                               {formatDateIST(reminder.dueDate)}
                             </span>
                             {isOverdue && (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-100 text-rose-700">
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-primary text-primary-foreground">
                                 Overdue
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </td>
 
                       {/* Status */}
                       <td className="p-3 whitespace-nowrap">
                         {reminder.status === 'paid' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">
-                            <CheckCircle2 className="h-3 w-3" /> Fully Paid
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary text-primary-foreground">
+                            <CheckCircle2 className="h-3 w-3 shrink-0" /> Fully Paid
                           </span>
                         ) : reminder.status === 'partially_paid' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700">
-                            <Clock className="h-3 w-3" /> Partially Paid
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border">
+                            <Clock className="h-3 w-3 shrink-0" /> Partially Paid
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">
-                            <AlertCircle className="h-3 w-3" /> Unpaid / Pending
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-muted text-muted-foreground border border-border">
+                            <AlertCircle className="h-3 w-3 shrink-0" /> Unpaid / Pending
                           </span>
                         )}
                       </td>
@@ -619,7 +619,7 @@ export default function PaymentRemindersTab() {
                                 type="button"
                                 onClick={() => handleOpenRecordPayment(reminder)}
                                 title="Record partial payment or settlement"
-                                className="px-2 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors cursor-pointer"
+                                className="px-2 py-1 rounded-md text-[11px] font-bold bg-secondary border border-border text-foreground hover:bg-muted transition-colors cursor-pointer"
                               >
                                 Record Pay
                               </button>
@@ -627,7 +627,7 @@ export default function PaymentRemindersTab() {
                                 type="button"
                                 onClick={() => handleQuickMarkPaid(reminder)}
                                 title="Mark fully paid"
-                                className="p-1 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                               >
                                 <Check className="h-4 w-4" />
                               </button>
@@ -639,7 +639,7 @@ export default function PaymentRemindersTab() {
                               type="button"
                               onClick={() => setHistoryReminder(reminder)}
                               title="View payment installments history"
-                              className="p-1 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors cursor-pointer"
+                              className="p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                             >
                               <History className="h-3.5 w-3.5" />
                             </button>
@@ -649,7 +649,7 @@ export default function PaymentRemindersTab() {
                             type="button"
                             onClick={() => handleOpenEdit(reminder)}
                             title="Edit details"
-                            className="p-1 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors cursor-pointer"
+                            className="p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
@@ -658,7 +658,7 @@ export default function PaymentRemindersTab() {
                             type="button"
                             onClick={() => handleDelete(reminder)}
                             title="Delete reminder"
-                            className="p-1 rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer"
+                            className="p-1 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -678,9 +678,9 @@ export default function PaymentRemindersTab() {
         <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
           <form onSubmit={handleSubmitForm} className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+            <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
                   <DollarSign className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -693,13 +693,13 @@ export default function PaymentRemindersTab() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
                   ESC
                 </span>
                 <DialogClose asChild>
                   <button
                     type="button"
-                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -711,7 +711,7 @@ export default function PaymentRemindersTab() {
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Title / Purpose <span className="text-destructive">*</span>
+                  Title / Purpose <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="text"
@@ -719,13 +719,13 @@ export default function PaymentRemindersTab() {
                   placeholder="e.g. Referral cut for ABC Client deal"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                 />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Party / Client / Referrer Name <span className="text-destructive">*</span>
+                  Party / Client / Referrer Name <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="text"
@@ -733,7 +733,7 @@ export default function PaymentRemindersTab() {
                   placeholder="e.g. Rajesh Kumar or Brand X"
                   value={formData.partyName}
                   onChange={(e) => setFormData({ ...formData, partyName: e.target.value })}
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                 />
               </div>
 
@@ -744,7 +744,7 @@ export default function PaymentRemindersTab() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                 >
                   <option value="referral">Referral Cut</option>
                   <option value="client_cut">Client-Side Share</option>
@@ -756,7 +756,7 @@ export default function PaymentRemindersTab() {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                  Total Agreed Amount (₹) <span className="text-destructive">*</span>
+                  Total Agreed Amount (₹) <span className="text-foreground">*</span>
                 </label>
                 <input
                   type="number"
@@ -766,7 +766,7 @@ export default function PaymentRemindersTab() {
                   placeholder="e.g. 25000"
                   value={formData.totalAmount}
                   onChange={(e) => setFormData({ ...formData, totalAmount: e.target.value })}
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
                 />
               </div>
 
@@ -782,7 +782,7 @@ export default function PaymentRemindersTab() {
                     placeholder="0 if completely unpaid"
                     value={formData.paidAmount}
                     onChange={(e) => setFormData({ ...formData, paidAmount: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
               )}
@@ -796,7 +796,7 @@ export default function PaymentRemindersTab() {
                     type="text"
                     disabled
                     value={formatINR(editingReminder.paidAmount || 0)}
-                    className="w-full h-11 rounded-xl text-sm border-border bg-muted/40 px-4 text-muted-foreground font-mono cursor-not-allowed"
+                    className="w-full h-11 rounded-xl text-sm border border-border bg-muted/40 px-4 text-muted-foreground tabular-nums font-mono cursor-not-allowed"
                   />
                 </div>
               )}
@@ -809,7 +809,7 @@ export default function PaymentRemindersTab() {
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                  className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                 />
               </div>
 
@@ -820,7 +820,7 @@ export default function PaymentRemindersTab() {
                 <select
                   value={formData.paymentMode}
                   onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                 >
                   <option value="Bank Transfer">Bank Transfer</option>
                   <option value="UPI">UPI</option>
@@ -837,7 +837,7 @@ export default function PaymentRemindersTab() {
                 <select
                   value={formData.client}
                   onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                 >
                   <option value="">None / External Party</option>
                   {clients.map((c) => (
@@ -857,7 +857,7 @@ export default function PaymentRemindersTab() {
                   placeholder="e.g. +91 98765 43210"
                   value={formData.contactInfo}
                   onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                 />
               </div>
 
@@ -870,13 +870,13 @@ export default function PaymentRemindersTab() {
                   placeholder="Add any specific context, account details, or terms..."
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
+                  className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden resize-none"
                 />
               </div>
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
               <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <Button
@@ -890,7 +890,7 @@ export default function PaymentRemindersTab() {
                 <Button
                   type="submit"
                   disabled={createReminder.isPending || updateReminder.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-sm transition-all w-full sm:w-auto"
                 >
                   {editingReminder ? 'Save Changes' : 'Create Reminder'}
                 </Button>
@@ -906,9 +906,9 @@ export default function PaymentRemindersTab() {
           {recordingPaymentReminder && (
             <form onSubmit={handleSubmitPayment} className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
-              <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
                     <DollarSign className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -921,13 +921,13 @@ export default function PaymentRemindersTab() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
                     ESC
                   </span>
                   <DialogClose asChild>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -937,29 +937,29 @@ export default function PaymentRemindersTab() {
 
               {/* Scrollable Linear Body */}
               <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-                <div className="bg-secondary/30 p-4 rounded-xl border border-border flex justify-between items-center text-xs">
+                <div className="bg-secondary/50 p-4 rounded-xl border border-border flex justify-between items-center text-xs tabular-nums">
                   <div>
                     <span className="text-muted-foreground">Total:</span>{' '}
                     <strong className="text-foreground">{formatINR(recordingPaymentReminder.totalAmount)}</strong>
                     <br />
                     <span className="text-muted-foreground">Already Paid:</span>{' '}
-                    <strong className="text-emerald-600">{formatINR(recordingPaymentReminder.paidAmount || 0)}</strong>
+                    <strong className="text-foreground">{formatINR(recordingPaymentReminder.paidAmount || 0)}</strong>
                   </div>
                   <div className="text-right">
                     <span className="text-muted-foreground">Current Balance Due:</span>
-                    <div className="text-sm font-bold text-amber-600 mt-0.5">
+                    <div className="text-sm font-bold text-foreground mt-0.5">
                       {formatINR(Math.max(0, (recordingPaymentReminder.totalAmount || 0) - (recordingPaymentReminder.paidAmount || 0)))}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3.5 bg-muted/20 border border-border rounded-xl">
+                <div className="flex items-center gap-3 p-3.5 bg-muted/30 border border-border rounded-xl">
                   <input
                     type="checkbox"
                     id="markFullCheck"
                     checked={paymentForm.markAsFull}
                     onChange={(e) => setPaymentForm({ ...paymentForm, markAsFull: e.target.checked })}
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+                    className="h-4 w-4 rounded border-border text-foreground focus:ring-ring/20"
                   />
                   <label htmlFor="markFullCheck" className="text-sm font-semibold text-foreground cursor-pointer select-none">
                     Mark remainder as fully settled & paid
@@ -969,7 +969,7 @@ export default function PaymentRemindersTab() {
                 {!paymentForm.markAsFull && (
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                      Payment Amount Received (₹) <span className="text-destructive">*</span>
+                      Payment Amount Received (₹) <span className="text-foreground">*</span>
                     </label>
                     <input
                       type="number"
@@ -979,7 +979,7 @@ export default function PaymentRemindersTab() {
                       placeholder="e.g. 10000"
                       value={paymentForm.amount}
                       onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                      className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-emerald-600 font-bold focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                      className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground font-bold tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
                     />
                   </div>
                 )}
@@ -990,7 +990,7 @@ export default function PaymentRemindersTab() {
                     type="date"
                     value={paymentForm.paymentDate}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
@@ -999,7 +999,7 @@ export default function PaymentRemindersTab() {
                   <select
                     value={paymentForm.paymentMode}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentMode: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                   >
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="UPI">UPI</option>
@@ -1018,7 +1018,7 @@ export default function PaymentRemindersTab() {
                     placeholder="e.g. UTR / UPI Ref / Cheque No."
                     value={paymentForm.reference}
                     onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
 
@@ -1029,13 +1029,13 @@ export default function PaymentRemindersTab() {
                     placeholder="e.g. First installment received"
                     value={paymentForm.notes}
                     onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
                   />
                 </div>
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <Button
@@ -1049,7 +1049,7 @@ export default function PaymentRemindersTab() {
                   <Button
                     type="submit"
                     disabled={recordPayment.isPending}
-                    className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-sm transition-all w-full sm:w-auto"
                   >
                     Confirm Payment
                   </Button>
@@ -1065,9 +1065,9 @@ export default function PaymentRemindersTab() {
         <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
           <div className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+            <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
                   <History className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -1080,13 +1080,13 @@ export default function PaymentRemindersTab() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
                   ESC
                 </span>
                 <DialogClose asChild>
                   <button
                     type="button"
-                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1097,18 +1097,18 @@ export default function PaymentRemindersTab() {
             {/* Scrollable Body */}
             {historyReminder && (
               <div className="space-y-4 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-                <div className="bg-secondary/30 p-4 rounded-xl border border-border flex justify-between items-center text-xs">
+                <div className="bg-secondary/50 p-4 rounded-xl border border-border flex justify-between items-center text-xs tabular-nums">
                   <div>
                     <span className="text-muted-foreground">Total Amount:</span>{' '}
                     <strong className="text-foreground">{formatINR(historyReminder.totalAmount)}</strong>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Paid:</span>{' '}
-                    <strong className="text-emerald-600">{formatINR(historyReminder.paidAmount || 0)}</strong>
+                    <strong className="text-foreground">{formatINR(historyReminder.paidAmount || 0)}</strong>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Balance:</span>{' '}
-                    <strong className="text-amber-600">
+                    <strong className="text-foreground">
                       {formatINR(Math.max(0, (historyReminder.totalAmount || 0) - (historyReminder.paidAmount || 0)))}
                     </strong>
                   </div>
@@ -1121,8 +1121,8 @@ export default function PaymentRemindersTab() {
                       className="p-4 rounded-xl border border-border bg-card flex items-center justify-between text-xs"
                     >
                       <div>
-                        <div className="font-bold text-foreground text-sm">{formatINR(pay.amount)}</div>
-                        <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-1">
+                        <div className="font-bold text-foreground text-sm tabular-nums">{formatINR(pay.amount)}</div>
+                        <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-1 tabular-nums">
                           <span>{pay.paymentDate ? formatDateIST(pay.paymentDate) : 'Date N/A'}</span>
                           <span>•</span>
                           <span className="font-medium text-foreground">{pay.paymentMode || 'Bank'}</span>
@@ -1130,7 +1130,7 @@ export default function PaymentRemindersTab() {
                         </div>
                         {pay.notes && <div className="text-[11px] text-muted-foreground mt-1">"{pay.notes}"</div>}
                       </div>
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary text-foreground border border-border">
                         Recorded
                       </span>
                     </div>
@@ -1140,7 +1140,7 @@ export default function PaymentRemindersTab() {
             )}
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
               <Button
                 type="button"

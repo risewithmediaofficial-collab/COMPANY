@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Image as ImageIcon, Video, FileCode, Link as LinkIcon, Tag, ExternalLink, Trash2, Edit3, Grid, List } from 'lucide-react';
+import { Plus, Image as ImageIcon, Video, FileCode, Link as LinkIcon, Tag, ExternalLink, Trash2, Edit3, Grid, List } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { PageHeader, SearchField } from '../../components/ui/page';
 import { PlatformBadge } from '../../components/smm/PlatformBadge';
@@ -65,11 +65,11 @@ export default function CreativeLibrary() {
 
   const getIcon = (type) => {
     switch (type) {
-      case 'Video': return <Video size={20} className="text-purple-500" />;
+      case 'Video': return <Video size={20} className="text-foreground" />;
       case 'PSD':
-      case 'AI File': return <FileCode size={20} className="text-amber-500" />;
-      case 'Canva Link': return <LinkIcon size={20} className="text-cyan-500" />;
-      default: return <ImageIcon size={20} className="text-blue-500" />;
+      case 'AI File': return <FileCode size={20} className="text-foreground" />;
+      case 'Canva Link': return <LinkIcon size={20} className="text-muted-foreground" />;
+      default: return <ImageIcon size={20} className="text-foreground" />;
     }
   };
 
@@ -79,9 +79,9 @@ export default function CreativeLibrary() {
         title="Creative Library"
         subtitle="Central asset repository for Images, Videos, Carousels, PSDs, AI Files & Canva Links"
         actions={
-          <button onClick={() => setIsDrawerOpen(true)} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
+          <button onClick={() => setIsDrawerOpen(true)} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-sm hover:opacity-90 cursor-pointer">
             <Plus size={18} />
-            Add Asset
+            <span>Add Asset</span>
           </button>
         }
       />
@@ -130,7 +130,7 @@ export default function CreativeLibrary() {
                   </div>
                 )}
                 <div className="absolute top-2 right-2">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-card/80 backdrop-blur-md text-foreground border border-border">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-card text-foreground border border-border shadow-xs">
                     {item.type}
                   </span>
                 </div>
@@ -142,7 +142,7 @@ export default function CreativeLibrary() {
                 
                 <div className="flex flex-wrap gap-1 pt-1">
                   {item.tags?.map((t) => (
-                    <span key={t} className="text-[10px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <span key={t} className="text-[10px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md inline-flex items-center gap-1">
                       <Tag size={8} /> {t}
                     </span>
                   ))}
@@ -150,16 +150,16 @@ export default function CreativeLibrary() {
 
                 <div className="pt-3 border-t border-border flex items-center justify-between">
                   {item.canvaLink ? (
-                    <a href={item.canvaLink} target="_blank" rel="noreferrer" className="text-xs text-cyan-600 font-semibold flex items-center gap-1 hover:underline">
+                    <a href={item.canvaLink} target="_blank" rel="noreferrer" className="text-xs text-foreground font-semibold inline-flex items-center gap-1 hover:underline">
                       <ExternalLink size={12} /> Canva
                     </a>
                   ) : item.fileUrl ? (
-                    <a href={item.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-primary font-semibold flex items-center gap-1 hover:underline">
+                    <a href={item.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-foreground font-semibold inline-flex items-center gap-1 hover:underline">
                       <ExternalLink size={12} /> View File
                     </a>
                   ) : <span className="text-[11px] text-muted-foreground">Local Asset</span>}
 
-                  <button onClick={() => handleDelete(item._id)} className="p-1 rounded text-muted-foreground hover:text-rose-500 transition-colors">
+                  <button onClick={() => handleDelete(item._id)} className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -171,18 +171,18 @@ export default function CreativeLibrary() {
         <div className="app-card divide-y divide-border overflow-y-auto max-h-[calc(100vh-320px)] custom-scrollbar">
           {creatives.map((item) => (
             <div key={item._id} className="p-4 flex items-center justify-between gap-4 hover:bg-secondary/20">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0">
                   {getIcon(item.type)}
                 </div>
-                <div>
-                  <span className="font-semibold text-sm text-foreground block">{item.headline || item.type}</span>
-                  <span className="text-xs text-muted-foreground">{item.caption || 'No caption'}</span>
+                <div className="min-w-0">
+                  <span className="font-semibold text-sm text-foreground block truncate">{item.headline || item.type}</span>
+                  <span className="text-xs text-muted-foreground block truncate">{item.caption || 'No caption'}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-secondary">{item.type}</span>
-                <button onClick={() => handleDelete(item._id)} className="p-1 text-muted-foreground hover:text-rose-500">
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-secondary border border-border text-foreground">{item.type}</span>
+                <button onClick={() => handleDelete(item._id)} className="p-1 text-muted-foreground hover:text-foreground cursor-pointer">
                   <Trash2 size={16} />
                 </button>
               </div>

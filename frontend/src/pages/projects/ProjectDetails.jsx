@@ -23,7 +23,7 @@ import {
   FileText,
   Edit3,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { formatINR } from '../../utils/currency';
 import { useUpdateProject } from '../../hooks/useProjects';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
@@ -66,11 +66,11 @@ const statusLabels = {
 };
 
 const projectStatusStyles = {
-  Planning: 'bg-secondary text-muted-foreground',
-  'In Progress': 'bg-emerald-500/10 text-emerald-600',
-  'On Hold': 'bg-amber-500/10 text-amber-600',
-  Completed: 'bg-blue-500/10 text-blue-600',
-  Cancelled: 'bg-red-500/10 text-red-600',
+  Planning: 'bg-secondary text-muted-foreground border border-border',
+  'In Progress': 'bg-primary text-primary-foreground border border-primary',
+  'On Hold': 'bg-muted text-foreground border border-border',
+  Completed: 'bg-foreground text-background border border-foreground',
+  Cancelled: 'bg-secondary text-muted-foreground border border-border line-through',
 };
 
 const ProjectDetails = () => {
@@ -403,7 +403,7 @@ const ProjectDetails = () => {
   // ─── Early returns ────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center text-muted-foreground animate-pulse">
+      <div className="flex h-96 items-center justify-center text-muted-foreground">
         Loading workspace...
       </div>
     );
@@ -416,7 +416,7 @@ const ProjectDetails = () => {
   if (!isTeamMember && user.role !== 'client') {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
-        <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary">
+        <div className="w-20 h-20 bg-secondary border border-border rounded-3xl flex items-center justify-center text-foreground">
           <Lock size={40} />
         </div>
         <div>
@@ -428,10 +428,10 @@ const ProjectDetails = () => {
         <button
           onClick={handleRequestAccess}
           disabled={isRequesting || hasRequested}
-          className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-lg ${
+          className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-sm ${
             hasRequested
               ? 'bg-secondary text-muted-foreground cursor-default'
-              : 'bg-primary text-white hover:bg-primary/90 shadow-primary/20'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90'
           }`}
         >
           {isRequesting ? 'Sending...' : hasRequested ? 'Request Sent' : 'Request Access'}
@@ -449,9 +449,9 @@ const ProjectDetails = () => {
         <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-md max-h-[90vh]">
           <div className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+            <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
                   <Activity className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
@@ -486,7 +486,7 @@ const ProjectDetails = () => {
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
               <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <Button
@@ -514,12 +514,11 @@ const ProjectDetails = () => {
         {statuses.map((status) => {
           const isDragOver = dragOverStatus === status;
           const columnDotColor =
-            status === 'done' ? 'bg-emerald-500'
-              : status === 'approved' ? 'bg-blue-500'
-                : status === 'review' ? 'bg-amber-500'
-                  : status === 'in_progress' ? 'bg-indigo-500'
-                    : status === 'rejected' ? 'bg-rose-500'
-                      : 'bg-muted-foreground';
+            status === 'done' || status === 'approved'
+              ? 'bg-foreground'
+              : status === 'rejected'
+                ? 'bg-muted-foreground/50'
+                : 'bg-muted-foreground';
 
           return (
             <div key={status} className="flex w-[280px] sm:w-80 flex-shrink-0 flex-col">
@@ -530,7 +529,7 @@ const ProjectDetails = () => {
                   <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                     {statusLabels[status]}
                   </h3>
-                  <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-bold">
+                  <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
                     {kanban[status]?.length || 0}
                   </span>
                 </div>
@@ -568,7 +567,7 @@ const ProjectDetails = () => {
                   return (
                     <React.Fragment key={task._id}>
                       {showDropIndicatorBefore && (
-                        <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                        <div className="h-1.5 rounded-full bg-primary/70 my-1 shadow-xs" />
                       )}
                       <div
                         draggable={user?.role !== 'client'}
@@ -596,8 +595,8 @@ const ProjectDetails = () => {
                         <div className="mb-3 flex items-start justify-between">
                           <div className="flex flex-wrap items-center gap-1.5">
                             {task.isOverTarget && (
-                              <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
-                                🔴 Over Task
+                              <span className="rounded bg-foreground text-background border border-foreground px-1.5 py-0.5 text-[8px] font-extrabold uppercase">
+                                Over Task
                               </span>
                             )}
                             {(() => {
@@ -611,14 +610,14 @@ const ProjectDetails = () => {
                               );
                             })()}
                             {(task.tags || []).length > 0 && task.tags.map((tag) => (
-                              <span key={tag} className="rounded bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">
+                              <span key={tag} className="rounded bg-secondary border border-border px-1.5 py-0.5 text-[8px] font-bold uppercase text-foreground">
                                 {tag}
                               </span>
                             ))}
                           </div>
-                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${
+                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 ${
                             task.priority === 'Urgent' || task.priority === 'High'
-                              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                              ? 'bg-foreground text-background border border-foreground'
                               : 'bg-secondary text-muted-foreground'
                           }`}>
                             {task.priority || 'Med'}
@@ -640,21 +639,21 @@ const ProjectDetails = () => {
                           )}
                         </div>
 
-                        <div className="mt-3 flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
+                        <div className="mt-3 flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground tabular-nums">
                           <div className="flex items-center space-x-3">
                             <span className="flex items-center">
-                              <MessageSquare size={12} className="mr-1" /> {task.comments?.length || 0}
+                              <MessageSquare size={12} className="mr-1 shrink-0" /> {task.comments?.length || 0}
                             </span>
                             <span className="flex items-center">
-                              <Paperclip size={12} className="mr-1" /> {task.attachments?.length || 0}
+                              <Paperclip size={12} className="mr-1 shrink-0" /> {task.attachments?.length || 0}
                             </span>
                           </div>
 
                           {task.dueDate && (
                             <div className={`flex items-center font-bold ${
-                              new Date(task.dueDate) < new Date() && status !== 'done' ? 'text-destructive' : 'text-muted-foreground'
+                              new Date(task.dueDate) < new Date() && status !== 'done' ? 'text-foreground' : 'text-muted-foreground'
                             }`}>
-                              <Clock size={10} className="mr-1" />
+                              <Clock size={10} className="mr-1 shrink-0" />
                               {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                             </div>
                           )}
@@ -666,7 +665,7 @@ const ProjectDetails = () => {
 
                 {/* Drop indicator at the bottom of the column */}
                 {isDragOver && dragOverTaskIndex >= (kanban[status] || []).length && (
-                  <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                  <div className="h-1.5 rounded-full bg-primary/70 my-1 shadow-xs" />
                 )}
 
                 {(kanban[status] || []).length === 0 && (
@@ -694,7 +693,7 @@ const ProjectDetails = () => {
           {user?.role !== 'client' && (
             <button
               onClick={() => openTaskModal()}
-              className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
+              className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
               <Plus size={16} className="mr-2" />
               Add Task
@@ -724,8 +723,8 @@ const ProjectDetails = () => {
                     <div className="flex items-center gap-2">
                       <div className="font-semibold text-foreground group-hover:text-primary">{task.title}</div>
                       {task.isOverTarget && (
-                        <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-rose-600 dark:text-rose-400 shrink-0">
-                          🔴 Over Task
+                        <span className="rounded bg-foreground text-background border border-foreground px-1.5 py-0.5 text-[9px] font-extrabold uppercase shrink-0">
+                          Over Task
                         </span>
                       )}
                     </div>
@@ -737,10 +736,10 @@ const ProjectDetails = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">{task.priority || 'Medium'}</td>
-                  <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">
+                  <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap tabular-nums">
                     {task.createdAt ? new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                  <td className="px-6 py-4 text-muted-foreground whitespace-nowrap tabular-nums">
                     {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
                   </td>
                   <td className="px-6 py-4">
@@ -751,7 +750,7 @@ const ProjectDetails = () => {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan="6" className="px-6 py-12 text-center text-muted-foreground">
                     No tasks have been created yet.
                   </td>
                 </tr>
@@ -853,7 +852,7 @@ const ProjectDetails = () => {
           <h2 className="mb-4 text-lg font-bold">Pending Requests</h2>
           <div className="space-y-3">
             {accessRequests.filter(r => r.status === 'pending').map((request) => (
-              <div key={request._id} className="flex items-center justify-between rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+              <div key={request._id} className="flex items-center justify-between rounded-2xl border border-border bg-secondary/40 p-4">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold">
                     {request.requester.avatar ? <img src={getAssetUrl(request.requester.avatar)} alt="" className="rounded-full" /> : request.requester.name?.charAt(0)}
@@ -866,13 +865,13 @@ const ProjectDetails = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleProcessRequest(request._id, 'rejected')}
-                    className="rounded-lg p-2 text-destructive hover:bg-destructive/10 transition-colors"
+                    className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                   >
                     <XCircle size={20} />
                   </button>
                   <button
                     onClick={() => handleProcessRequest(request._id, 'approved')}
-                    className="rounded-lg p-2 text-emerald-500 hover:bg-emerald-500/10 transition-colors"
+                    className="rounded-lg p-2 text-foreground hover:bg-secondary transition-colors"
                   >
                     <CheckCircle2 size={20} />
                   </button>
@@ -949,12 +948,12 @@ const ProjectDetails = () => {
       return (
         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} /> Ads Budget</h2>
+            <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} className="shrink-0" /> Ads Budget</h2>
             <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-muted-foreground">Manager View</span>
           </div>
-          <div className="rounded-2xl border border-border bg-emerald-500/5 p-4">
+          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Project Ads Budget</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">{formatINR(b.adsAmount || 0)}</p>
+            <p className="mt-1 text-2xl font-bold text-foreground tabular-nums">{formatINR(b.adsAmount || 0)}</p>
           </div>
           <p className="text-sm text-muted-foreground">
             Full finance totals, received payments, and pending balances are hidden for the manager role.
@@ -981,7 +980,7 @@ const ProjectDetails = () => {
                 <span className="text-xs font-semibold text-muted-foreground">{label}</span>
                 <input
                   type="number"
-                  className="app-input w-full"
+                  className="app-input w-full tabular-nums"
                   value={budgetForm[key] ?? ''}
                   onChange={(e) => setBudgetForm((c) => ({ ...c, [key]: e.target.value }))}
                 />
@@ -989,11 +988,11 @@ const ProjectDetails = () => {
             ))}
             <label className="space-y-1">
               <span className="text-xs font-semibold text-muted-foreground">Total Project Budget</span>
-              <input type="number" className="app-input w-full" value={budgetForm.totalBudget ?? ''} onChange={(e) => setBudgetForm((c) => ({ ...c, totalBudget: e.target.value }))} />
+              <input type="number" className="app-input w-full tabular-nums" value={budgetForm.totalBudget ?? ''} onChange={(e) => setBudgetForm((c) => ({ ...c, totalBudget: e.target.value }))} />
             </label>
             <label className="space-y-1">
               <span className="text-xs font-semibold text-muted-foreground">Amount Received</span>
-              <input type="number" className="app-input w-full" value={budgetForm.amountReceived ?? ''} onChange={(e) => setBudgetForm((c) => ({ ...c, amountReceived: e.target.value }))} />
+              <input type="number" className="app-input w-full tabular-nums" value={budgetForm.amountReceived ?? ''} onChange={(e) => setBudgetForm((c) => ({ ...c, amountReceived: e.target.value }))} />
             </label>
             <label className="space-y-1">
               <span className="text-xs font-semibold text-muted-foreground">Payment Status</span>
@@ -1017,7 +1016,7 @@ const ProjectDetails = () => {
     return (
       <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} /> Project Budget</h2>
+          <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} className="shrink-0" /> Project Budget</h2>
           {user?.role !== 'client' && (
             <button
               onClick={() => { syncBudgetForm(); setEditingBudget(true); }}
@@ -1027,21 +1026,21 @@ const ProjectDetails = () => {
             </button>
           )}
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-emerald-500/5 p-4">
+        <div className="grid gap-4 md:grid-cols-3 tabular-nums">
+          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Total Budget</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">{formatINR(total)}</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(total)}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-blue-500/5 p-4">
+          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Amount Received</p>
-            <p className="mt-1 text-2xl font-bold text-blue-700">{formatINR(received)}</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(received)}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-amber-500/5 p-4">
+          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Pending Amount</p>
-            <p className="mt-1 text-2xl font-bold text-amber-700">{formatINR(pending)}</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(pending)}</p>
           </div>
         </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 tabular-nums">
           {budgetFields.map(([key, label]) => (
             <div key={key} className="rounded-xl border border-border/70 bg-secondary/15 px-3 py-2">
               <p className="text-[11px] text-muted-foreground">{label}</p>
@@ -1135,7 +1134,7 @@ const ProjectDetails = () => {
               {user?.role !== 'client' && (
                 <button
                   onClick={() => openTaskModal()}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary text-xs font-bold text-white transition-transform hover:scale-110"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary text-xs font-bold text-primary-foreground transition-transform hover:scale-110"
                   title="Add task"
                 >
                   <Plus size={14} />

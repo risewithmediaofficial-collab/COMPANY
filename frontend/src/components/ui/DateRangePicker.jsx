@@ -1,4 +1,4 @@
-import { Calendar, Filter, X, RotateCcw } from 'lucide-react';
+import { Calendar, Filter, X, RotateCcw } from '@/components/ui/muiIcons';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { AppTooltip } from './tooltip';
 
@@ -112,7 +112,7 @@ export const DateRangePicker = ({
               onChange={handleFromChange}
               onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
               placeholder="From"
-              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 cursor-pointer"
+              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium tabular-nums text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 cursor-pointer"
             />
           </AppTooltip>
           <span className="text-muted-foreground font-bold text-[10px]">to</span>
@@ -123,7 +123,7 @@ export const DateRangePicker = ({
               onChange={handleToChange}
               onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
               placeholder="To"
-              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 cursor-pointer"
+              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium tabular-nums text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 cursor-pointer"
             />
           </AppTooltip>
         </div>
@@ -132,9 +132,9 @@ export const DateRangePicker = ({
             <button
               onClick={handleReset}
               title="Reset Date Filter"
-              className="p-1 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+              className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
             >
-              <X size={13} />
+              <X size={13} className="shrink-0" />
             </button>
           </AppTooltip>
         )}
@@ -173,9 +173,9 @@ export const DateRangePicker = ({
           {isFiltered && (
             <button
               onClick={handleReset}
-              className="inline-flex items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/10 px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/20 transition-all"
+              className="inline-flex items-center gap-1 rounded-lg border border-border bg-secondary px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-all"
             >
-              <RotateCcw size={12} />
+              <RotateCcw size={12} className="shrink-0" />
               Reset
             </button>
           )}
@@ -190,7 +190,7 @@ export const DateRangePicker = ({
             value={fromDate || ''}
             onChange={handleFromChange}
             onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium tabular-nums text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
           />
         </div>
 
@@ -201,7 +201,7 @@ export const DateRangePicker = ({
             value={toDate || ''}
             onChange={handleToChange}
             onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium tabular-nums text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
           />
         </div>
 
@@ -238,11 +238,11 @@ export const DateRangePicker = ({
       </div>
 
       {(fromDate || toDate) && (
-        <div className="flex items-center justify-between text-[11px] text-muted-foreground bg-primary/5 border border-primary/15 px-3 py-1.5 rounded-xl">
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground bg-secondary/40 border border-border px-3 py-1.5 rounded-xl tabular-nums">
           <span className="font-medium text-foreground">
-            Active Filter: <strong className="text-primary">{fromDate || 'Start'}</strong> to <strong className="text-primary">{toDate || 'Present'}</strong>
+            Active Filter: <strong className="text-foreground">{fromDate || 'Start'}</strong> to <strong className="text-foreground">{toDate || 'Present'}</strong>
           </span>
-          <span className="font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md text-[10px]">
+          <span className="font-semibold text-foreground bg-secondary border border-border px-2 py-0.5 rounded-md text-[10px]">
             Filtered View
           </span>
         </div>

@@ -19,7 +19,7 @@ import {
   MessageSquarePlus,
   Clock,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { motion } from 'framer-motion';
 import { useAddLeadActivity, useLeadsKanban, useLeads, useUpdateLeadStage, useDeleteLead } from '../../hooks/useLeads';
 import { AddLeadModal } from '../../components/modals/AddLeadModal';
@@ -57,64 +57,64 @@ const STAGE_META = {
   new: {
     label: 'New',
     description: 'Fresh leads waiting for first touch.',
-    badge: 'bg-sky-500/10 text-sky-700',
-    surface: 'border-sky-200/70 bg-sky-500/[0.03]',
+    badge: 'bg-secondary text-foreground border border-border',
+    surface: 'border-border bg-secondary/20',
   },
   qualified: {
     label: 'Qualified',
     description: 'Great-fit leads ready for deeper discovery.',
-    badge: 'bg-emerald-500/10 text-emerald-700',
-    surface: 'border-emerald-200/70 bg-emerald-500/[0.03]',
+    badge: 'bg-secondary text-foreground border border-border',
+    surface: 'border-border bg-secondary/25',
   },
   contacted: {
     label: 'Contacted',
     description: 'Leads touched by call, WhatsApp, or email.',
-    badge: 'bg-blue-500/10 text-blue-700',
-    surface: 'border-blue-200/70 bg-blue-500/[0.03]',
+    badge: 'bg-secondary text-foreground border border-border',
+    surface: 'border-border bg-secondary/20',
   },
   meeting_booked: {
     label: 'Meeting Booked',
     description: 'Calls and demos already on the calendar.',
-    badge: 'bg-violet-500/10 text-violet-700',
-    surface: 'border-violet-200/70 bg-violet-500/[0.03]',
+    badge: 'bg-secondary text-foreground border border-border',
+    surface: 'border-border bg-secondary/25',
   },
   proposal_sent: {
     label: 'Proposal Sent',
     description: 'Decision makers reviewing your offer.',
-    badge: 'bg-amber-500/10 text-amber-700',
-    surface: 'border-amber-200/70 bg-amber-500/[0.03]',
+    badge: 'bg-secondary text-foreground border border-border',
+    surface: 'border-border bg-secondary/20',
   },
   negotiation: {
     label: 'Negotiation',
     description: 'Active conversations near the finish line.',
-    badge: 'bg-rose-500/10 text-rose-700',
-    surface: 'border-rose-200/70 bg-rose-500/[0.03]',
+    badge: 'bg-secondary text-foreground border border-foreground/30',
+    surface: 'border-border bg-secondary/30',
   },
   won: {
     label: 'Won',
     description: 'Closed business ready for handoff.',
-    badge: 'bg-teal-500/10 text-teal-700',
-    surface: 'border-teal-200/70 bg-teal-500/[0.03]',
+    badge: 'bg-primary text-primary-foreground border border-primary',
+    surface: 'border-border bg-secondary/30',
   },
   lost: {
     label: 'Lost',
     description: 'Archived opportunities and learnings.',
-    badge: 'bg-slate-500/10 text-slate-700',
-    surface: 'border-slate-200/70 bg-slate-500/[0.03]',
+    badge: 'bg-muted text-muted-foreground border border-border',
+    surface: 'border-border bg-card',
   },
   refollow_later: {
     label: 'Refollow Later',
     description: 'Not now, but worth reconnecting with later.',
-    badge: 'bg-orange-500/10 text-orange-700',
-    surface: 'border-orange-200/70 bg-orange-500/[0.03]',
+    badge: 'bg-muted text-foreground border border-border',
+    surface: 'border-border bg-secondary/15',
   },
 };
 
 const PRIORITY_META = {
-  low: 'bg-slate-500/10 text-slate-600',
-  medium: 'bg-blue-500/10 text-blue-700',
-  high: 'bg-amber-500/10 text-amber-700',
-  urgent: 'bg-destructive/10 text-destructive',
+  low: 'bg-muted text-muted-foreground border border-border',
+  medium: 'bg-secondary text-foreground border border-border',
+  high: 'bg-secondary text-foreground border border-foreground/30',
+  urgent: 'bg-primary text-primary-foreground border border-primary',
 };
 
 const formatDate = (value) => {
@@ -130,9 +130,9 @@ const getFollowUpTone = (value) => {
   today.setHours(0, 0, 0, 0);
   const date = new Date(value);
   date.setHours(0, 0, 0, 0);
-  if (date < today) return 'text-destructive';
-  if (date.getTime() === today.getTime()) return 'text-amber-700';
-  return 'text-emerald-700';
+  if (date < today) return 'text-foreground underline decoration-border';
+  if (date.getTime() === today.getTime()) return 'text-foreground';
+  return 'text-muted-foreground';
 };
 
 const getLeadValue = (lead) => {
@@ -189,9 +189,9 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
         className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
       >
         {/* Pinned Header */}
-        <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+        <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card px-6 py-5 select-none z-10">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shadow-xs shrink-0">
               <MessageSquarePlus className="h-5 w-5" />
             </div>
             <div>
@@ -294,7 +294,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
 
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                Note Summary <span className="text-rose-500">*</span>
+                Note Summary <span className="text-foreground">*</span>
               </label>
               <Textarea
                 rows={4}
@@ -308,7 +308,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
             <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
               Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
             </span>
@@ -326,7 +326,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
               <Button
                 type="submit"
                 disabled={saving}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 transition-all cursor-pointer"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm transition-all cursor-pointer"
               >
                 {saving ? 'Saving...' : 'Save Note'}
               </Button>
@@ -449,7 +449,7 @@ const Leads = () => {
       value: totalLeads,
       helper: 'Every opportunity in your funnel',
       icon: Target,
-      tone: 'from-sky-500/10 to-sky-500/5 text-sky-700 hover:scale-[1.02] transition-transform cursor-pointer',
+      tone: 'bg-card text-foreground border-border cursor-pointer',
       onClick: () => {
         setSelectedFollowUpDate(null);
         setSelectedTodayFollowedOnly(false);
@@ -461,7 +461,7 @@ const Leads = () => {
       value: todayFollowed,
       helper: 'Leads touched today',
       icon: TrendingUp,
-      tone: selectedTodayFollowedOnly ? 'from-emerald-500/20 to-emerald-500/10 text-emerald-800 ring-2 ring-emerald-500 scale-[1.02] cursor-pointer' : 'from-emerald-500/10 to-emerald-500/5 text-emerald-700 hover:scale-[1.02] transition-transform cursor-pointer',
+      tone: selectedTodayFollowedOnly ? 'bg-secondary text-foreground ring-2 ring-primary cursor-pointer' : 'bg-card text-foreground border-border cursor-pointer',
       onClick: () => {
         setSelectedTodayFollowedOnly(!selectedTodayFollowedOnly);
         setSelectedFollowUpDate(null);
@@ -473,7 +473,7 @@ const Leads = () => {
       value: nextFollowUpDateStr,
       helper: nextFollowUpDateObj ? `${nextFollowUpLeadsCount} leads scheduled` : 'No upcoming follow-ups',
       icon: Calendar,
-      tone: selectedFollowUpDate ? 'from-violet-500/20 to-violet-500/10 text-violet-800 ring-2 ring-violet-500 scale-[1.02] cursor-pointer' : 'from-violet-500/10 to-violet-500/5 text-violet-700 hover:scale-[1.02] transition-transform cursor-pointer',
+      tone: selectedFollowUpDate ? 'bg-secondary text-foreground ring-2 ring-primary cursor-pointer' : 'bg-card text-foreground border-border cursor-pointer',
       onClick: () => {
         if (nextFollowUpDateObj) {
           const dateStr = nextFollowUpDateObj.toISOString().split('T')[0];
@@ -488,7 +488,7 @@ const Leads = () => {
       value: followUpPending,
       helper: 'Overdue follow-ups',
       icon: ClipboardList,
-      tone: followUpFilter === 'overdue' ? 'from-rose-500/20 to-rose-500/10 text-rose-800 ring-2 ring-rose-500 scale-[1.02] cursor-pointer' : 'from-rose-500/10 to-rose-500/5 text-rose-700 hover:scale-[1.02] transition-transform cursor-pointer',
+      tone: followUpFilter === 'overdue' ? 'bg-secondary text-foreground ring-2 ring-primary cursor-pointer' : 'bg-card text-foreground border-border cursor-pointer',
       onClick: () => {
         setFollowUpFilter(followUpFilter === 'overdue' ? '' : 'overdue');
         setSelectedFollowUpDate(null);
@@ -590,7 +590,7 @@ const Leads = () => {
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground">Leads Board</h2>
           </div>
-          <div className="rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm">
+          <div className="rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm tabular-nums">
             {activeLeads} active leads across {PIPELINE_STAGES.length} stages
           </div>
         </div>
@@ -616,7 +616,7 @@ const Leads = () => {
                     }
                   }}
                   onDrop={(e) => handleDrop(e, stage)}
-                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] border bg-card/90 shadow-sm backdrop-blur-sm transition-all ${stageInfo.surface} ${
+                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] border bg-card shadow-sm transition-all ${stageInfo.surface} ${
                     isColActive ? 'ring-2 ring-primary/40 border-primary bg-primary/5 shadow-md' : ''
                   }`}
                 >
@@ -625,7 +625,7 @@ const Leads = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-bold">{stageInfo.label}</h3>
-                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${stageInfo.badge}`}>
+                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums ${stageInfo.badge}`}>
                             {stageLeads.length}
                           </span>
                         </div>
@@ -646,7 +646,7 @@ const Leads = () => {
                         return (
                           <React.Fragment key={lead._id}>
                             {showDropIndicatorBefore && (
-                              <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                              <div className="h-1.5 rounded-full bg-primary my-1 shadow-xs" />
                             )}
                             <motion.article
                               draggable
@@ -683,7 +683,7 @@ const Leads = () => {
                               }}
                               role="button"
                               tabIndex={0}
-                              className={`group cursor-grab rounded-2xl border border-border/80 bg-background/95 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 active:cursor-grabbing ${
+                              className={`group cursor-grab rounded-2xl border border-border/80 bg-background p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:cursor-grabbing ${
                                 isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
                               }`}
                             >
@@ -698,8 +698,8 @@ const Leads = () => {
                                   </span>
                                 )}
                                 {lead.createdAt && (
-                                  <span className="rounded-full bg-secondary/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-                                    <Clock size={10} />
+                                  <span className="rounded-full bg-secondary/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground flex items-center gap-1 tabular-nums">
+                                    <Clock size={10} className="shrink-0" />
                                     {new Date(lead.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                   </span>
                                 )}
@@ -725,7 +725,7 @@ const Leads = () => {
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setDeleteLeadId(lead._id); }}
-                                  className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                  className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                                   aria-label={`Delete ${lead.name}`}
                                 >
                                   <Trash2 size={14} />
@@ -736,7 +736,7 @@ const Leads = () => {
                             <div className="mt-4">
                               <h4 className="text-sm font-bold text-foreground">{lead.name}</h4>
                               <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <Building2 size={12} />
+                                <Building2 size={12} className="shrink-0" />
                                 {lead.company || 'Independent lead'}
                               </p>
                               {lead.serviceInterest ? (
@@ -749,13 +749,13 @@ const Leads = () => {
                             <div className="mt-4 space-y-2 text-xs text-muted-foreground">
                               {lead.email && (
                                 <div className="flex items-center gap-2">
-                                  <Mail size={12} />
+                                  <Mail size={12} className="shrink-0" />
                                   <span className="truncate">{lead.email}</span>
                                 </div>
                               )}
                               {lead.phone && (
-                                <div className="flex items-center gap-2">
-                                  <Phone size={12} />
+                                <div className="flex items-center gap-2 tabular-nums">
+                                  <Phone size={12} className="shrink-0" />
                                   <span>{lead.phone}</span>
                                 </div>
                               )}
@@ -763,7 +763,7 @@ const Leads = () => {
 
                             <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-secondary/60 px-3 py-2.5">
                               <div className="flex min-w-0 items-center gap-2">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary border border-border text-[11px] font-bold text-foreground shrink-0">
                                   {lead.assignedTo?.name?.charAt(0) || 'U'}
                                 </div>
                                 <div className="min-w-0">
@@ -773,7 +773,7 @@ const Leads = () => {
                                   <p className="text-[11px] text-muted-foreground">Owner</p>
                                 </div>
                               </div>
-                              <div className="text-right">
+                              <div className="text-right tabular-nums">
                                 <p className="text-[11px] font-semibold text-foreground">
                                   {leadValue || 'No value set'}
                                 </p>
@@ -787,7 +787,7 @@ const Leads = () => {
                       );
                     })}
                     {isColActive && dragOverLeadIndex >= stageLeads.length && (
-                      <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                      <div className="h-1.5 rounded-full bg-primary my-1 shadow-xs" />
                     )}
                     </>
                   ) : (
@@ -815,10 +815,10 @@ const Leads = () => {
       title="Sales Pipeline & Lead Management"
       icon={Target}
       properties={[
-        { label: 'Active Leads', value: activeLeads, tone: 'info', icon: Target },
-        { label: 'Pipeline Value', value: pipelineValue, tone: 'success', icon: TrendingUp },
-        { label: 'Today Follow-ups', value: followUpToday, tone: followUpToday > 0 ? 'warning' : 'neutral', icon: Calendar },
-        { label: 'Overdue Follow-ups', value: overdueFollowUps, tone: overdueFollowUps > 0 ? 'danger' : 'neutral', icon: ClipboardList },
+        { label: 'Active Leads', value: activeLeads, tone: 'neutral', icon: Target },
+        { label: 'Pipeline Value', value: pipelineValue, tone: 'neutral', icon: TrendingUp },
+        { label: 'Today Follow-ups', value: followUpToday, tone: 'neutral', icon: Calendar },
+        { label: 'Overdue Follow-ups', value: overdueFollowUps, tone: 'neutral', icon: ClipboardList },
       ]}
       actions={
         <Button
@@ -846,13 +846,13 @@ const Leads = () => {
         searchPlaceholder="Search leads, companies, phone numbers..."
         totalCount={filteredListLeads.length}
         filters={
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 tabular-nums">
             <button
               onClick={() => {
                 setFollowUpFilter(followUpFilter === 'today' ? '' : 'today');
                 setView('list');
               }}
-              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors ${
+              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 followUpFilter === 'today'
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -865,9 +865,9 @@ const Leads = () => {
                 setFollowUpFilter(followUpFilter === 'overdue' ? '' : 'overdue');
                 setView('list');
               }}
-              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors ${
+              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 followUpFilter === 'overdue'
-                  ? 'border-destructive bg-destructive text-destructive-foreground'
+                  ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
@@ -878,9 +878,9 @@ const Leads = () => {
                 setFollowUpFilter(followUpFilter === 'refollow' ? '' : 'refollow');
                 setView('list');
               }}
-              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors ${
+              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 followUpFilter === 'refollow'
-                  ? 'border-amber-500 bg-amber-500 text-white'
+                  ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
@@ -932,7 +932,7 @@ const Leads = () => {
                         >
                           <td className="px-4 py-4 sm:px-6">
                             <div className="font-semibold text-foreground">{lead.name}</div>
-                            <div className="mt-1 text-xs text-muted-foreground">{lead.phone || 'No phone added'}</div>
+                            <div className="mt-1 text-xs text-muted-foreground tabular-nums">{lead.phone || 'No phone added'}</div>
                           </td>
                           <td className="px-4 py-4 sm:px-6">{lead.company || 'Independent lead'}</td>
                           <td className="px-4 py-4 sm:px-6">{lead.email || 'No email added'}</td>
@@ -942,19 +942,19 @@ const Leads = () => {
                               <div className="mt-1 text-xs text-muted-foreground">DM: {lead.decisionMaker}</div>
                             ) : null}
                           </td>
-                          <td className="px-4 py-4 sm:px-6">
+                          <td className="px-4 py-4 sm:px-6 tabular-nums">
                             <div className="font-semibold text-foreground">{getLeadValue(lead) || 'No value'}</div>
                             <div className="mt-1 text-xs text-muted-foreground">Deal value</div>
                           </td>
-                          <td className="px-4 py-4 sm:px-6">
+                          <td className="px-4 py-4 sm:px-6 tabular-nums">
                             <span className={`text-xs font-semibold ${getFollowUpTone(lead.followUpDate || lead.expectedCloseDate)}`}>
                               {formatDate(lead.followUpDate || lead.expectedCloseDate)}
                             </span>
                             {lead.refollowDate ? (
-                              <div className="mt-1 text-xs text-orange-700">Refollow {formatDate(lead.refollowDate)}</div>
+                              <div className="mt-1 text-xs text-muted-foreground">Refollow {formatDate(lead.refollowDate)}</div>
                             ) : null}
                           </td>
-                          <td className="px-4 py-4 sm:px-6 text-xs text-muted-foreground whitespace-nowrap">
+                          <td className="px-4 py-4 sm:px-6 text-xs text-muted-foreground whitespace-nowrap tabular-nums">
                             {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                           </td>
                           <td className="px-4 py-4 sm:px-6">
@@ -964,7 +964,7 @@ const Leads = () => {
                           </td>
                           <td className="px-4 py-4 sm:px-6">
                             <div className="flex items-center gap-2">
-                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary border border-border text-[11px] font-bold text-foreground shrink-0">
                                 {lead.assignedTo?.name?.charAt(0) || 'U'}
                               </div>
                               <span className="text-xs text-foreground">{lead.assignedTo?.name || 'Unassigned'}</span>
@@ -998,7 +998,7 @@ const Leads = () => {
                                   e.stopPropagation();
                                   setDeleteLeadId(lead._id);
                                 }}
-                                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                                 aria-label={`Delete ${lead.name}`}
                               >
                                 <Trash2 size={16} />

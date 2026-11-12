@@ -23,7 +23,7 @@ import {
   CheckCircle2,
   Clock,
   UserX,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useClients, useDeleteClient, useUpdateClient } from '../../hooks/useClients';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import { AddClientModal } from '../../components/modals/AddClientModal';
@@ -59,46 +59,46 @@ const STATUS_CONFIG = {
   Active: {
     label: 'Active',
     icon: CheckCircle2,
-    dotColor: 'bg-emerald-500',
-    accentBorder: 'border-l-emerald-500',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
-    surface: 'border-emerald-500/20 bg-emerald-500/[0.03]',
+    dotColor: 'bg-primary',
+    accentBorder: 'border-l-primary',
+    badgeClass: 'bg-primary text-primary-foreground border-primary',
+    surface: 'border-border bg-secondary/30',
     emptyMsg: 'No active clients yet',
   },
   Prospect: {
     label: 'Prospect',
     icon: Sparkles,
-    dotColor: 'bg-amber-500',
-    accentBorder: 'border-l-amber-500',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
-    surface: 'border-amber-500/20 bg-amber-500/[0.03]',
+    dotColor: 'bg-foreground/70',
+    accentBorder: 'border-l-foreground/70',
+    badgeClass: 'bg-secondary text-foreground border-border',
+    surface: 'border-border bg-secondary/25',
     emptyMsg: 'No prospects in pipeline',
   },
   Renew: {
     label: 'Renew',
     icon: RotateCcw,
-    dotColor: 'bg-indigo-500',
-    accentBorder: 'border-l-indigo-500',
-    badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25',
-    surface: 'border-indigo-500/20 bg-indigo-500/[0.03]',
+    dotColor: 'bg-foreground/60',
+    accentBorder: 'border-l-foreground/60',
+    badgeClass: 'bg-secondary text-foreground border-border',
+    surface: 'border-border bg-secondary/20',
     emptyMsg: 'No renewals pending',
   },
   Inactive: {
     label: 'Inactive',
     icon: Clock,
-    dotColor: 'bg-slate-400',
-    accentBorder: 'border-l-slate-400',
-    badgeClass: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/25',
-    surface: 'border-slate-500/20 bg-slate-500/[0.03]',
+    dotColor: 'bg-muted-foreground',
+    accentBorder: 'border-l-muted-foreground',
+    badgeClass: 'bg-muted text-muted-foreground border-border',
+    surface: 'border-border bg-secondary/15',
     emptyMsg: 'No inactive accounts',
   },
   Churned: {
     label: 'Churned',
     icon: UserX,
-    dotColor: 'bg-rose-500',
-    accentBorder: 'border-l-rose-500',
-    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
-    surface: 'border-rose-500/20 bg-rose-500/[0.03]',
+    dotColor: 'bg-muted-foreground/60',
+    accentBorder: 'border-l-border',
+    badgeClass: 'bg-background text-muted-foreground border-border',
+    surface: 'border-border bg-card',
     emptyMsg: 'No churned accounts',
   },
 };
@@ -116,23 +116,18 @@ export const SERVICE_FILTER_OPTIONS = [
 ];
 
 export const CLIENT_SORT_OPTIONS = [
-  { value: 'name_asc', label: '🏢 Company Name: A to Z' },
-  { value: 'name_desc', label: '🏢 Company Name: Z to A' },
-  { value: 'retainer_desc', label: '💰 Retainer: High to Low' },
-  { value: 'retainer_asc', label: '💰 Retainer: Low to High' },
-  { value: 'status_active', label: '📊 Status: Active First' },
-  { value: 'newest', label: '🕒 Recently Added' },
-  { value: 'oldest', label: '🕒 Oldest Added' },
+  { value: 'name_asc', label: 'Company Name: A to Z' },
+  { value: 'name_desc', label: 'Company Name: Z to A' },
+  { value: 'retainer_desc', label: 'Retainer: High to Low' },
+  { value: 'retainer_asc', label: 'Retainer: Low to High' },
+  { value: 'status_active', label: 'Status: Active First' },
+  { value: 'newest', label: 'Recently Added' },
+  { value: 'oldest', label: 'Oldest Added' },
 ];
 
 const AVATAR_PALETTES = [
-  'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-  'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
-  'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
-  'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
-  'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
-  'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+  'bg-secondary text-foreground border-border',
+  'bg-muted text-foreground border-border',
 ];
 
 const getCompanyInitials = (name, company) => {
@@ -368,7 +363,7 @@ const Clients = () => {
       render: (row) => {
         const val = row.monthlyRetainer || row.contractValue;
         return (
-          <span className="font-bold text-xs text-emerald-600">
+          <span className="font-bold text-xs text-foreground tabular-nums">
             {val ? formatINR(val) : '—'}
           </span>
         );
@@ -387,8 +382,8 @@ const Clients = () => {
       key: 'createdAt',
       label: 'Created Date',
       render: (row) => (
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap">
-          <Calendar size={11} className="text-muted-foreground/70" />
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap tabular-nums">
+          <Calendar size={11} className="text-muted-foreground/70 shrink-0" />
           <span>
             {row.createdAt
               ? new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
@@ -427,20 +422,20 @@ const Clients = () => {
       }
       properties={
         <>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border/80 text-foreground font-semibold">
-            <Users size={13} className="text-primary" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border text-foreground font-semibold tabular-nums">
+            <Users size={13} className="text-muted-foreground shrink-0" />
             <span>Total Accounts: {clients.length}</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg font-semibold">
-            <Building2 size={13} />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border text-foreground rounded-lg font-semibold tabular-nums">
+            <Building2 size={13} className="text-muted-foreground shrink-0" />
             <span>Active Retainers: {activeClients}</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border/80 text-foreground font-semibold">
-            <IndianRupee size={13} className="text-emerald-600" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border text-foreground font-semibold tabular-nums">
+            <IndianRupee size={13} className="text-muted-foreground shrink-0" />
             <span>MRR: {formatINR(totalMrr)}</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg font-semibold">
-            <Briefcase size={13} />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border text-foreground rounded-lg font-semibold tabular-nums">
+            <Briefcase size={13} className="text-muted-foreground shrink-0" />
             <span>Prospects: {prospectClients}</span>
           </div>
         </>
@@ -487,7 +482,7 @@ const Clients = () => {
                   size="sm"
                   variant="ghost"
                   onClick={clearAllFilters}
-                  className="h-8 px-2.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
+                  className="h-8 px-2.5 text-xs text-foreground bg-secondary hover:bg-muted border border-border flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
                   title="Clear all active filters"
                 >
                   <RotateCcw size={12} />
@@ -562,18 +557,18 @@ const Clients = () => {
                       {/* Column Header */}
                       <div className="flex items-center justify-between px-1 pb-1">
                         <div className="flex items-center gap-2">
-                          <span className={`w-2.5 h-2.5 rounded-full ${conf.dotColor} ring-4 ring-current/15`} />
+                          <span className={`w-2.5 h-2.5 rounded-full ${conf.dotColor}`} />
                           <span className="text-xs font-bold uppercase tracking-wider text-foreground">
                             {status}
                           </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${conf.badgeClass}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border tabular-nums ${conf.badgeClass}`}>
                             {statusClients.length}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-1.5">
                           {colTotalRetainer > 0 && (
-                            <span className="text-[11px] font-bold text-muted-foreground bg-card/80 px-2 py-0.5 rounded-md border border-border/60">
+                            <span className="text-[11px] font-bold text-muted-foreground bg-card px-2 py-0.5 rounded-md border border-border tabular-nums">
                               {formatINR(colTotalRetainer)}
                             </span>
                           )}
@@ -612,7 +607,7 @@ const Clients = () => {
                           return (
                             <React.Fragment key={client._id}>
                               {showDropIndicatorBefore && (
-                                <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1.5 shadow-xs" />
+                                <div className="h-1.5 rounded-full bg-primary my-1.5 shadow-xs" />
                               )}
                               <div
                                 draggable
@@ -714,7 +709,7 @@ const Clients = () => {
                                         href={`tel:${client.phone}`}
                                         onClick={(e) => e.stopPropagation()}
                                         title={`Call ${client.phone}`}
-                                        className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-emerald-600 transition-colors"
+                                        className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                                       >
                                         <Phone size={13} />
                                       </a>
@@ -724,7 +719,7 @@ const Clients = () => {
                                         href={`mailto:${client.email}`}
                                         onClick={(e) => e.stopPropagation()}
                                         title={`Email ${client.email}`}
-                                        className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                                        className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                                       >
                                         <Mail size={13} />
                                       </a>
@@ -736,7 +731,7 @@ const Clients = () => {
                                         rel="noreferrer"
                                         onClick={(e) => e.stopPropagation()}
                                         title="Visit Website"
-                                        className="p-1.5 rounded-lg hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
+                                        className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                                       >
                                         <Globe size={13} />
                                       </a>
@@ -748,7 +743,7 @@ const Clients = () => {
                                         rel="noreferrer"
                                         onClick={(e) => e.stopPropagation()}
                                         title="Google Drive Assets"
-                                        className="p-1.5 rounded-lg hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 transition-colors"
+                                        className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                                       >
                                         <FolderOpen size={13} />
                                       </a>
@@ -759,10 +754,10 @@ const Clients = () => {
                                 {/* Row 3: Financial Retainer / Value Badge + Manager Tag */}
                                 <div className="flex items-center justify-between gap-2 pt-0.5">
                                   {retainerValue ? (
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                      <IndianRupee size={12} className="stroke-[2.5]" />
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-secondary text-foreground border border-border tabular-nums">
+                                      <IndianRupee size={12} className="shrink-0" />
                                       <span>{formatINR(retainerValue)}</span>
-                                      <span className="text-[10px] font-medium text-emerald-600/70 dark:text-emerald-400/70">
+                                      <span className="text-[10px] font-medium text-muted-foreground">
                                         {client.budgetType === 'overall' ? 'total' : '/mo'}
                                       </span>
                                     </div>
@@ -777,7 +772,7 @@ const Clients = () => {
                                       className="text-[10px] text-muted-foreground truncate max-w-[130px] flex items-center gap-1"
                                       title={`Manager: ${client.assignedManager?.name}`}
                                     >
-                                      <span className="w-1.5 h-1.5 rounded-full bg-primary/70" />
+                                      <span className="w-1.5 h-1.5 rounded-full bg-foreground/60" />
                                       <span className="truncate">{client.assignedManager?.name}</span>
                                     </span>
                                   )}
@@ -800,7 +795,7 @@ const Clients = () => {
                                       );
                                     })}
                                     {uniqueServices.length > 2 && (
-                                      <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-secondary/60 text-muted-foreground border border-border/60">
+                                      <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-secondary/60 text-muted-foreground border border-border/60 tabular-nums">
                                         +{uniqueServices.length - 2}
                                       </span>
                                     )}
@@ -809,7 +804,7 @@ const Clients = () => {
 
                                 {/* Row 5: Card Footer */}
                                 <div className="flex items-center justify-between pt-2.5 border-t border-border/60 text-[11px] text-muted-foreground">
-                                  <span className="flex items-center gap-1.5">
+                                  <span className="flex items-center gap-1.5 tabular-nums">
                                     <Calendar size={11} className="text-muted-foreground/70 shrink-0" />
                                     <span>
                                       {client.createdAt
@@ -821,7 +816,7 @@ const Clients = () => {
                                         : 'Active'}
                                     </span>
                                   </span>
-                                  <span className="group-hover:text-primary flex items-center gap-1 font-bold text-xs transition-colors">
+                                  <span className="group-hover:text-foreground flex items-center gap-1 font-bold text-xs transition-colors">
                                     Open <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
                                   </span>
                                 </div>
@@ -832,7 +827,7 @@ const Clients = () => {
 
                         {/* Drop indicator at the bottom of the column */}
                         {isColActive && dragOverClientIndex >= statusClients.length && (
-                          <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1.5 shadow-xs" />
+                          <div className="h-1.5 rounded-full bg-primary my-1.5 shadow-xs" />
                         )}
 
                         {/* Column Empty State */}

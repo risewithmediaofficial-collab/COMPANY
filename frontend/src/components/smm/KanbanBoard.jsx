@@ -1,12 +1,12 @@
 import React from 'react';
-import { Plus, MoreHorizontal, User, Clock, Paperclip, MessageSquare } from 'lucide-react';
+import { Plus, MoreHorizontal, User, Clock, Paperclip, MessageSquare } from '@/components/ui/muiIcons';
 import { StatusBadgeSmm } from './StatusBadgeSmm';
 
 const COLUMNS = [
-  { id: 'Todo', title: 'To Do', color: 'border-l-slate-400' },
-  { id: 'In Progress', title: 'In Progress', color: 'border-l-blue-500' },
-  { id: 'Review', title: 'Review / Approval', color: 'border-l-amber-500' },
-  { id: 'Done', title: 'Done', color: 'border-l-emerald-500' },
+  { id: 'Todo', title: 'To Do', color: 'border-l-border' },
+  { id: 'In Progress', title: 'In Progress', color: 'border-l-zinc-500' },
+  { id: 'Review', title: 'Review / Approval', color: 'border-l-zinc-700 dark:border-l-zinc-300' },
+  { id: 'Done', title: 'Done', color: 'border-l-foreground' },
 ];
 
 export const KanbanBoard = ({ tasks = [], onAddTask, onEditTask, onStatusChange }) => {
@@ -66,10 +66,10 @@ export const KanbanBoard = ({ tasks = [], onAddTask, onEditTask, onStatusChange 
                         </span>
                       )}
                       {task.priority && (
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          task.priority === 'Urgent' ? 'bg-rose-500/10 text-rose-600' :
-                          task.priority === 'High' ? 'bg-amber-500/10 text-amber-600' :
-                          'bg-slate-500/10 text-slate-600'
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase border ${
+                          task.priority === 'Urgent' ? 'bg-primary text-primary-foreground border-primary' :
+                          task.priority === 'High' ? 'bg-secondary text-foreground border-border' :
+                          'bg-card text-muted-foreground border-border'
                         }`}>
                           {task.priority}
                         </span>

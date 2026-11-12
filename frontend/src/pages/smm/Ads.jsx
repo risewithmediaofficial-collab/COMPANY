@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Check, X, FileText, ExternalLink, Image as ImageIcon, Video, Layers, MessageSquare, TrendingUp, Target, DollarSign, Edit3, Sparkles, Play, Pause, ArrowRight, Film } from 'lucide-react';
+import { Plus, Check, X, FileText, ExternalLink, Image as ImageIcon, Video, Layers, MessageSquare, TrendingUp, Target, DollarSign, Edit3, Sparkles, Play, Pause, ArrowRight, Film } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, SearchField } from '../../components/ui/page';
@@ -276,13 +276,14 @@ export default function Ads() {
       key: 'name',
       label: 'Ad & Creative',
       render: (row) => (
-        <div>
-          <span className="font-bold text-foreground block">{row.name}</span>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[11px] text-muted-foreground">{row.adSet?.name || 'No Ad Set'} • {row.creativeType}</span>
+        <div className="min-w-0">
+          <span className="font-semibold text-foreground block truncate">{row.name}</span>
+          <div className="flex flex-wrap items-center gap-2 mt-0.5">
+            <span className="text-[11px] text-muted-foreground">{row.adSet?.name || 'No Ad Set'} · {row.creativeType}</span>
             {row.sourceContentId && (
-              <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-[10px] border border-purple-500/20">
-                🎥 Linked Video
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-foreground font-semibold text-[10px] border border-border">
+                <Video size={10} className="shrink-0" />
+                Linked Video
               </span>
             )}
           </div>
@@ -293,9 +294,9 @@ export default function Ads() {
       key: 'headline',
       label: 'Copy & CTA',
       render: (row) => (
-        <div className="max-w-xs">
+        <div className="max-w-xs min-w-0">
           <span className="text-xs font-semibold text-foreground truncate block">{row.headline || 'No Headline'}</span>
-          <span className="text-[10px] text-muted-foreground line-clamp-1">{row.cta} • {row.destinationUrl || row.whatsappNumber || 'No Link'}</span>
+          <span className="text-[10px] text-muted-foreground line-clamp-1">{row.cta} · {row.destinationUrl || row.whatsappNumber || 'No Link'}</span>
         </div>
       ),
     },
@@ -303,10 +304,10 @@ export default function Ads() {
       key: 'leads',
       label: 'Leads & Spend',
       render: (row) => (
-        <div>
-          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">{row.performance?.leads || 0} Leads</span>
-          <span className="text-[10px] text-muted-foreground font-mono">
-            Spent: ₹{(row.performance?.spend || 0).toLocaleString()} • CPL: ₹{row.performance?.cpl || 0}
+        <div className="tabular-nums">
+          <span className="text-xs font-bold text-foreground block">{row.performance?.leads || 0} Leads</span>
+          <span className="text-[10px] text-muted-foreground">
+            Spent: ₹{(row.performance?.spend || 0).toLocaleString()} · CPL: ₹{row.performance?.cpl || 0}
           </span>
         </div>
       ),
@@ -315,9 +316,9 @@ export default function Ads() {
       key: 'roas',
       label: 'ROAS & Rev',
       render: (row) => (
-        <div>
-          <span className="text-xs font-bold text-primary block">{row.performance?.roas ? `${row.performance.roas}x` : '—'} ROAS</span>
-          <span className="text-[10px] text-muted-foreground font-mono">
+        <div className="tabular-nums">
+          <span className="text-xs font-bold text-foreground block">{row.performance?.roas ? `${row.performance.roas}x` : '—'} ROAS</span>
+          <span className="text-[10px] text-muted-foreground">
             Rev: ₹{(row.performance?.revenue || 0).toLocaleString()}
           </span>
         </div>
@@ -331,14 +332,10 @@ export default function Ads() {
           <StatusBadgeSmm status={row.status} />
           <button
             onClick={() => handleToggleStatus(row)}
-            className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${
-              row.status === 'Active'
-                ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
-                : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
-            }`}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-secondary text-foreground border border-border hover:bg-secondary/80 transition-colors"
           >
-            {row.status === 'Active' ? <Pause size={10} /> : <Play size={10} fill="currentColor" />}
-            {row.status === 'Active' ? 'Running' : 'Resume'}
+            {row.status === 'Active' ? <Pause size={10} className="shrink-0" /> : <Play size={10} className="shrink-0" />}
+            <span>{row.status === 'Active' ? 'Running' : 'Resume'}</span>
           </button>
         </div>
       ),
@@ -351,10 +348,10 @@ export default function Ads() {
           <StatusBadgeSmm status={row.approvalStatus} />
           {row.approvalStatus === 'Pending' && (
             <div className="flex gap-1">
-              <button onClick={() => handleApproval(row._id, 'Approved')} className="p-1 rounded bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" title="Approve">
+              <button onClick={() => handleApproval(row._id, 'Approved')} className="p-1 rounded bg-secondary border border-border text-foreground hover:bg-secondary/80" title="Approve">
                 <Check size={14} />
               </button>
-              <button onClick={() => handleApproval(row._id, 'Rejected')} className="p-1 rounded bg-rose-500/10 text-rose-600 hover:bg-rose-500/20" title="Reject">
+              <button onClick={() => handleApproval(row._id, 'Rejected')} className="p-1 rounded bg-secondary border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/80" title="Reject">
                 <X size={14} />
               </button>
             </div>
@@ -368,9 +365,10 @@ export default function Ads() {
       render: (row) => (
         <button
           onClick={() => openLogMetrics(row)}
-          className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-lg text-xs font-bold flex items-center gap-1 border border-emerald-200 dark:border-emerald-800"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-foreground hover:bg-secondary/80 rounded-lg text-xs font-semibold border border-border transition-colors"
         >
-          <Target size={13} /> Log Leads & Spend
+          <Target size={13} className="shrink-0" />
+          <span>Log Leads &amp; Spend</span>
         </button>
       ),
     },
@@ -382,9 +380,9 @@ export default function Ads() {
         title="Ads Manager & Creative Performance"
         subtitle="Create ads linked directly to your central Video Database, track headlines, copy, CTAs, and log ROAS"
         actions={
-          <button onClick={openAdd} className="bg-primary text-primary-foreground font-bold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
-            <Plus size={18} />
-            Create Ad
+          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-xs hover:bg-primary/90 transition-colors">
+            <Plus size={18} className="shrink-0" />
+            <span>Create Ad</span>
           </button>
         }
       />
@@ -426,9 +424,9 @@ export default function Ads() {
         title={`Log Leads & Spend — ${selectedAdForLog?.name}`}
       >
         <form onSubmit={handleSaveAdPerformance} className="space-y-4 text-xs">
-          <div className="p-4 bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-1">
-            <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Direct Lead & Spend Log</h4>
-            <p className="text-xs text-emerald-600 dark:text-emerald-500">Record daily leads, spend, and conversions for this specific video ad</p>
+          <div className="p-4 bg-secondary/50 border border-border rounded-2xl space-y-1">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Direct Lead &amp; Spend Log</h4>
+            <p className="text-xs text-muted-foreground">Record daily leads, spend, and conversions for this specific video ad</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -439,17 +437,17 @@ export default function Ads() {
                 required
                 value={adMetrics.leads}
                 onChange={e => setAdMetrics({...adMetrics, leads: Number(e.target.value)})}
-                className="app-input font-bold text-emerald-600 text-base"
+                className="app-input font-bold text-foreground text-base tabular-nums"
                 placeholder="e.g. 25"
               />
             </div>
             <div>
-              <label className="font-semibold text-rose-500 mb-1 block">Ad Spend Amount (₹)</label>
+              <label className="font-semibold text-foreground mb-1 block">Ad Spend Amount (₹)</label>
               <input
                 type="number"
                 value={adMetrics.spend}
                 onChange={e => setAdMetrics({...adMetrics, spend: Number(e.target.value)})}
-                className="app-input font-mono font-bold"
+                className="app-input font-semibold tabular-nums"
                 placeholder="e.g. 2500"
               />
             </div>
@@ -459,7 +457,7 @@ export default function Ads() {
                 type="number"
                 value={adMetrics.revenue}
                 onChange={e => setAdMetrics({...adMetrics, revenue: Number(e.target.value)})}
-                className="app-input font-mono text-emerald-600"
+                className="app-input font-semibold tabular-nums"
                 placeholder="e.g. 15000"
               />
             </div>
@@ -469,7 +467,7 @@ export default function Ads() {
                 type="number"
                 value={adMetrics.conversions}
                 onChange={e => setAdMetrics({...adMetrics, conversions: Number(e.target.value)})}
-                className="app-input font-mono"
+                className="app-input tabular-nums"
                 placeholder="e.g. 4"
               />
             </div>
@@ -479,7 +477,7 @@ export default function Ads() {
                 type="number"
                 value={adMetrics.clicks}
                 onChange={e => setAdMetrics({...adMetrics, clicks: Number(e.target.value)})}
-                className="app-input font-mono"
+                className="app-input tabular-nums"
                 placeholder="e.g. 350"
               />
             </div>
@@ -489,7 +487,7 @@ export default function Ads() {
                 type="number"
                 value={adMetrics.impressions}
                 onChange={e => setAdMetrics({...adMetrics, impressions: Number(e.target.value)})}
-                className="app-input font-mono"
+                className="app-input tabular-nums"
                 placeholder="e.g. 12000"
               />
             </div>
@@ -497,7 +495,7 @@ export default function Ads() {
 
           <div className="pt-4 border-t border-border flex justify-end gap-3">
             <button type="button" onClick={() => setIsLogDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="bg-emerald-600 text-white font-semibold px-4 py-2 rounded-xl text-sm hover:bg-emerald-700">Save Ad Results</button>
+            <button type="submit" className="bg-primary text-primary-foreground font-semibold px-4 py-2 rounded-xl text-sm hover:bg-primary/90 transition-colors">Save Ad Results</button>
           </div>
         </form>
       </SMMDrawer>
@@ -538,14 +536,16 @@ export default function Ads() {
           </div>
 
           {/* Select Video from Campaign / Database */}
-          <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                <Sparkles size={14} /> Select Video from Campaign to Run
+          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <label className="font-semibold text-foreground inline-flex items-center gap-1.5">
+                <Sparkles size={14} className="shrink-0" />
+                <span>Select Video from Campaign to Run</span>
               </label>
               {formData.sourceContentId && (
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                  ✓ Video Selected
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary-foreground bg-primary px-2 py-0.5 rounded-full shrink-0">
+                  <Check size={10} className="shrink-0" />
+                  Video Selected
                 </span>
               )}
             </div>
@@ -557,7 +557,7 @@ export default function Ads() {
               <option value="">-- Choose Campaign Video / Reel to Run Ad --</option>
               {campaignVideos.map(v => (
                 <option key={v._id} value={v._id}>
-                  🎥 {v.name} ({v.contentType}) {v.adRecommendation === '🔥 HIGH POTENTIAL' ? '🔥 HIGH POTENTIAL' : ''}
+                  {v.name} ({v.contentType}){v.adRecommendation === '🔥 HIGH POTENTIAL' ? ' [High Potential]' : ''}
                 </option>
               ))}
             </select>
@@ -581,11 +581,11 @@ export default function Ads() {
               <select
                 value={formData.status}
                 onChange={e => setFormData({...formData, status: e.target.value})}
-                className="app-select font-bold"
+                className="app-select font-semibold"
               >
-                <option value="Active">🟢 Active & Running</option>
-                <option value="Draft">⚪ Draft</option>
-                <option value="Paused">🟡 Paused</option>
+                <option value="Active">Active &amp; Running</option>
+                <option value="Draft">Draft</option>
+                <option value="Paused">Paused</option>
               </select>
             </div>
             <div>
@@ -595,7 +595,7 @@ export default function Ads() {
                 onChange={e => setFormData({...formData, cta: e.target.value})}
                 className="app-select"
               >
-                <option value="WhatsApp">💬 WhatsApp (Direct Message)</option>
+                <option value="WhatsApp">WhatsApp (Direct Message)</option>
                 <option value="Learn More">Learn More</option>
                 <option value="Book Now">Book Now</option>
                 <option value="Contact Us">Contact Us</option>

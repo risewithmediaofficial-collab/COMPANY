@@ -8,7 +8,7 @@ import {
   Filter,
   Layers,
   ChevronRight,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { AppTooltip } from './tooltip';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import { getCategoryTheme } from '../../utils/categoryColors';
@@ -177,8 +177,8 @@ export function DatabaseView({
                   <span>{v.label}</span>
                   {v.count !== undefined && (
                     <span
-                      className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${
-                        isSelected ? 'bg-white/20 text-white' : 'bg-secondary text-muted-foreground'
+                      className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
+                        isSelected ? 'bg-primary-foreground/15 text-primary-foreground' : 'bg-secondary text-muted-foreground'
                       }`}
                     >
                       {v.count}

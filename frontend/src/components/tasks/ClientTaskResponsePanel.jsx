@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, AlertTriangle, Check, CheckCircle2, Loader2, MessageSquarePlus, Sparkles, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Check, CheckCircle2, Loader2, MessageSquarePlus, Sparkles, X } from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { useSubmitClientTaskResponse } from '../../hooks/useTasks';
@@ -46,22 +46,22 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
   return (
     <div className={`rounded-2xl border transition-all ${compact ? 'p-3' : 'p-5'} ${
       responseState === 'yes'
-        ? 'border-emerald-500/20 bg-emerald-500/[0.04]'
+        ? 'border-foreground/30 bg-secondary/70'
         : responseState === 'no'
-        ? 'border-amber-500/20 bg-amber-500/[0.04]'
+        ? 'border-foreground/25 bg-secondary/50'
         : canRespond
-        ? 'border-primary/30 bg-primary/[0.03] shadow-sm'
-        : 'border-border bg-card/60'
+        ? 'border-primary/40 bg-card shadow-sm'
+        : 'border-border bg-card'
     }`}>
       {/* Response Status Display */}
       {responseState === 'yes' && (
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <CheckCircle2 size={18} />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">You approved this deliverable</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
               Approved on {task.clientResponseDate ? new Date(task.clientResponseDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'recently'}. All delivery requirements met.
             </p>
           </div>
@@ -71,7 +71,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
       {responseState === 'no' && (
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground">
               <AlertTriangle size={18} />
             </div>
             <div>
@@ -82,7 +82,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
             </div>
           </div>
           {task.clientFeedback && (
-            <div className="rounded-xl border border-border/80 bg-background/80 p-3 text-xs text-foreground">
+            <div className="rounded-xl border border-border bg-background p-3 text-xs text-foreground">
               <p className="font-semibold text-muted-foreground mb-1">Your notes to the team:</p>
               <p className="whitespace-pre-wrap">{task.clientFeedback}</p>
             </div>
@@ -95,7 +95,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
         <div>
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary border border-border text-foreground">
                 <Sparkles size={15} />
               </span>
               <div>
@@ -110,7 +110,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
               type="button"
               onClick={() => handleRespond('yes')}
               disabled={submitResponse.isPending}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs font-semibold px-4 text-xs h-9"
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs font-semibold px-4 text-xs h-9"
             >
               {submitResponse.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               Approve Deliverable
@@ -142,7 +142,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
               <textarea
                 value={feedback}
                 onChange={(event) => setFeedback(event.target.value)}
-                placeholder="Describe the adjustments needed (e.g., text edits, color adjustments, additional features)..."
+                placeholder="Describe the adjustments needed (e.g., text edits, layout adjustments, additional features)..."
                 rows={3}
                 className="w-full resize-none rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
               />
@@ -161,7 +161,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
                   size="sm"
                   onClick={() => handleRespond('no')}
                   disabled={submitResponse.isPending || !feedback.trim()}
-                  className="h-8 text-xs bg-amber-600 hover:bg-amber-500 text-white font-medium"
+                  className="h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 >
                   {submitResponse.isPending ? <Loader2 size={13} className="animate-spin mr-1" /> : null}
                   Submit Changes

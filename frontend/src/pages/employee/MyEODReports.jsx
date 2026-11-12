@@ -19,7 +19,7 @@ import {
   RefreshCw,
   Search,
   Eye,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const MONTHS = [
@@ -226,8 +226,8 @@ const MyEODReports = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <FileText className="text-white" size={20} />
+            <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground border border-primary flex items-center justify-center shadow-sm shrink-0">
+              <FileText size={20} />
             </div>
             <div>
               <h1 className="text-xl font-black text-foreground tracking-tight">
@@ -244,18 +244,18 @@ const MyEODReports = () => {
           <button
             onClick={() => refetch()}
             disabled={isLoading}
-            className="p-2.5 rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-xs"
+            className="p-2.5 rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-xs cursor-pointer"
             title="Refresh"
           >
             <RefreshCw
               size={15}
-              className={isLoading ? 'animate-spin text-primary' : 'text-muted-foreground'}
+              className={isLoading ? 'animate-spin text-foreground' : 'text-muted-foreground'}
             />
           </button>
           <button
             onClick={handleExport}
             disabled={exporting || records.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold rounded-xl hover:opacity-90 shadow-md shadow-indigo-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {exporting ? (
               <>
@@ -368,42 +368,30 @@ const MyEODReports = () => {
             label: 'Reports Submitted',
             value: stats.totalReports,
             icon: FileText,
-            color: 'text-indigo-600 dark:text-indigo-400',
-            bg: 'bg-indigo-50 dark:bg-indigo-950/40',
-            border: 'border-indigo-200 dark:border-indigo-800',
           },
           {
             label: 'Tasks Completed',
             value: stats.totalTasks,
             icon: CheckCircle2,
-            color: 'text-emerald-600 dark:text-emerald-400',
-            bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-            border: 'border-emerald-200 dark:border-emerald-800',
           },
           {
             label: 'Total Hours',
             value: `${stats.totalHours.toFixed(1)}h`,
             icon: Clock,
-            color: 'text-blue-600 dark:text-blue-400',
-            bg: 'bg-blue-50 dark:bg-blue-950/40',
-            border: 'border-blue-200 dark:border-blue-800',
           },
           {
             label: 'Days with Blockers',
             value: stats.withBlockers,
             icon: AlertCircle,
-            color: 'text-amber-600 dark:text-amber-400',
-            bg: 'bg-amber-50 dark:bg-amber-950/40',
-            border: 'border-amber-200 dark:border-amber-800',
           },
         ].map((card) => (
           <div
             key={card.label}
-            className={`${card.bg} border ${card.border} rounded-2xl p-4 shadow-xs`}
+            className="bg-card border border-border rounded-2xl p-4 shadow-xs"
           >
             <div className="flex items-center justify-between mb-2">
-              <card.icon size={18} className={card.color} />
-              <span className={`text-2xl font-black ${card.color}`}>
+              <card.icon size={18} className="text-muted-foreground shrink-0" />
+              <span className="text-2xl font-black text-foreground tabular-nums">
                 {card.value}
               </span>
             </div>
@@ -415,7 +403,7 @@ const MyEODReports = () => {
       {/* ── Reports List ── */}
       {isLoading ? (
         <div className="py-20 text-center">
-          <RefreshCw size={28} className="mx-auto animate-spin text-primary mb-3" />
+          <RefreshCw size={28} className="mx-auto animate-spin text-muted-foreground mb-3" />
           <p className="text-sm text-muted-foreground font-semibold">Loading your reports…</p>
         </div>
       ) : records.length === 0 ? (
@@ -441,17 +429,17 @@ const MyEODReports = () => {
             return (
               <div
                 key={record._id}
-                className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-primary/20 transition-all duration-200 group"
+                className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 group"
               >
                 {/* Card Header */}
                 <div className="flex items-center justify-between px-5 py-3.5 bg-secondary/20 border-b border-border/60">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500/15 to-purple-500/15 flex items-center justify-center">
-                      <Calendar size={16} className="text-indigo-600 dark:text-indigo-400" />
+                    <div className="h-9 w-9 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0">
+                      <Calendar size={16} className="text-foreground" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">{dateStr}</h3>
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <h3 className="text-sm font-bold text-foreground tabular-nums">{dateStr}</h3>
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground tabular-nums">
                         <span className="capitalize font-semibold">{status}</span>
                         <span>•</span>
                         <span>{hours} worked</span>
@@ -468,7 +456,7 @@ const MyEODReports = () => {
                   </div>
                   <button
                     onClick={() => setSelectedRecord(record)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary rounded-lg border border-transparent hover:border-border transition-colors cursor-pointer"
                   >
                     <Eye size={13} />
                     View
@@ -492,21 +480,21 @@ const MyEODReports = () => {
                   {/* Tasks */}
                   {tasks.length > 0 && (
                     <div>
-                      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1.5">
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 tabular-nums">
                         Tasks Completed ({tasks.length})
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {tasks.slice(0, 5).map((task, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-secondary text-foreground border border-border rounded-lg"
                           >
-                            <CheckCircle2 size={10} />
+                            <CheckCircle2 size={10} className="shrink-0" />
                             <span className="max-w-[200px] truncate">{task}</span>
                           </span>
                         ))}
                         {tasks.length > 5 && (
-                          <span className="inline-flex items-center px-2 py-1 text-[11px] font-semibold text-muted-foreground bg-secondary/40 rounded-lg">
+                          <span className="inline-flex items-center px-2 py-1 text-[11px] font-semibold text-muted-foreground bg-secondary/40 rounded-lg tabular-nums">
                             +{tasks.length - 5} more
                           </span>
                         )}
@@ -516,16 +504,16 @@ const MyEODReports = () => {
 
                   {/* Blockers */}
                   {eod.blockers && (
-                    <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-2.5">
+                    <div className="flex items-start gap-2 bg-muted border border-border rounded-xl p-2.5">
                       <AlertCircle
                         size={14}
-                        className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"
+                        className="text-foreground mt-0.5 shrink-0"
                       />
                       <div>
-                        <p className="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                        <p className="text-[11px] font-bold text-foreground uppercase tracking-wider">
                           Blockers
                         </p>
-                        <p className="text-xs text-amber-800 dark:text-amber-200 line-clamp-2 mt-0.5">
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                           {eod.blockers}
                         </p>
                       </div>
@@ -541,15 +529,15 @@ const MyEODReports = () => {
       {/* ── Footer Stats ── */}
       {!isLoading && records.length > 0 && (
         <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between shadow-xs">
-          <span className="text-xs text-muted-foreground">
-            Showing <strong>{records.length}</strong> reports
+          <span className="text-xs text-muted-foreground tabular-nums">
+            Showing <strong className="text-foreground">{records.length}</strong> reports
             {rangeType === 'monthly' && ` for ${MONTHS[month - 1]} ${year}`}
             {rangeType === 'weekly' && ' for this week'}
           </span>
           <button
             onClick={handleExport}
             disabled={exporting || records.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary rounded-lg border border-border transition-colors disabled:opacity-50 cursor-pointer"
           >
             <Download size={13} />
             Download Word Report

@@ -1,5 +1,5 @@
 // =============================================
-// UNIFIED CATEGORY & THEME COLOR UTILITY
+// UNIFIED CATEGORY & THEME COLOR UTILITY (MONOCHROME CRM)
 // =============================================
 
 import {
@@ -25,380 +25,380 @@ import {
   Building,
   Film,
   Layers,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 
 /**
- * Standardized category color dictionary
- * Defines border accents, background tints, text colors, and badge classes
+ * Standardized monochrome black & grey category dictionary
+ * Defines crisp grayscale left borders, neutral background tints, text colors, and badge classes
  */
 export const CATEGORY_THEMES = {
-  // Web & Engineering (Blue / Cyan)
+  // Web & Engineering
   web_development: {
     key: 'web_development',
     label: 'Website / Web Dev',
     shortLabel: 'Web Dev',
     icon: Globe,
-    accentBorder: 'border-l-blue-500 dark:border-l-blue-400',
-    borderClass: 'border-blue-500/20',
-    badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25',
-    bgLight: 'bg-blue-500/5',
-    text: 'text-blue-600 dark:text-blue-400',
-    dotClass: 'bg-blue-500',
-    colorName: 'blue',
+    accentBorder: 'border-l-zinc-900 dark:border-l-zinc-100',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-900/10 text-zinc-900 dark:bg-zinc-100/10 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-900 dark:bg-zinc-100',
+    colorName: 'zinc',
   },
   website: {
     key: 'web_development',
     label: 'Website / Web Dev',
     shortLabel: 'Web Dev',
     icon: Globe,
-    accentBorder: 'border-l-blue-500 dark:border-l-blue-400',
-    borderClass: 'border-blue-500/20',
-    badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25',
-    bgLight: 'bg-blue-500/5',
-    text: 'text-blue-600 dark:text-blue-400',
-    dotClass: 'bg-blue-500',
-    colorName: 'blue',
+    accentBorder: 'border-l-zinc-900 dark:border-l-zinc-100',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-900/10 text-zinc-900 dark:bg-zinc-100/10 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-900 dark:bg-zinc-100',
+    colorName: 'zinc',
   },
   website_dev: {
     key: 'web_development',
     label: 'Website / Web Dev',
     shortLabel: 'Web Dev',
     icon: Globe,
-    accentBorder: 'border-l-blue-500 dark:border-l-blue-400',
-    borderClass: 'border-blue-500/20',
-    badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25',
-    bgLight: 'bg-blue-500/5',
-    text: 'text-blue-600 dark:text-blue-400',
-    dotClass: 'bg-blue-500',
-    colorName: 'blue',
+    accentBorder: 'border-l-zinc-900 dark:border-l-zinc-100',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-900/10 text-zinc-900 dark:bg-zinc-100/10 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-900 dark:bg-zinc-100',
+    colorName: 'zinc',
   },
   web_design: {
     key: 'web_design',
     label: 'Web Design / UI-UX',
     shortLabel: 'Web Design',
     icon: Layout,
-    accentBorder: 'border-l-cyan-500 dark:border-l-cyan-400',
-    borderClass: 'border-cyan-500/20',
-    badgeClass: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/25',
-    bgLight: 'bg-cyan-500/5',
-    text: 'text-cyan-600 dark:text-cyan-400',
-    dotClass: 'bg-cyan-500',
-    colorName: 'cyan',
+    accentBorder: 'border-l-zinc-700 dark:border-l-zinc-300',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-700 dark:bg-zinc-300',
+    colorName: 'zinc',
   },
   website_development: {
     key: 'website_development',
     label: 'Website Dev',
     shortLabel: 'Web Dev',
     icon: Globe,
-    accentBorder: 'border-l-blue-500 dark:border-l-blue-400',
-    borderClass: 'border-blue-500/20',
-    badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25',
-    bgLight: 'bg-blue-500/5',
-    text: 'text-blue-600 dark:text-blue-400',
-    dotClass: 'bg-blue-500',
-    colorName: 'blue',
+    accentBorder: 'border-l-zinc-900 dark:border-l-zinc-100',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-900/10 text-zinc-900 dark:bg-zinc-100/10 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-900 dark:bg-zinc-100',
+    colorName: 'zinc',
   },
   website_update: {
     key: 'website_update',
     label: 'Website Update',
     shortLabel: 'Web Update',
     icon: Globe,
-    accentBorder: 'border-l-sky-500 dark:border-l-sky-400',
-    borderClass: 'border-sky-500/20',
-    badgeClass: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25',
-    bgLight: 'bg-sky-500/5',
-    text: 'text-sky-600 dark:text-sky-400',
-    dotClass: 'bg-sky-500',
-    colorName: 'sky',
+    accentBorder: 'border-l-zinc-600 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-600 dark:bg-zinc-400',
+    colorName: 'zinc',
   },
   landing_page: {
     key: 'landing_page',
     label: 'Landing Page',
     shortLabel: 'Landing Page',
     icon: Layout,
-    accentBorder: 'border-l-cyan-500 dark:border-l-cyan-400',
-    borderClass: 'border-cyan-500/20',
-    badgeClass: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/25',
-    bgLight: 'bg-cyan-500/5',
-    text: 'text-cyan-600 dark:text-cyan-400',
-    dotClass: 'bg-cyan-500',
-    colorName: 'cyan',
+    accentBorder: 'border-l-zinc-700 dark:border-l-zinc-300',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-700 dark:bg-zinc-300',
+    colorName: 'zinc',
   },
 
-  // Social Media & Marketing (Pink / Rose)
+  // Social Media & Marketing
   social_media: {
     key: 'social_media',
     label: 'Social Media',
     shortLabel: 'Social Media',
     icon: Share2,
-    accentBorder: 'border-l-pink-500 dark:border-l-pink-400',
-    borderClass: 'border-pink-500/20',
-    badgeClass: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/25',
-    bgLight: 'bg-pink-500/5',
-    text: 'text-pink-600 dark:text-pink-400',
-    dotClass: 'bg-pink-500',
-    colorName: 'pink',
+    accentBorder: 'border-l-zinc-700 dark:border-l-zinc-300',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-700 dark:bg-zinc-300',
+    colorName: 'zinc',
   },
   reel: {
     key: 'reel',
     label: 'Instagram Reel',
     shortLabel: 'Reel',
     icon: Film,
-    accentBorder: 'border-l-pink-500 dark:border-l-pink-400',
-    borderClass: 'border-pink-500/20',
-    badgeClass: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/25',
-    bgLight: 'bg-pink-500/5',
-    text: 'text-pink-600 dark:text-pink-400',
-    dotClass: 'bg-pink-500',
-    colorName: 'pink',
+    accentBorder: 'border-l-zinc-800 dark:border-l-zinc-200',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-800 dark:bg-zinc-200',
+    colorName: 'zinc',
   },
   social_media_post: {
     key: 'social_media_post',
     label: 'Social Media Post',
     shortLabel: 'Post',
     icon: Share2,
-    accentBorder: 'border-l-pink-500 dark:border-l-pink-400',
-    borderClass: 'border-pink-500/20',
-    badgeClass: 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/25',
-    bgLight: 'bg-pink-500/5',
-    text: 'text-pink-600 dark:text-pink-400',
-    dotClass: 'bg-pink-500',
-    colorName: 'pink',
+    accentBorder: 'border-l-zinc-600 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-600 dark:bg-zinc-400',
+    colorName: 'zinc',
   },
   poster: {
     key: 'poster',
     label: 'Poster / Creative',
     shortLabel: 'Poster',
     icon: Palette,
-    accentBorder: 'border-l-violet-500 dark:border-l-violet-400',
-    borderClass: 'border-violet-500/20',
-    badgeClass: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/25',
-    bgLight: 'bg-violet-500/5',
-    text: 'text-violet-600 dark:text-violet-400',
-    dotClass: 'bg-violet-500',
-    colorName: 'violet',
+    accentBorder: 'border-l-zinc-500 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-500',
+    colorName: 'zinc',
   },
 
-  // SEO & Search (Emerald / Green)
+  // SEO & Search
   seo: {
     key: 'seo',
     label: 'SEO & Search Marketing',
     shortLabel: 'SEO',
     icon: Search,
-    accentBorder: 'border-l-emerald-500 dark:border-l-emerald-400',
-    borderClass: 'border-emerald-500/20',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
-    bgLight: 'bg-emerald-500/5',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    dotClass: 'bg-emerald-500',
-    colorName: 'emerald',
+    accentBorder: 'border-l-neutral-700 dark:border-l-neutral-300',
+    borderClass: 'border-neutral-500/25',
+    badgeClass: 'bg-neutral-500/10 text-neutral-800 dark:text-neutral-200 border-neutral-500/25',
+    bgLight: 'bg-neutral-500/5',
+    text: 'text-neutral-700 dark:text-neutral-300',
+    dotClass: 'bg-neutral-700 dark:bg-neutral-300',
+    colorName: 'neutral',
   },
   seo_work: {
     key: 'seo_work',
     label: 'SEO Optimization',
     shortLabel: 'SEO Work',
     icon: Search,
-    accentBorder: 'border-l-emerald-500 dark:border-l-emerald-400',
-    borderClass: 'border-emerald-500/20',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
-    bgLight: 'bg-emerald-500/5',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    dotClass: 'bg-emerald-500',
-    colorName: 'emerald',
+    accentBorder: 'border-l-neutral-700 dark:border-l-neutral-300',
+    borderClass: 'border-neutral-500/25',
+    badgeClass: 'bg-neutral-500/10 text-neutral-800 dark:text-neutral-200 border-neutral-500/25',
+    bgLight: 'bg-neutral-500/5',
+    text: 'text-neutral-700 dark:text-neutral-300',
+    dotClass: 'bg-neutral-700 dark:bg-neutral-300',
+    colorName: 'neutral',
   },
 
-  // Paid Ads & Performance (Amber / Orange)
+  // Paid Ads & Performance
   paid_ads: {
     key: 'paid_ads',
     label: 'Paid Ads / Performance',
     shortLabel: 'Paid Ads',
     icon: Target,
-    accentBorder: 'border-l-amber-500 dark:border-l-amber-400',
-    borderClass: 'border-amber-500/20',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
-    bgLight: 'bg-amber-500/5',
-    text: 'text-amber-600 dark:text-amber-400',
-    dotClass: 'bg-amber-500',
-    colorName: 'amber',
+    accentBorder: 'border-l-zinc-800 dark:border-l-zinc-200',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-900 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-800 dark:bg-zinc-200',
+    colorName: 'zinc',
   },
   ads_campaign: {
     key: 'ads_campaign',
     label: 'Ads Campaign Spend',
     shortLabel: 'Ads Spend',
     icon: Megaphone,
-    accentBorder: 'border-l-amber-500 dark:border-l-amber-400',
-    borderClass: 'border-amber-500/20',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
-    bgLight: 'bg-amber-500/5',
-    text: 'text-amber-600 dark:text-amber-400',
-    dotClass: 'bg-amber-500',
-    colorName: 'amber',
+    accentBorder: 'border-l-zinc-800 dark:border-l-zinc-200',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-900 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-800 dark:bg-zinc-200',
+    colorName: 'zinc',
   },
   ads_setup: {
     key: 'ads_setup',
     label: 'Ads Setup',
     shortLabel: 'Ads Setup',
     icon: Target,
-    accentBorder: 'border-l-amber-500 dark:border-l-amber-400',
-    borderClass: 'border-amber-500/20',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
-    bgLight: 'bg-amber-500/5',
-    text: 'text-amber-600 dark:text-amber-400',
-    dotClass: 'bg-amber-500',
-    colorName: 'amber',
+    accentBorder: 'border-l-zinc-700 dark:border-l-zinc-300',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-700 dark:bg-zinc-300',
+    colorName: 'zinc',
   },
 
-  // Branding & Design (Purple / Violet)
+  // Branding & Design
   branding: {
     key: 'branding',
     label: 'Branding & Identity',
     shortLabel: 'Branding',
     icon: Sparkles,
-    accentBorder: 'border-l-purple-500 dark:border-l-purple-400',
-    borderClass: 'border-purple-500/20',
-    badgeClass: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25',
-    bgLight: 'bg-purple-500/5',
-    text: 'text-purple-600 dark:text-purple-400',
-    dotClass: 'bg-purple-500',
-    colorName: 'purple',
+    accentBorder: 'border-l-zinc-600 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-600 dark:bg-zinc-400',
+    colorName: 'zinc',
   },
   graphic_design: {
     key: 'graphic_design',
     label: 'Graphic Design',
     shortLabel: 'Graphics',
     icon: Palette,
-    accentBorder: 'border-l-violet-500 dark:border-l-violet-400',
-    borderClass: 'border-violet-500/20',
-    badgeClass: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/25',
-    bgLight: 'bg-violet-500/5',
-    text: 'text-violet-600 dark:text-violet-400',
-    dotClass: 'bg-violet-500',
-    colorName: 'violet',
+    accentBorder: 'border-l-zinc-500 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-500',
+    colorName: 'zinc',
   },
 
-  // Video Production (Rose / Red)
+  // Video Production
   video_content: {
     key: 'video_content',
     label: 'Video Production',
     shortLabel: 'Video',
     icon: Video,
-    accentBorder: 'border-l-rose-500 dark:border-l-rose-400',
-    borderClass: 'border-rose-500/20',
-    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
-    bgLight: 'bg-rose-500/5',
-    text: 'text-rose-600 dark:text-rose-400',
-    dotClass: 'bg-rose-500',
-    colorName: 'rose',
+    accentBorder: 'border-l-zinc-800 dark:border-l-zinc-200',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-900 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-800 dark:bg-zinc-200',
+    colorName: 'zinc',
   },
   video_production: {
     key: 'video_content',
     label: 'Video Production',
     shortLabel: 'Video',
     icon: Video,
-    accentBorder: 'border-l-rose-500 dark:border-l-rose-400',
-    borderClass: 'border-rose-500/20',
-    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
-    bgLight: 'bg-rose-500/5',
-    text: 'text-rose-600 dark:text-rose-400',
-    dotClass: 'bg-rose-500',
-    colorName: 'rose',
+    accentBorder: 'border-l-zinc-800 dark:border-l-zinc-200',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-900 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-800 dark:bg-zinc-200',
+    colorName: 'zinc',
   },
   video: {
     key: 'video_content',
     label: 'Video Production',
     shortLabel: 'Video',
     icon: Video,
-    accentBorder: 'border-l-rose-500 dark:border-l-rose-400',
-    borderClass: 'border-rose-500/20',
-    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
-    bgLight: 'bg-rose-500/5',
-    text: 'text-rose-600 dark:text-rose-400',
-    dotClass: 'bg-rose-500',
-    colorName: 'rose',
+    accentBorder: 'border-l-zinc-800 dark:border-l-zinc-200',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-900 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-800 dark:bg-zinc-200',
+    colorName: 'zinc',
   },
   video_shoot: {
     key: 'video_shoot',
     label: 'Video Shoot Expense',
     shortLabel: 'Video Shoot',
     icon: Video,
-    accentBorder: 'border-l-rose-500 dark:border-l-rose-400',
-    borderClass: 'border-rose-500/20',
-    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
-    bgLight: 'bg-rose-500/5',
-    text: 'text-rose-600 dark:text-rose-400',
-    dotClass: 'bg-rose-500',
-    colorName: 'rose',
+    accentBorder: 'border-l-zinc-700 dark:border-l-zinc-300',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-700 dark:bg-zinc-300',
+    colorName: 'zinc',
   },
 
-  // Mobile App (Teal)
+  // Mobile App
   mobile_app: {
     key: 'mobile_app',
     label: 'Mobile App Development',
     shortLabel: 'Mobile App',
     icon: Smartphone,
-    accentBorder: 'border-l-teal-500 dark:border-l-teal-400',
-    borderClass: 'border-teal-500/20',
-    badgeClass: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/25',
-    bgLight: 'bg-teal-500/5',
-    text: 'text-teal-600 dark:text-teal-400',
-    dotClass: 'bg-teal-500',
-    colorName: 'teal',
+    accentBorder: 'border-l-zinc-600 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-600 dark:bg-zinc-400',
+    colorName: 'zinc',
   },
 
-  // E-Commerce (Orange)
+  // E-Commerce
   e_commerce: {
     key: 'e_commerce',
     label: 'E-Commerce Solutions',
     shortLabel: 'E-Commerce',
     icon: ShoppingBag,
-    accentBorder: 'border-l-orange-500 dark:border-l-orange-400',
-    borderClass: 'border-orange-500/20',
-    badgeClass: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/25',
-    bgLight: 'bg-orange-500/5',
-    text: 'text-orange-600 dark:text-orange-400',
-    dotClass: 'bg-orange-500',
-    colorName: 'orange',
+    accentBorder: 'border-l-zinc-700 dark:border-l-zinc-300',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-700 dark:bg-zinc-300',
+    colorName: 'zinc',
   },
 
-  // SaaS & Platforms (Indigo)
+  // SaaS & Platforms
   saas_product: {
     key: 'saas_product',
     label: 'SaaS Platform / Product',
     shortLabel: 'SaaS',
     icon: Rocket,
-    accentBorder: 'border-l-indigo-500 dark:border-l-indigo-400',
-    borderClass: 'border-indigo-500/20',
-    badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25',
-    bgLight: 'bg-indigo-500/5',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    dotClass: 'bg-indigo-500',
-    colorName: 'indigo',
+    accentBorder: 'border-l-zinc-900 dark:border-l-zinc-100',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-900/10 text-zinc-900 dark:bg-zinc-100/10 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-900 dark:bg-zinc-100',
+    colorName: 'zinc',
   },
   saas: {
     key: 'saas',
     label: 'SaaS Platform',
     shortLabel: 'SaaS',
     icon: Rocket,
-    accentBorder: 'border-l-indigo-500 dark:border-l-indigo-400',
-    borderClass: 'border-indigo-500/20',
-    badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25',
-    bgLight: 'bg-indigo-500/5',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    dotClass: 'bg-indigo-500',
-    colorName: 'indigo',
+    accentBorder: 'border-l-zinc-900 dark:border-l-zinc-100',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-900/10 text-zinc-900 dark:bg-zinc-100/10 dark:text-zinc-100 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-800 dark:text-zinc-200',
+    dotClass: 'bg-zinc-900 dark:bg-zinc-100',
+    colorName: 'zinc',
   },
   internal_tool: {
     key: 'internal_tool',
     label: 'Internal Software / Tool',
     shortLabel: 'Internal Tool',
     icon: Wrench,
-    accentBorder: 'border-l-slate-500 dark:border-l-slate-400',
-    borderClass: 'border-slate-500/20',
-    badgeClass: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/25',
-    bgLight: 'bg-slate-500/5',
-    text: 'text-slate-600 dark:text-slate-400',
-    dotClass: 'bg-slate-500',
-    colorName: 'slate',
+    accentBorder: 'border-l-zinc-500 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-600 dark:text-zinc-400',
+    dotClass: 'bg-zinc-500',
+    colorName: 'zinc',
   },
 
   // Finance / Salary / Tools
@@ -407,70 +407,70 @@ export const CATEGORY_THEMES = {
     label: 'Salary & Payroll',
     shortLabel: 'Salary',
     icon: Banknote,
-    accentBorder: 'border-l-emerald-500 dark:border-l-emerald-400',
-    borderClass: 'border-emerald-500/20',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
-    bgLight: 'bg-emerald-500/5',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    dotClass: 'bg-emerald-500',
-    colorName: 'emerald',
+    accentBorder: 'border-l-zinc-800 dark:border-l-zinc-200',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-800 dark:bg-zinc-200',
+    colorName: 'zinc',
   },
   tools: {
     key: 'tools',
     label: 'Software & Tools',
     shortLabel: 'Tools & SaaS',
     icon: Wrench,
-    accentBorder: 'border-l-indigo-500 dark:border-l-indigo-400',
-    borderClass: 'border-indigo-500/20',
-    badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25',
-    bgLight: 'bg-indigo-500/5',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    dotClass: 'bg-indigo-500',
-    colorName: 'indigo',
+    accentBorder: 'border-l-zinc-700 dark:border-l-zinc-300',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-800 dark:text-zinc-200 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-700 dark:bg-zinc-300',
+    colorName: 'zinc',
   },
   office: {
     key: 'office',
     label: 'Office & Rent',
     shortLabel: 'Office',
     icon: Building,
-    accentBorder: 'border-l-amber-500 dark:border-l-amber-400',
-    borderClass: 'border-amber-500/20',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
-    bgLight: 'bg-amber-500/5',
-    text: 'text-amber-600 dark:text-amber-400',
-    dotClass: 'bg-amber-500',
-    colorName: 'amber',
+    accentBorder: 'border-l-zinc-600 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-600 dark:bg-zinc-400',
+    colorName: 'zinc',
   },
   travel: {
     key: 'travel',
     label: 'Travel & Food',
     shortLabel: 'Travel',
     icon: ShoppingBag,
-    accentBorder: 'border-l-orange-500 dark:border-l-orange-400',
-    borderClass: 'border-orange-500/20',
-    badgeClass: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/25',
-    bgLight: 'bg-orange-500/5',
-    text: 'text-orange-600 dark:text-orange-400',
-    dotClass: 'bg-orange-500',
-    colorName: 'orange',
+    accentBorder: 'border-l-zinc-500 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-500',
+    colorName: 'zinc',
   },
 
-  // Content (Sky)
+  // Content
   content: {
     key: 'content',
     label: 'Content Creation',
     shortLabel: 'Content',
     icon: FileText,
-    accentBorder: 'border-l-sky-500 dark:border-l-sky-400',
-    borderClass: 'border-sky-500/20',
-    badgeClass: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25',
-    bgLight: 'bg-sky-500/5',
-    text: 'text-sky-600 dark:text-sky-400',
-    dotClass: 'bg-sky-500',
-    colorName: 'sky',
+    accentBorder: 'border-l-zinc-600 dark:border-l-zinc-400',
+    borderClass: 'border-zinc-500/25',
+    badgeClass: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/25',
+    bgLight: 'bg-zinc-500/5',
+    text: 'text-zinc-700 dark:text-zinc-300',
+    dotClass: 'bg-zinc-600 dark:bg-zinc-400',
+    colorName: 'zinc',
   },
 
-  // Default / Other (Zinc)
+  // Default / Other
   other: {
     key: 'other',
     label: 'Other / General',
@@ -498,7 +498,6 @@ export const getCategoryTheme = (rawKey) => {
     return CATEGORY_THEMES[normalized];
   }
 
-  // Fallback heuristics
   if (normalized.includes('web') || normalized.includes('site') || normalized.includes('frontend') || normalized.includes('backend')) {
     return CATEGORY_THEMES.web_development;
   }
@@ -574,7 +573,6 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
 
   if (rawKey === filter) return true;
 
-  // Website & Web Development
   if (['web_development', 'website', 'web_design', 'web', 'website_development', 'website_update', 'landing_page', 'website_dev'].includes(filter)) {
     return (
       rawKey.includes('web') ||
@@ -591,7 +589,6 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // Social Media & SMM
   if (['social_media', 'social_media_post', 'social', 'smm', 'instagram', 'facebook', 'post'].includes(filter)) {
     return (
       rawKey.includes('social') ||
@@ -605,12 +602,10 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // Reels & Shorts specific
   if (['reel', 'shorts', 'short'].includes(filter)) {
     return rawKey.includes('reel') || rawKey.includes('short') || title.includes('reel') || title.includes('short');
   }
 
-  // Video Production
   if (['video_content', 'video_production', 'video', 'video_shoot', 'youtube', 'shoot'].includes(filter)) {
     return (
       rawKey.includes('video') ||
@@ -623,7 +618,6 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // Branding & Graphic Design
   if (['branding', 'poster', 'graphic_design', 'design', 'logo'].includes(filter)) {
     return (
       rawKey.includes('brand') ||
@@ -636,7 +630,6 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // Paid Ads
   if (['paid_ads', 'ads_campaign', 'ads', 'ads_setup', 'ad_creative', 'meta_ads', 'google_ads', 'ppc'].includes(filter)) {
     return (
       rawKey.includes('ad') ||
@@ -648,7 +641,6 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // SEO & Search Optimization
   if (['seo', 'seo_work', 'search'].includes(filter)) {
     return (
       rawKey.includes('seo') ||
@@ -660,7 +652,6 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // SaaS & Platforms / Software
   if (['saas_product', 'saas', 'internal_tool', 'internal_product', 'software', 'platform', 'crm', 'app', 'mobile_app'].includes(filter)) {
     return (
       rawKey.includes('saas') ||
@@ -678,7 +669,6 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // Content Writing & Script
   if (['content', 'content_writing', 'script', 'blog', 'copy', 'article'].includes(filter)) {
     return (
       rawKey.includes('content') ||
@@ -694,9 +684,7 @@ export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') =
     );
   }
 
-  // Direct theme comparison fallback
   const itemTheme = getCategoryTheme(itemCategoryOrType).key;
   const filterTheme = getCategoryTheme(filterKey).key;
   return itemTheme === filterTheme || rawKey.includes(filter) || filter.includes(rawKey);
 };
-

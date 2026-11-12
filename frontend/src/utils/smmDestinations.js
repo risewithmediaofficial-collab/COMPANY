@@ -20,37 +20,37 @@ export const SMM_OBJECTIVES = [
 
 export const OBJECTIVE_DESTINATIONS_MAP = {
   Awareness: [
-    { value: 'Message Destination', label: 'Message Destination', icon: '💬' },
-    { value: 'Call', label: 'Call', icon: '📞' },
-    { value: 'Instagram', label: 'Instagram', icon: '📷', isSocial: true, platform: 'Instagram' },
-    { value: 'Facebook', label: 'Facebook', icon: '👤', isSocial: true, platform: 'Facebook' },
-    { value: 'Instagram & Facebook', label: 'Instagram & Facebook (Both)', icon: '✨', isSocial: true, platform: 'Both' },
+    { value: 'Message Destination', label: 'Message Destination', iconName: 'MessageCircle' },
+    { value: 'Call', label: 'Call', iconName: 'PhoneCall' },
+    { value: 'Instagram', label: 'Instagram', iconName: 'Instagram', isSocial: true, platform: 'Instagram' },
+    { value: 'Facebook', label: 'Facebook', iconName: 'Facebook', isSocial: true, platform: 'Facebook' },
+    { value: 'Instagram & Facebook', label: 'Instagram & Facebook (Both)', iconName: 'Sparkles', isSocial: true, platform: 'Both' },
   ],
   Traffic: [
-    { value: 'Message Destinations', label: 'Message Destinations', icon: '💬' },
-    { value: 'Instagram', label: 'Instagram', icon: '📷', isSocial: true, platform: 'Instagram' },
-    { value: 'Facebook', label: 'Facebook', icon: '👤', isSocial: true, platform: 'Facebook' },
-    { value: 'Instagram & Facebook', label: 'Instagram & Facebook (Both)', icon: '✨', isSocial: true, platform: 'Both' },
-    { value: 'Calls', label: 'Calls', icon: '📞' },
+    { value: 'Message Destinations', label: 'Message Destinations', iconName: 'MessageCircle' },
+    { value: 'Instagram', label: 'Instagram', iconName: 'Instagram', isSocial: true, platform: 'Instagram' },
+    { value: 'Facebook', label: 'Facebook', iconName: 'Facebook', isSocial: true, platform: 'Facebook' },
+    { value: 'Instagram & Facebook', label: 'Instagram & Facebook (Both)', iconName: 'Sparkles', isSocial: true, platform: 'Both' },
+    { value: 'Calls', label: 'Calls', iconName: 'PhoneCall' },
   ],
   Leads: [
-    { value: 'Message', label: 'Message', icon: '💬' },
-    { value: 'Instant Forms', label: 'Instant Forms', icon: '📋' },
+    { value: 'Message', label: 'Message', iconName: 'MessageCircle' },
+    { value: 'Instant Forms', label: 'Instant Forms', iconName: 'FileSpreadsheet' },
   ],
   'App Promotion': [
-    { value: 'App', label: 'App', icon: '📱' },
+    { value: 'App', label: 'App', iconName: 'Smartphone' },
   ],
   Sales: [
-    { value: 'Call', label: 'Call', icon: '📞' },
-    { value: 'Message', label: 'Message', icon: '💬' },
-    { value: 'App', label: 'App', icon: '📱' },
+    { value: 'Call', label: 'Call', iconName: 'PhoneCall' },
+    { value: 'Message', label: 'Message', iconName: 'MessageCircle' },
+    { value: 'App', label: 'App', iconName: 'Smartphone' },
   ],
   'Page Engagement': [
-    { value: 'Message', label: 'Message', icon: '💬' },
-    { value: 'Calls', label: 'Calls', icon: '📞' },
-    { value: 'Instagram', label: 'Instagram', icon: '📷', isSocial: true, platform: 'Instagram' },
-    { value: 'Facebook', label: 'Facebook', icon: '👤', isSocial: true, platform: 'Facebook' },
-    { value: 'Instagram & Facebook', label: 'Instagram & Facebook (Both)', icon: '✨', isSocial: true, platform: 'Both' },
+    { value: 'Message', label: 'Message', iconName: 'MessageCircle' },
+    { value: 'Calls', label: 'Calls', iconName: 'PhoneCall' },
+    { value: 'Instagram', label: 'Instagram', iconName: 'Instagram', isSocial: true, platform: 'Instagram' },
+    { value: 'Facebook', label: 'Facebook', iconName: 'Facebook', isSocial: true, platform: 'Facebook' },
+    { value: 'Instagram & Facebook', label: 'Instagram & Facebook (Both)', iconName: 'Sparkles', isSocial: true, platform: 'Both' },
   ],
 };
 

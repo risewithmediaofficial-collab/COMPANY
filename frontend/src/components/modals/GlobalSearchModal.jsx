@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Loader } from 'lucide-react';
+import { Search, X, Loader, FolderKanban, CheckCircle2, User, Target } from '@/components/ui/muiIcons';
 import api from '../../api';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -33,7 +33,7 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
           type: 'project',
           description: item.description,
           path: `/projects/${item._id}`,
-          icon: '📋',
+          Icon: FolderKanban,
         })),
         ...(tasks.data?.data || []).map((item) => ({
           id: item._id,
@@ -41,7 +41,7 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
           type: 'task',
           description: item.description,
           path: `/tasks/${item._id}`,
-          icon: '✓',
+          Icon: CheckCircle2,
         })),
         ...(clients.data?.data || []).map((item) => ({
           id: item._id,
@@ -49,7 +49,7 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
           type: 'client',
           description: item.company,
           path: `/clients/${item._id}`,
-          icon: '👤',
+          Icon: User,
         })),
         ...(leads.data?.data || []).map((item) => ({
           id: item._id,
@@ -57,7 +57,7 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
           type: 'lead',
           description: item.email,
           path: `/crm/leads/${item._id}`,
-          icon: '🎯',
+          Icon: Target,
         })),
       ];
 
@@ -119,22 +119,27 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
             </div>
           )}
 
-          {results.map((result) => (
-            <button
-              key={`${result.type}-${result.id}`}
-              onClick={() => handleSelect(result.path)}
-              className="w-full px-4 py-3 hover:bg-secondary/80 flex items-start gap-3 transition-colors text-left border-b border-border/50 last:border-0"
-            >
-              <span className="text-xl flex-shrink-0">{result.icon}</span>
-              <div className="min-w-0 flex-1">
-                <div className="font-medium text-sm truncate">{result.title}</div>
-                <div className="text-xs text-muted-foreground truncate">{result.description || result.type}</div>
-              </div>
-            </button>
-          ))}
+          {results.map((result) => {
+            const ResultIcon = result.Icon || FolderKanban;
+            return (
+              <button
+                key={`${result.type}-${result.id}`}
+                onClick={() => handleSelect(result.path)}
+                className="w-full px-4 py-3 hover:bg-secondary/80 flex items-center gap-3 transition-colors text-left border-b border-border/50 last:border-0"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary border border-border text-foreground">
+                  <ResultIcon size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-sm text-foreground truncate">{result.title}</div>
+                  <div className="text-xs text-muted-foreground truncate">{result.description || result.type}</div>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="border-t border-border bg-secondary/20 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="border-t border-border bg-secondary/20 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground tabular-nums">
           <span>Press ESC to close</span>
           <span>{results.length} results</span>
         </div>

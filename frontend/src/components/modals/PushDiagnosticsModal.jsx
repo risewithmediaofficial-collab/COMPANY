@@ -24,7 +24,7 @@ import {
   ChevronRight,
   ExternalLink,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   fetchPushDiagnostics,
   sendTestPushNotification,
@@ -171,15 +171,15 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                 <span className="text-[10px] text-muted-foreground">{browserName}</span>
               </div>
 
-              <div className="p-2.5 rounded-xl border border-border bg-card/60 flex flex-col gap-1">
+              <div className="p-2.5 rounded-xl border border-border bg-card flex flex-col gap-1">
                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">PWA Mode</span>
                 <span className="font-semibold text-foreground flex items-center gap-1.5">
                   {diagnostics?.isStandalone ? (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 size={13} /> Installed PWA
+                    <span className="text-foreground font-bold flex items-center gap-1">
+                      <CheckCircle2 size={13} className="shrink-0" /> Installed PWA
                     </span>
                   ) : (
-                    <span className="text-amber-600 dark:text-amber-400 font-medium">Browser Tab</span>
+                    <span className="text-muted-foreground font-medium">Browser Tab</span>
                   )}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
@@ -187,16 +187,16 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                 </span>
               </div>
 
-              <div className="p-2.5 rounded-xl border border-border bg-card/60 flex flex-col gap-1 col-span-2 sm:col-span-1">
+              <div className="p-2.5 rounded-xl border border-border bg-card flex flex-col gap-1 col-span-2 sm:col-span-1">
                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Permission</span>
                 <span className="font-semibold capitalize flex items-center gap-1.5">
                   {diagnostics?.permission === 'granted' ? (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 size={13} /> Granted
+                    <span className="text-foreground font-bold flex items-center gap-1">
+                      <CheckCircle2 size={13} className="shrink-0" /> Granted
                     </span>
                   ) : diagnostics?.permission === 'denied' ? (
-                    <span className="text-destructive font-bold flex items-center gap-1">
-                      <AlertCircle size={13} /> Blocked
+                    <span className="text-foreground font-bold flex items-center gap-1">
+                      <AlertCircle size={13} className="shrink-0" /> Blocked
                     </span>
                   ) : (
                     <span className="text-muted-foreground font-medium">Prompt Needed</span>
@@ -210,8 +210,8 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
 
             {/* iOS Safari Home Screen Warning */}
             {isIOSRequiresHomeInstall() && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-xs space-y-1.5">
-                <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold">
+              <div className="p-3 bg-secondary/60 border border-border rounded-xl text-xs space-y-1.5">
+                <div className="flex items-center gap-1.5 text-foreground font-bold">
                   <Smartphone size={14} className="shrink-0" />
                   <span>iPhone / iPad Action Required</span>
                 </div>
@@ -220,7 +220,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   <br />
                   1. Tap the <strong>Share</strong> button (square with arrow) at the bottom of Safari.
                   <br />
-                  2. Select <strong>"Add to Home Screen"</strong>.
+                  2. Select <strong>&quot;Add to Home Screen&quot;</strong>.
                   <br />
                   3. Open <strong>RiseWithMedia</strong> from your Home Screen, then tap <strong>Enable Notifications</strong>.
                 </p>
@@ -230,15 +230,15 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
             {/* Test Actions */}
             <div className="p-3.5 rounded-xl border border-border bg-secondary/20 space-y-2.5">
               <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Send size={13} className="text-primary" /> Test Background Push Delivery
+                <Send size={13} className="text-foreground shrink-0" /> Test Background Push Delivery
               </span>
 
               {countdown !== null && (
-                <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary font-semibold flex items-center justify-between">
+                <div className="p-2.5 bg-secondary border border-border rounded-xl text-xs text-foreground font-semibold flex items-center justify-between tabular-nums">
                   <span className="flex items-center gap-1.5">
                     <Clock size={14} className="animate-spin shrink-0" /> Close this tab now! Push fires in:
                   </span>
-                  <span className="text-base font-black px-2 py-0.5 bg-primary text-primary-foreground rounded-lg">
+                  <span className="text-base font-black px-2 py-0.5 bg-primary text-primary-foreground rounded-lg tabular-nums">
                     {countdown}s
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   disabled={testing}
                   className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
                 >
-                  <Send size={12} />
+                  <Send size={12} className="shrink-0" />
                   <span>Send Test Now</span>
                 </button>
 
@@ -259,10 +259,10 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   type="button"
                   onClick={() => handleScheduledTest(10)}
                   disabled={testing}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 rounded-xl border border-border bg-secondary hover:bg-secondary/80 text-foreground text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
                   title="Gives you 10 seconds to close the browser tab or lock your phone"
                 >
-                  <Clock size={12} />
+                  <Clock size={12} className="shrink-0" />
                   <span>Schedule in 10s (Test Closed Tab)</span>
                 </button>
 
@@ -273,7 +273,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                   title="Re-synchronize subscription with server"
                 >
-                  <RefreshCw size={12} className={testing ? 'animate-spin' : ''} />
+                  <RefreshCw size={12} className={`shrink-0 ${testing ? 'animate-spin' : ''}`} />
                   <span>Re-sync</span>
                 </button>
 
@@ -292,10 +292,10 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                     }
                   }}
                   disabled={testing}
-                  className="px-2.5 py-1.5 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-foreground hover:bg-secondary text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                   title="Simulate 9:00 - 9:30 AM Attendance Reminder and test delivery on your screen"
                 >
-                  <Clock size={12} />
+                  <Clock size={12} className="shrink-0" />
                   <span>Test Attendance Check</span>
                 </button>
 
@@ -314,10 +314,10 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                     }
                   }}
                   disabled={testing}
-                  className="px-2.5 py-1.5 rounded-xl border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-foreground hover:bg-secondary text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                   title="Simulate 6:00 - 6:30 PM Evening Clock-Out & EOD Reminder and test delivery on your screen"
                 >
-                  <Clock size={12} />
+                  <Clock size={12} className="shrink-0" />
                   <span>Test Evening EOD Check</span>
                 </button>
               </div>
@@ -326,31 +326,31 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
             {/* Registered Devices on Backend */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-foreground">Registered Devices ({diagnostics?.backend?.deviceCount || 0})</span>
+                <span className="font-bold text-foreground tabular-nums">Registered Devices ({diagnostics?.backend?.deviceCount || 0})</span>
                 <span className="text-[10px] text-muted-foreground">Multi-device delivery active</span>
               </div>
 
               {(diagnostics?.backend?.devices || []).length === 0 ? (
                 <div className="p-3 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-                  No active push subscriptions registered in database. Click "Enable Notifications" or "Re-sync" above.
+                  No active push subscriptions registered in database. Click &quot;Enable Notifications&quot; or &quot;Re-sync&quot; above.
                 </div>
               ) : (
                 <div className="space-y-1.5 max-h-36 overflow-y-auto">
                   {diagnostics.backend.devices.map((dev, idx) => (
                     <div
                       key={idx}
-                      className="p-2 rounded-xl border border-border/80 bg-card/70 flex items-center justify-between text-xs"
+                      className="p-2 rounded-xl border border-border/80 bg-card flex items-center justify-between text-xs"
                     >
                       <div className="min-w-0">
                         <p className="font-semibold text-foreground text-[11px] truncate flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
                           {dev.provider}
                         </p>
-                        <p className="text-[10px] text-muted-foreground truncate">
+                        <p className="text-[10px] text-muted-foreground truncate tabular-nums">
                           {dev.endpointDomain} &nbsp;•&nbsp; Registered {new Date(dev.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-secondary border border-border text-foreground shrink-0">
                         Active
                       </span>
                     </div>
@@ -362,7 +362,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
             {/* Troubleshooting & OS Tips */}
             <div className="p-3 bg-muted/40 border border-border rounded-xl space-y-2 text-xs">
               <span className="font-bold text-foreground flex items-center gap-1">
-                <HelpCircle size={13} className="text-primary" /> Background Delivery Tips
+                <HelpCircle size={13} className="text-foreground shrink-0" /> Background Delivery Tips
               </span>
               <ul className="space-y-1 text-[11px] text-muted-foreground list-disc pl-4 leading-relaxed">
                 <li>
@@ -383,7 +383,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
         )}
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
           <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
           <button
             type="button"

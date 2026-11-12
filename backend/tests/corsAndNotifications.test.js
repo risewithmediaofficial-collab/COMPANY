@@ -11,7 +11,7 @@ import { subscribePush } from '../controllers/notification.controller.js';
 
 test('CORS: normalizeOrigin strips whitespace and trailing slashes', () => {
   assert.equal(normalizeOrigin('  https://company.risewithmedia.com/  '), 'https://company.risewithmedia.com');
-  assert.equal(normalizeOrigin('HTTP://LOCALHOST:5173/'), 'http://localhost:5173');
+  assert.equal(normalizeOrigin('HTTP://LOCALHOST:5175/'), 'http://localhost:5175');
   assert.equal(normalizeOrigin(''), '');
   assert.equal(normalizeOrigin(null), '');
 });
@@ -36,9 +36,9 @@ test('CORS: Allows non-browser requests with missing or empty Origin header', ()
 });
 
 test('CORS: Allows development localhost and 127.0.0.1 origins', () => {
-  assert.equal(isOriginAllowed('http://localhost:5173'), true);
+  assert.equal(isOriginAllowed('http://localhost:5175'), true);
   assert.equal(isOriginAllowed('http://localhost:3000'), true);
-  assert.equal(isOriginAllowed('http://127.0.0.1:5173'), true);
+  assert.equal(isOriginAllowed('http://127.0.0.1:5175'), true);
 });
 
 test('CORS: Dynamically accepts same-origin requests matching Host header', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, CheckCircle2, Clock, Play, AlertCircle, Plus, Edit3, DollarSign, Upload } from 'lucide-react';
+import { Activity, CheckCircle2, Clock, Play, AlertCircle, Plus, Edit3, DollarSign, Upload } from '@/components/ui/muiIcons';
 import { formatDistanceToNow } from 'date-fns';
 
 const actionIcons = {

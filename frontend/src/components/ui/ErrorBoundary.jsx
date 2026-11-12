@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { AlertTriangle, RotateCcw, Home } from '@/components/ui/muiIcons';
 import { Button } from './button';
 
 export class ErrorBoundary extends React.Component {

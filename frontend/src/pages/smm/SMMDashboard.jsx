@@ -9,8 +9,9 @@ import {
   FileText, Video, CheckCircle2, Clock, Megaphone, PlayCircle,
   PauseCircle, IndianRupee, Users, TrendingUp, Share2,
   Eye, MousePointer, Activity, ArrowUpRight, AlertTriangle,
-  Flame, Heart, Sparkles, CheckCircle, ShieldAlert, FileSpreadsheet, Plus
-} from 'lucide-react';
+  Flame, Heart, Sparkles, CheckCircle, ShieldAlert, FileSpreadsheet, Plus,
+  Zap, RefreshCw, Bookmark
+} from '@/components/ui/muiIcons';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend
 } from 'recharts';
@@ -102,48 +103,48 @@ export const SMMDashboard = () => {
     <div className="min-h-screen bg-background p-3 sm:p-4 md:p-8 space-y-4 sm:space-y-6">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-              <Sparkles className="text-primary shrink-0" size={22} />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2 min-w-0">
+              <Sparkles className="text-foreground shrink-0" size={22} />
               <span className="truncate max-w-[280px] sm:max-w-none">
                 {selectedClient ? `${selectedClient.company || selectedClient.name} Marketing OS` : 'Social Media + Ads Performance OS'}
               </span>
             </h1>
             {selectedClient && (
-              <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full border border-primary/20">
+              <span className="bg-secondary text-foreground text-xs font-semibold px-3 py-1 rounded-full border border-border shrink-0">
                 Active Client
               </span>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Connected Content Production, Publishing, Ad Spend Ledger & Multi-Platform Intelligence
+            Connected Content Production, Publishing, Ad Spend Ledger &amp; Multi-Platform Intelligence
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {/* Client Health Score Badge */}
-          <div className="flex items-center gap-2 sm:gap-2.5 bg-card border border-border px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-2.5 bg-card border border-border px-3.5 py-2 rounded-xl shadow-xs">
             <div className="text-right">
-              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground block tracking-wider">Client Health</span>
-              <span className="text-xs sm:text-sm font-black text-emerald-500">{clientHealthScore} / 100</span>
+              <span className="text-[10px] uppercase font-semibold text-muted-foreground block tracking-wider">Client Health</span>
+              <span className="text-xs sm:text-sm font-bold text-foreground tabular-nums">{clientHealthScore} / 100</span>
             </div>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center font-bold text-xs text-emerald-500 shrink-0">
-              🟢
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
+              <Activity size={14} className="text-foreground" />
             </div>
           </div>
 
           <button
             onClick={() => navigate('/smm/daily-tracking')}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-all"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-colors"
           >
-            <Clock size={14} className="text-primary shrink-0" />
+            <Clock size={14} className="text-foreground shrink-0" />
             <span>Daily Report</span>
           </button>
 
           <button
             onClick={() => navigate('/smm/content')}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-colors"
           >
             <Plus size={15} className="shrink-0" />
             <span>Add Video</span>
@@ -158,30 +159,34 @@ export const SMMDashboard = () => {
       {(budgetAlerts.length > 0 || spendAnomalies.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {budgetAlerts.map((alert, idx) => (
-            <div key={idx} className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
-              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-500 shrink-0">
+            <div key={idx} className="bg-card border border-foreground/25 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
+              <div className="p-2 rounded-xl bg-secondary border border-border text-foreground shrink-0">
                 <AlertTriangle size={18} />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">Budget Alert • {alert.percentSpent}% Spent</span>
-                  <span className="text-[11px] font-semibold text-amber-500/80">₹{alert.amountSpent?.toLocaleString()} / ₹{alert.amountAdded?.toLocaleString()}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-foreground uppercase tracking-wider tabular-nums">
+                    Budget Alert · {alert.percentSpent}% Spent
+                  </span>
+                  <span className="text-[11px] font-semibold text-muted-foreground tabular-nums shrink-0">
+                    ₹{alert.amountSpent?.toLocaleString()} / ₹{alert.amountAdded?.toLocaleString()}
+                  </span>
                 </div>
-                <p className="text-xs font-medium text-foreground mt-0.5">
-                  Campaign <strong>{alert.campaignName}</strong> ({alert.client}) has reached {alert.percentSpent}% of allocated budget.
+                <p className="text-xs font-medium text-muted-foreground mt-1">
+                  Campaign <strong className="text-foreground">{alert.campaignName}</strong> ({alert.client}) has reached {alert.percentSpent}% of allocated budget.
                 </p>
               </div>
             </div>
           ))}
 
           {spendAnomalies.map((anom, idx) => (
-            <div key={idx} className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
-              <div className="p-2 rounded-xl bg-rose-500/20 text-rose-500 shrink-0">
+            <div key={idx} className="bg-card border border-foreground/25 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
+              <div className="p-2 rounded-xl bg-secondary border border-border text-foreground shrink-0">
                 <ShieldAlert size={18} />
               </div>
-              <div className="flex-1">
-                <span className="text-xs font-bold text-rose-500 uppercase tracking-wider block">Daily Spend Anomaly Detected</span>
-                <p className="text-xs font-medium text-foreground mt-0.5">
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-bold text-foreground uppercase tracking-wider block">Daily Spend Anomaly Detected</span>
+                <p className="text-xs font-medium text-muted-foreground mt-1">
                   {anom.anomalyReason || `Unusual spike in daily ad spend recorded on ${new Date(anom.date).toLocaleDateString()}.`}
                 </p>
               </div>
@@ -199,149 +204,151 @@ export const SMMDashboard = () => {
           {/* ── 3-COLUMN CORE OS SUMMARY ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* COLUMN 1: CONTENT DASHBOARD */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-border/80 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500 font-bold shrink-0">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3 gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-xl bg-secondary border border-border text-foreground shrink-0">
                     <Video size={16} />
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Content Pipeline</h3>
-                    <span className="text-[11px] text-muted-foreground">Video Production Database</span>
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground truncate">Content Pipeline</h3>
+                    <span className="text-[11px] text-muted-foreground block truncate">Video Production Database</span>
                   </div>
                 </div>
                 <button
                   onClick={() => navigate('/smm/content')}
-                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
+                  className="text-[11px] font-semibold text-foreground hover:underline inline-flex items-center gap-1 shrink-0"
                 >
-                  View All <ArrowUpRight size={12} />
+                  <span>View All</span>
+                  <ArrowUpRight size={12} />
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Total Videos</span>
-                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">{content.totalVideos || 0}</span>
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Total Videos</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">{content.totalVideos || 0}</span>
                 </div>
-                <div className="bg-emerald-500/10 p-3 sm:p-3.5 rounded-2xl border border-emerald-500/20">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 block">Posted</span>
-                  <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-0.5">{content.posted || 0}</span>
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Posted</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">{content.posted || 0}</span>
                 </div>
-                <div className="bg-amber-500/10 p-3 sm:p-3.5 rounded-2xl border border-amber-500/20">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:text-amber-400 block">Not Posted</span>
-                  <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 block mt-0.5">{content.notPosted || 0}</span>
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Not Posted</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">{content.notPosted || 0}</span>
                 </div>
-                <div className="bg-sky-500/10 p-3 sm:p-3.5 rounded-2xl border border-sky-500/20">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-sky-600 dark:text-sky-400 block">Scheduled</span>
-                  <span className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 block mt-0.5">{content.scheduled || 0}</span>
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Scheduled</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">{content.scheduled || 0}</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs">
+              <div className="pt-2 border-t border-border flex items-center justify-between text-xs gap-2">
                 <span className="text-muted-foreground">Pending Client Approval</span>
-                <span className="font-bold text-rose-500 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20">
+                <span className="font-semibold text-foreground bg-secondary px-2.5 py-0.5 rounded-full border border-border tabular-nums">
                   {content.pendingApproval || 0} videos
                 </span>
               </div>
             </div>
 
             {/* COLUMN 2: ORGANIC PERFORMANCE */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-border/80 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 font-bold shrink-0">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3 gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-xl bg-secondary border border-border text-foreground shrink-0">
                     <TrendingUp size={16} />
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Organic Reach</h3>
-                    <span className="text-[11px] text-muted-foreground">Natural audience growth</span>
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground truncate">Organic Reach</h3>
+                    <span className="text-[11px] text-muted-foreground block truncate">Natural audience growth</span>
                   </div>
                 </div>
-                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2 sm:px-2.5 py-0.5 rounded-full shrink-0">
+                <span className="text-[11px] font-semibold text-foreground bg-secondary border border-border px-2.5 py-0.5 rounded-full shrink-0 tabular-nums">
                   +{organic.followersGained || 0} Followers
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Organic Views</span>
-                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Organic Views</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">
                     {organic.views ? Number(organic.views).toLocaleString() : '0'}
                   </span>
                 </div>
-                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Organic Reach</span>
-                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Organic Reach</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">
                     {organic.reach ? Number(organic.reach).toLocaleString() : '0'}
                   </span>
                 </div>
-                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Interactions</span>
-                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Interactions</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">
                     {organic.engagement ? Number(organic.engagement).toLocaleString() : '0'}
                   </span>
                 </div>
-                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Engagement Rate</span>
-                  <span className="text-xl sm:text-2xl font-black text-indigo-500 block mt-0.5">{organic.engagementRate || 0}%</span>
+                <div className="bg-secondary/50 p-3 sm:p-3.5 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Engagement Rate</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">{organic.engagementRate || 0}%</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Published this month: <strong>{content.publishedThisMonth || 0}</strong></span>
-                <span>Story Views: <strong>{organic.clicks || 0}</strong></span>
+              <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground gap-2">
+                <span>Published this month: <strong className="text-foreground tabular-nums">{content.publishedThisMonth || 0}</strong></span>
+                <span>Story Views: <strong className="text-foreground tabular-nums">{organic.clicks || 0}</strong></span>
               </div>
             </div>
 
             {/* COLUMN 3: ADS & SPEND LEDGER */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-border/80 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold shrink-0">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3 gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-xl bg-secondary border border-border text-foreground shrink-0">
                     <Megaphone size={16} />
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Ads & Spend Ledger</h3>
-                    <span className="text-[11px] text-muted-foreground">Amount Added vs Spent</span>
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground truncate">Ads &amp; Spend Ledger</h3>
+                    <span className="text-[11px] text-muted-foreground block truncate">Amount Added vs Spent</span>
                   </div>
                 </div>
                 <button
                   onClick={() => navigate('/smm/campaigns')}
-                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
+                  className="text-[11px] font-semibold text-foreground hover:underline inline-flex items-center gap-1 shrink-0"
                 >
-                  Manage Ads <ArrowUpRight size={12} />
+                  <span>Manage Ads</span>
+                  <ArrowUpRight size={12} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
-                <div className="bg-blue-500/10 p-2 sm:p-2.5 rounded-2xl border border-blue-500/20">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-blue-500 block uppercase">Added</span>
-                  <span className="text-xs sm:text-sm md:text-base font-black text-foreground block mt-0.5 truncate">₹{(paid.amountAdded || 0).toLocaleString()}</span>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-secondary/50 p-2.5 rounded-xl border border-border">
+                  <span className="text-[10px] font-semibold text-muted-foreground block uppercase tracking-wider">Added</span>
+                  <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5 truncate tabular-nums">₹{(paid.amountAdded || 0).toLocaleString()}</span>
                 </div>
-                <div className="bg-rose-500/10 p-2 sm:p-2.5 rounded-2xl border border-rose-500/20">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-rose-500 block uppercase">Spent</span>
-                  <span className="text-xs sm:text-sm md:text-base font-black text-foreground block mt-0.5 truncate">₹{(paid.amountSpent || 0).toLocaleString()}</span>
+                <div className="bg-secondary/50 p-2.5 rounded-xl border border-border">
+                  <span className="text-[10px] font-semibold text-muted-foreground block uppercase tracking-wider">Spent</span>
+                  <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5 truncate tabular-nums">₹{(paid.amountSpent || 0).toLocaleString()}</span>
                 </div>
-                <div className="bg-emerald-500/10 p-2 sm:p-2.5 rounded-2xl border border-emerald-500/20">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-500 block uppercase">Balance</span>
-                  <span className="text-xs sm:text-sm md:text-base font-black text-emerald-600 dark:text-emerald-400 block mt-0.5 truncate">₹{(paid.remainingBalance || 0).toLocaleString()}</span>
+                <div className="bg-secondary/50 p-2.5 rounded-xl border border-border">
+                  <span className="text-[10px] font-semibold text-muted-foreground block uppercase tracking-wider">Balance</span>
+                  <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5 truncate tabular-nums">₹{(paid.remainingBalance || 0).toLocaleString()}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                <div className="bg-secondary/40 p-3 rounded-2xl border border-border/60">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Leads Generated</span>
-                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">{paid.leads || 0}</span>
+                <div className="bg-secondary/50 p-3 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Leads Generated</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">{paid.leads || 0}</span>
                 </div>
-                <div className="bg-secondary/40 p-3 rounded-2xl border border-border/60">
-                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Cost Per Lead (CPL)</span>
-                  <span className="text-xl sm:text-2xl font-black text-emerald-500 block mt-0.5">₹{paid.costPerLead || 0}</span>
+                <div className="bg-secondary/50 p-3 rounded-xl border border-border">
+                  <span className="text-[11px] font-medium text-muted-foreground block">Cost Per Lead (CPL)</span>
+                  <span className="text-xl sm:text-2xl font-bold text-foreground block mt-0.5 tabular-nums">₹{paid.costPerLead || 0}</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Active Campaigns: <strong>{paid.activeCampaigns || 0}</strong></span>
-                <span>Today's Spend: <strong>₹{(paid.todaysAdSpend || 0).toLocaleString()}</strong></span>
+              <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground gap-2">
+                <span>Active Campaigns: <strong className="text-foreground tabular-nums">{paid.activeCampaigns || 0}</strong></span>
+                <span>Today&apos;s Spend: <strong className="text-foreground tabular-nums">₹{(paid.todaysAdSpend || 0).toLocaleString()}</strong></span>
               </div>
             </div>
           </div>
@@ -349,13 +356,13 @@ export const SMMDashboard = () => {
           {/* ── SECTION 2: TOP PERFORMING VIDEOS & APPROVAL AGING ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* TOP PERFORMING VIDEOS LEADERBOARD (2 cols) */}
-            <div className="lg:col-span-2 bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
+            <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <Flame className="text-amber-500 shrink-0" size={18} />
-                  <h3 className="text-sm font-bold text-foreground">Top Performing Videos & Ad Recommendations</h3>
+                  <Flame className="text-foreground shrink-0" size={18} />
+                  <h3 className="text-sm font-bold text-foreground">Top Performing Videos &amp; Ad Recommendations</h3>
                 </div>
-                <span className="text-xs text-muted-foreground font-medium">Ranked by Virality & Engagement</span>
+                <span className="text-xs text-muted-foreground font-medium">Ranked by Virality &amp; Engagement</span>
               </div>
 
               <div className="space-y-3">
@@ -363,48 +370,61 @@ export const SMMDashboard = () => {
                   <div className="p-8 text-center text-xs text-muted-foreground">No video records found yet.</div>
                 ) : (
                   topVideos.map((video, idx) => (
-                    <div key={video._id} className="p-3 sm:p-3.5 rounded-2xl bg-secondary/30 border border-border/70 hover:border-primary/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                      <div className="flex items-start sm:items-center gap-3">
-                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                    <div key={video._id} className="p-3.5 rounded-xl bg-secondary/35 border border-border hover:border-foreground/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="flex items-start sm:items-center gap-3 min-w-0">
+                        <span className="w-6 h-6 rounded-full bg-secondary border border-border text-foreground font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 tabular-nums">
                           #{idx + 1}
                         </span>
-                        <div>
+                        <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                            <h4 className="text-xs font-bold text-foreground">{video.name}</h4>
-                            <span className="text-[10px] font-semibold text-muted-foreground px-2 py-0.5 rounded-md bg-muted">
+                            <h4 className="text-xs font-bold text-foreground truncate">{video.name}</h4>
+                            <span className="text-[10px] font-semibold text-muted-foreground px-2 py-0.5 rounded-md bg-secondary border border-border">
                               {video.contentType}
                             </span>
                             {video.adRecommendation === '🔥 HIGH POTENTIAL' && (
-                              <span className="text-[10px] font-extrabold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">
-                                🔥 HIGH POTENTIAL
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground bg-primary px-2 py-0.5 rounded-full">
+                                <Flame size={10} className="shrink-0" />
+                                High Potential
                               </span>
                             )}
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-[11px] text-muted-foreground mt-1">
-                            <span>👁 {(video.views || 0).toLocaleString()} Views</span>
-                            <span>⚡ {video.engagementRate}% Engagement</span>
-                            <span>🔄 {video.shares || 0} Shares</span>
-                            <span>💾 {video.saves || 0} Saves</span>
+                          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[11px] text-muted-foreground mt-1.5 tabular-nums">
+                            <span className="inline-flex items-center gap-1">
+                              <Eye size={12} className="shrink-0" />
+                              {(video.views || 0).toLocaleString()} Views
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <Zap size={12} className="shrink-0" />
+                              {video.engagementRate}% Engagement
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <RefreshCw size={12} className="shrink-0" />
+                              {video.shares || 0} Shares
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <Bookmark size={12} className="shrink-0" />
+                              {video.saves || 0} Saves
+                            </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                      <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-border">
                         <div className="text-left sm:text-right">
-                          <span className="text-[9px] sm:text-[10px] text-muted-foreground uppercase font-bold block">Score</span>
-                          <span className="text-xs sm:text-sm font-black text-primary">{video.performanceScore || 85} / 100</span>
+                          <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Score</span>
+                          <span className="text-xs sm:text-sm font-bold text-foreground tabular-nums">{video.performanceScore || 85} / 100</span>
                         </div>
 
                         {video.usedAsAd ? (
-                          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-emerald-500/20">
+                          <span className="text-[11px] font-semibold text-foreground bg-secondary px-3 py-1.5 rounded-xl border border-border tabular-nums shrink-0">
                             Active Ad (₹{video.paidCpl || 0} CPL)
                           </span>
                         ) : (
                           <button
                             onClick={() => handleCreateAdFromVideo(video)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-all shrink-0"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-colors shrink-0"
                           >
-                            <Megaphone size={12} />
+                            <Megaphone size={12} className="shrink-0" />
                             <span>Create Ad</span>
                           </button>
                         )}
@@ -416,13 +436,13 @@ export const SMMDashboard = () => {
             </div>
 
             {/* CONTENT APPROVAL AGING BOTTLENECK (1 col) */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="text-rose-500 shrink-0" size={18} />
+                  <Clock className="text-foreground shrink-0" size={18} />
                   <h3 className="text-sm font-bold text-foreground">Approval Aging SLA</h3>
                 </div>
-                <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-semibold text-foreground bg-secondary border border-border px-2.5 py-0.5 rounded-full tabular-nums">
                   {agingList.length} Bottlenecks
                 </span>
               </div>
@@ -430,25 +450,25 @@ export const SMMDashboard = () => {
               <div className="space-y-2.5">
                 {agingList.length === 0 ? (
                   <div className="p-8 text-center text-xs text-muted-foreground">
-                    <CheckCircle className="mx-auto text-emerald-500 mb-2" size={24} />
-                    Zero approval bottlenecks! All client approvals are up to date.
+                    <CheckCircle className="mx-auto text-foreground mb-2" size={24} />
+                    Zero approval bottlenecks. All client approvals are up to date.
                   </div>
                 ) : (
                   agingList.map((item) => (
-                    <div key={item.id} className="p-3 rounded-2xl bg-secondary/30 border border-border flex items-center justify-between gap-2">
+                    <div key={item.id} className="p-3 rounded-xl bg-secondary/40 border border-border flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <span className="text-xs font-bold text-foreground block truncate">{item.name}</span>
+                        <span className="text-xs font-semibold text-foreground block truncate">{item.name}</span>
                         <span className="text-[11px] text-muted-foreground truncate block">{item.client}</span>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold ${
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold tabular-nums ${
                           item.urgency === 'critical'
-                            ? 'bg-rose-500 text-white animate-pulse'
+                            ? 'bg-primary text-primary-foreground'
                             : item.urgency === 'warning'
-                            ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
-                            : 'bg-muted text-muted-foreground'
+                            ? 'bg-secondary text-foreground border border-foreground/30'
+                            : 'bg-muted text-muted-foreground border border-border'
                         }`}>
-                          {item.daysWaiting} days {item.urgency === 'critical' && '🔴'}
+                          {item.daysWaiting} days
                         </span>
                       </div>
                     </div>
@@ -461,64 +481,65 @@ export const SMMDashboard = () => {
           {/* ── SECTION 3: ORGANIC VS PAID COMPARISON & TODAY'S TIMELINE ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* ORGANIC VS PAID COMPARISON TABLE & METRICS */}
-            <div className="lg:col-span-2 bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
+            <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 border-b border-border pb-3">
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Activity className="text-primary shrink-0" size={18} />
-                  Organic vs Paid Performance Comparison
+                  <Activity className="text-foreground shrink-0" size={18} />
+                  <span>Organic vs Paid Performance Comparison</span>
                 </h3>
                 <button
                   onClick={() => navigate('/smm/analytics')}
-                  className="text-xs text-primary font-semibold hover:underline flex items-center gap-1 self-start sm:self-auto"
+                  className="text-xs text-foreground font-semibold hover:underline inline-flex items-center gap-1 self-start sm:self-auto"
                 >
-                  Full Analytics <ArrowUpRight size={13} />
+                  <span>Full Analytics</span>
+                  <ArrowUpRight size={13} />
                 </button>
               </div>
 
               <div className="responsive-table-container overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
                 <table className="min-w-[480px] w-full text-left text-xs">
-                  <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
+                  <thead className="bg-secondary/60 text-muted-foreground font-semibold border-b border-border">
                     <tr>
                       <th className="px-4 py-3">Metric</th>
-                      <th className="px-4 py-3 text-purple-600 dark:text-purple-400">Organic</th>
-                      <th className="px-4 py-3 text-emerald-600 dark:text-emerald-400">Paid Ads</th>
-                      <th className="px-4 py-3 text-right">Combined Total</th>
+                      <th className="px-4 py-3 text-right text-foreground">Organic</th>
+                      <th className="px-4 py-3 text-right text-foreground">Paid Ads</th>
+                      <th className="px-4 py-3 text-right text-foreground">Combined Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/60 font-medium">
+                  <tbody className="divide-y divide-border font-medium tabular-nums">
                     <tr>
                       <td className="px-4 py-3 text-muted-foreground">Reach</td>
-                      <td className="px-4 py-3 font-bold">{(organicVsPaid.reach?.organic || 0).toLocaleString()}</td>
-                      <td className="px-4 py-3 font-bold">{(organicVsPaid.reach?.paid || 0).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-black text-foreground">
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">{(organicVsPaid.reach?.organic || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">{(organicVsPaid.reach?.paid || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground">
                         {((organicVsPaid.reach?.organic || 0) + (organicVsPaid.reach?.paid || 0)).toLocaleString()}
                       </td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 text-muted-foreground">Views</td>
-                      <td className="px-4 py-3 font-bold">{(organicVsPaid.views?.organic || 0).toLocaleString()}</td>
-                      <td className="px-4 py-3 font-bold">{(organicVsPaid.views?.paid || 0).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-black text-foreground">
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">{(organicVsPaid.views?.organic || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">{(organicVsPaid.views?.paid || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground">
                         {((organicVsPaid.views?.organic || 0) + (organicVsPaid.views?.paid || 0)).toLocaleString()}
                       </td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 text-muted-foreground">Leads Generated</td>
-                      <td className="px-4 py-3 text-muted-foreground/60">—</td>
-                      <td className="px-4 py-3 font-bold text-emerald-500">{organicVsPaid.leads?.paid || 0} Leads</td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-500">{organicVsPaid.leads?.paid || 0}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">—</td>
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">{organicVsPaid.leads?.paid || 0} Leads</td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground">{organicVsPaid.leads?.paid || 0}</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 text-muted-foreground">Ad Spend</td>
-                      <td className="px-4 py-3 font-bold text-muted-foreground">₹0</td>
-                      <td className="px-4 py-3 font-bold text-rose-500">₹{(organicVsPaid.spend?.paid || 0).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-black text-foreground">₹{(organicVsPaid.spend?.paid || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-muted-foreground">₹0</td>
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">₹{(organicVsPaid.spend?.paid || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground">₹{(organicVsPaid.spend?.paid || 0).toLocaleString()}</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 text-muted-foreground">Cost Per Lead (CPL)</td>
-                      <td className="px-4 py-3 text-muted-foreground/60">—</td>
-                      <td className="px-4 py-3 font-bold text-emerald-500">{organicVsPaid.cpl?.paid || '₹0'}</td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-500">{organicVsPaid.cpl?.paid || '₹0'}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">—</td>
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">{organicVsPaid.cpl?.paid || '₹0'}</td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground">{organicVsPaid.cpl?.paid || '₹0'}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -526,10 +547,10 @@ export const SMMDashboard = () => {
             </div>
 
             {/* TODAY'S AGENCY ACTIVITY TIMELINE */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="text-primary shrink-0" size={18} />
+                  <Clock className="text-foreground shrink-0" size={18} />
                   <h3 className="text-sm font-bold text-foreground">Activity Timeline</h3>
                 </div>
                 <span className="text-xs text-muted-foreground">Real-time log</span>
@@ -541,15 +562,15 @@ export const SMMDashboard = () => {
                 ) : (
                   recentActivity.slice(0, 6).map((act) => (
                     <div key={act._id} className="flex items-start gap-3 text-xs">
-                      <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-foreground">{act.action}</span>
-                          <span className="text-[10px] text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-foreground mt-1.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-foreground truncate">{act.action}</span>
+                          <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
                             {new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{act.entityName || act.entity}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{act.entityName || act.entity}</p>
                       </div>
                     </div>
                   ))

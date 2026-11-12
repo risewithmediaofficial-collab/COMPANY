@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle, Building2, UserCheck, Trash2 } from 'lucide-react';
+import { CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle, Building2, UserCheck, Trash2 } from '@/components/ui/muiIcons';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
@@ -127,19 +127,19 @@ const ProposalDetails = () => {
   };
 
   if (!isNew && isLoading) {
-    return <div className="h-64 animate-pulse rounded-3xl border border-border bg-card" />;
+    return <div className="h-64 rounded-3xl border border-border bg-card" />;
   }
 
   const paperField = (label, value) => (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</p>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{value || '—'}</p>
+    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">{label}</p>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-800 tabular-nums">{value || '—'}</p>
     </div>
   );
 
   const recipientLabel = proposal?.recipientType === 'lead' || proposal?.lead
-    ? `🎯 Lead: ${proposal?.lead?.name || 'Lead'}${proposal?.lead?.company ? ` (${proposal.lead.company})` : ''}`
-    : `🏢 Client: ${proposal?.client?.company || proposal?.client?.name || 'Client'}`;
+    ? `Lead: ${proposal?.lead?.name || 'Lead'}${proposal?.lead?.company ? ` (${proposal.lead.company})` : ''}`
+    : `Client: ${proposal?.client?.company || proposal?.client?.name || 'Client'}`;
 
   const proposalPages = proposal ? [
     {
@@ -156,27 +156,27 @@ const ProposalDetails = () => {
             {paperField('Start Date', proposal.startDate ? new Date(proposal.startDate).toLocaleDateString() : '—')}
             {paperField('End Date', proposal.endDate ? new Date(proposal.endDate).toLocaleDateString() : '—')}
           </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
-              <div className="flex items-center gap-2 text-emerald-700">
-                <CircleDollarSign size={18} />
+          <div className="mt-6 grid gap-4 md:grid-cols-3 tabular-nums">
+            <div className="rounded-3xl border border-neutral-300 bg-neutral-100 p-5">
+              <div className="flex items-center gap-2 text-neutral-700">
+                <CircleDollarSign size={18} className="shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">Amount</span>
               </div>
-              <p className="mt-4 text-3xl font-black tracking-tight text-emerald-900">{formatINR(proposal.amount)}</p>
+              <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">{formatINR(proposal.amount)}</p>
             </div>
-            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
-              <div className="flex items-center gap-2 text-amber-700">
-                <Clock3 size={18} />
+            <div className="rounded-3xl border border-neutral-300 bg-neutral-100 p-5">
+              <div className="flex items-center gap-2 text-neutral-700">
+                <Clock3 size={18} className="shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">Status</span>
               </div>
-              <p className="mt-4 text-xl font-black capitalize tracking-tight text-amber-900">{proposal.status || 'draft'}</p>
+              <p className="mt-4 text-xl font-black capitalize tracking-tight text-neutral-900">{proposal.status || 'draft'}</p>
             </div>
-            <div className="rounded-3xl border border-sky-200 bg-sky-50 p-5">
-              <div className="flex items-center gap-2 text-sky-700">
-                <Layers3 size={18} />
+            <div className="rounded-3xl border border-neutral-300 bg-neutral-100 p-5">
+              <div className="flex items-center gap-2 text-neutral-700">
+                <Layers3 size={18} className="shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">Revisions</span>
               </div>
-              <p className="mt-4 text-xl font-black tracking-tight text-sky-900">{proposal.revisionLimit || 3} rounds</p>
+              <p className="mt-4 text-xl font-black tracking-tight text-neutral-900">{proposal.revisionLimit || 3} rounds</p>
             </div>
           </div>
           <div className="mt-6">
@@ -205,9 +205,9 @@ const ProposalDetails = () => {
         <div className="space-y-5">
           {paperField('Terms and Conditions', proposal.termsAndConditions)}
           {paperField('Notes', proposal.notes)}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Attachments & Links</p>
-            <div className="mt-3 text-sm text-slate-700">
+          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">Attachments & Links</p>
+            <div className="mt-3 text-sm text-neutral-700">
               <LinksList links={proposal.links} />
             </div>
           </div>
@@ -226,7 +226,7 @@ const ProposalDetails = () => {
         subtitle={proposal?.proposalNumber || form.proposalType || 'Service proposal'}
         icon={FileText}
         status={proposal?.status}
-        statusClassName={proposal?.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600'}
+        statusClassName={proposal?.status === 'accepted' ? 'bg-primary text-primary-foreground border border-primary' : 'bg-secondary text-foreground border border-border'}
         actions={(
           <>
             {isClient && proposal?.status === 'sent' ? (
@@ -245,7 +245,7 @@ const ProposalDetails = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                  className="border-border text-foreground hover:bg-secondary"
                 >
                   <Trash2 size={15} className="mr-1.5" />
                   <span>Delete</span>
@@ -373,17 +373,17 @@ const ProposalDetails = () => {
             {proposalPages.map((page) => (
               <section
                 key={page.page}
-                className="mx-auto flex w-full max-w-[210mm] flex-col rounded-[24px] sm:rounded-[28px] border border-slate-200 bg-white p-4 sm:p-6 md:p-12 text-slate-900 shadow-[0_18px_60px_rgba(15,23,42,0.10)] md:min-h-[297mm]"
+                className="mx-auto flex w-full max-w-[210mm] flex-col rounded-[24px] sm:rounded-[28px] border border-neutral-200 bg-white p-4 sm:p-6 md:p-12 text-neutral-900 shadow-[0_18px_60px_rgba(0,0,0,0.08)] md:min-h-[297mm]"
               >
-                <div className="flex items-start justify-between gap-3 sm:gap-4 border-b border-slate-200 pb-5 sm:pb-6">
+                <div className="flex items-start justify-between gap-3 sm:gap-4 border-b border-neutral-200 pb-5 sm:pb-6">
                   <div className="min-w-0">
-                    <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Rise With Media Proposal</p>
-                    <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 break-words">{page.title}</h2>
-                    <p className="mt-1.5 text-xs sm:text-sm text-slate-500 break-words">{page.subtitle}</p>
+                    <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.28em] text-neutral-400">Rise With Media Proposal</p>
+                    <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-neutral-900 break-words">{page.title}</h2>
+                    <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 break-words">{page.subtitle}</p>
                   </div>
-                  <div className="shrink-0 rounded-2xl border border-slate-200 px-3 py-2 sm:px-4 sm:py-3 text-right">
-                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Page</p>
-                    <p className="mt-0.5 sm:mt-1 text-xl sm:text-2xl font-black tracking-tight text-slate-900">{page.page}</p>
+                  <div className="shrink-0 rounded-2xl border border-neutral-200 px-3 py-2 sm:px-4 sm:py-3 text-right tabular-nums">
+                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Page</p>
+                    <p className="mt-0.5 sm:mt-1 text-xl sm:text-2xl font-black tracking-tight text-neutral-900">{page.page}</p>
                   </div>
                 </div>
 
@@ -391,7 +391,7 @@ const ProposalDetails = () => {
                   {page.content}
                 </div>
 
-                <div className="mt-auto flex items-center justify-between border-t border-slate-200 pt-5 text-xs text-slate-400">
+                <div className="mt-auto flex items-center justify-between border-t border-neutral-200 pt-5 text-xs text-neutral-400">
                   <span>{proposal?.proposalNumber || 'Proposal Draft'}</span>
                   <span>{proposal?.client?.company || proposal?.client?.name || 'Client Proposal'}</span>
                 </div>
@@ -435,7 +435,7 @@ const ProposalDetails = () => {
                 }
               }}
               disabled={deleteProposal.isPending}
-              className="rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500"
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {deleteProposal.isPending ? 'Deleting...' : 'Delete Proposal'}
             </AlertDialogAction>

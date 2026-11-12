@@ -12,7 +12,7 @@ import {
   CheckCircle,
   HelpCircle,
   Filter,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import {
   ResponsiveContainer,
   BarChart,
@@ -30,7 +30,7 @@ import {
 } from 'recharts';
 import { formatINR, formatDateIST } from '../../../utils/financeFormatters';
 
-const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b', '#06b6d4', '#f97316'];
+const PIE_COLORS = ['#18181b', '#3f3f46', '#52525b', '#71717a', '#a1a1aa', '#d4d4d8', '#27272a', '#e4e4e7'];
 
 const formatCategory = (cat) => {
   if (!cat) return '';
@@ -55,25 +55,19 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
           {alerts.map((alert, idx) => (
             <div
               key={idx}
-              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-xl border text-xs font-medium shadow-sm transition-all ${
-                alert.type === 'danger'
-                  ? 'bg-rose-50 border-rose-200 text-rose-800'
-                  : alert.type === 'warning'
-                  ? 'bg-amber-50 border-amber-200 text-amber-800'
-                  : 'bg-indigo-50 border-indigo-200 text-indigo-800'
-              }`}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-xl border border-border bg-secondary/50 text-foreground text-xs font-medium shadow-xs transition-all"
             >
               <div className="flex items-center gap-2.5">
-                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <AlertTriangle className="h-4 w-4 shrink-0 text-foreground" />
                 <div>
                   <span className="font-bold">{alert.title}: </span>
-                  {alert.message}
+                  <span className="text-muted-foreground">{alert.message}</span>
                 </div>
               </div>
               {alert.actionLink && (
                 <button
                   onClick={() => onNavigateSection(alert.actionLink.split('/')[2]?.split('?')[0] || 'overview')}
-                  className="px-2.5 py-1 rounded bg-white font-semibold shadow-2xs hover:bg-slate-50 transition-colors shrink-0"
+                  className="px-2.5 py-1 rounded-lg bg-card border border-border font-semibold text-foreground hover:bg-secondary transition-colors shrink-0 cursor-pointer"
                 >
                   View Details →
                 </button>
@@ -88,76 +82,76 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
         {/* Card 1: Recognized Service Revenue */}
         <div
           onClick={() => onNavigateSection('invoices')}
-          className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-blue-300 hover:shadow-sm cursor-pointer transition-all group"
+          className="bg-card p-4 rounded-xl border border-border shadow-2xs hover:border-foreground/30 cursor-pointer transition-all group"
         >
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Service Revenue</span>
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-110 transition-transform">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Service Revenue</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border/80 text-foreground shrink-0">
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-900">{formatINR(kpis.recognizedServiceRevenue)}</div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="text-xl font-bold text-foreground tabular-nums">{formatINR(kpis.recognizedServiceRevenue)}</div>
+          <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
             <span>Earned agency services</span>
-            <span className="text-blue-600 font-medium group-hover:underline">View →</span>
+            <span className="text-foreground font-medium group-hover:underline">View →</span>
           </div>
         </div>
 
         {/* Card 2: Cash Received */}
         <div
           onClick={() => onNavigateSection('income')}
-          className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-emerald-300 hover:shadow-sm cursor-pointer transition-all group"
+          className="bg-card p-4 rounded-xl border border-border shadow-2xs hover:border-foreground/30 cursor-pointer transition-all group"
         >
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Cash Received</span>
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 group-hover:scale-110 transition-transform">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Received</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border/80 text-foreground shrink-0">
               <ArrowDownRight className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-xl font-bold text-emerald-600">{formatINR(kpis.cashReceived)}</div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="text-xl font-bold text-foreground tabular-nums">{formatINR(kpis.cashReceived)}</div>
+          <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
             <span>Collected in bank/cash</span>
-            <span className="text-emerald-600 font-medium group-hover:underline">Receipts →</span>
+            <span className="text-foreground font-medium group-hover:underline">Receipts →</span>
           </div>
         </div>
 
         {/* Card 3: Recognized Costs */}
         <div
           onClick={() => onNavigateSection('expenses')}
-          className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-rose-300 hover:shadow-sm cursor-pointer transition-all group"
+          className="bg-card p-4 rounded-xl border border-border shadow-2xs hover:border-foreground/30 cursor-pointer transition-all group"
         >
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Recognized Costs</span>
-            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 group-hover:scale-110 transition-transform">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Recognized Costs</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border/80 text-foreground shrink-0">
               <ArrowUpRight className="h-4 w-4" />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-900">{formatINR(kpis.recognizedExpenses)}</div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="text-xl font-bold text-foreground tabular-nums">{formatINR(kpis.recognizedExpenses)}</div>
+          <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
             <span>Ops & Salaries recognized</span>
-            <span className="text-rose-600 font-medium group-hover:underline">Bills →</span>
+            <span className="text-foreground font-medium group-hover:underline">Bills →</span>
           </div>
         </div>
 
         {/* Card 4: Net Profit & Margin */}
         <div
           onClick={() => onNavigateSection('forecast-reports')}
-          className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-indigo-300 hover:shadow-sm cursor-pointer transition-all group"
+          className="bg-card p-4 rounded-xl border border-border shadow-2xs hover:border-foreground/30 cursor-pointer transition-all group"
         >
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Net Profit</span>
-            <div className={`p-1.5 rounded-lg ${kpis.netProfit >= 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-rose-50 text-rose-600'} group-hover:scale-110 transition-transform`}>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Net Profit</span>
+            <div className="p-1.5 rounded-lg bg-secondary border border-border/80 text-foreground shrink-0">
               <CheckCircle className="h-4 w-4" />
             </div>
           </div>
-          <div className={`text-xl font-bold ${kpis.netProfit >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>
+          <div className="text-xl font-bold text-foreground tabular-nums">
             {formatINR(kpis.netProfit)}
           </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
             <span>
-              Margin: <strong className="text-slate-800">{kpis.profitMargin !== null ? `${kpis.profitMargin}%` : 'N/A'}</strong>
+              Margin: <strong className="text-foreground tabular-nums">{kpis.profitMargin !== null ? `${kpis.profitMargin}%` : 'N/A'}</strong>
             </span>
-            <span className="text-indigo-600 font-medium group-hover:underline">P&L →</span>
+            <span className="text-foreground font-medium group-hover:underline">P&amp;L →</span>
           </div>
         </div>
       </div>
@@ -166,82 +160,88 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         <div
           onClick={() => onNavigateSection('invoices')}
-          className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 rounded-xl border border-amber-200/80 flex items-center justify-between cursor-pointer hover:border-amber-400 transition-all"
+          className="bg-card p-4 rounded-xl border border-border flex items-center justify-between cursor-pointer hover:border-foreground/30 transition-all"
         >
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Outstanding Receivables</div>
-            <div className="text-lg font-bold text-amber-900 mt-0.5">{formatINR(kpis.outstandingReceivables)}</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Outstanding Receivables</div>
+            <div className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{formatINR(kpis.outstandingReceivables)}</div>
           </div>
-          <Clock className="h-7 w-7 text-amber-500/40" />
+          <Clock className="h-6 w-6 text-muted-foreground shrink-0" />
         </div>
 
         <div
           onClick={() => onNavigateSection('invoices')}
-          className="bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent p-4 rounded-xl border border-rose-200/80 flex items-center justify-between cursor-pointer hover:border-rose-400 transition-all"
+          className="bg-card p-4 rounded-xl border border-border flex items-center justify-between cursor-pointer hover:border-foreground/30 transition-all"
         >
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-rose-700">Overdue Invoices</div>
-            <div className="text-lg font-bold text-rose-900 mt-0.5">{formatINR(kpis.overdueReceivables)}</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Overdue Invoices</div>
+            <div className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{formatINR(kpis.overdueReceivables)}</div>
           </div>
-          <AlertTriangle className="h-7 w-7 text-rose-500/40" />
+          <AlertTriangle className="h-6 w-6 text-muted-foreground shrink-0" />
         </div>
 
         <div
           onClick={() => onNavigateSection('income')}
-          className="bg-gradient-to-r from-indigo-500/10 via-indigo-500/5 to-transparent p-4 rounded-xl border border-indigo-200/80 flex items-center justify-between cursor-pointer hover:border-indigo-400 transition-all"
+          className="bg-card p-4 rounded-xl border border-border flex items-center justify-between cursor-pointer hover:border-foreground/30 transition-all"
         >
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Pass-Through Ad Spend</div>
-            <div className="text-lg font-bold text-indigo-900 mt-0.5">{formatINR(kpis.passThroughAdBudgetTotal)}</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Pass-Through Ad Spend</div>
+            <div className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{formatINR(kpis.passThroughAdBudgetTotal)}</div>
           </div>
-          <Receipt className="h-7 w-7 text-indigo-500/40" />
+          <Receipt className="h-6 w-6 text-muted-foreground shrink-0" />
         </div>
       </div>
 
       {/* CHARTS ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Blue Revenue vs Green Expense Bar Chart */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Monochrome Revenue vs Expense Bar Chart */}
+        <div className="lg:col-span-2 bg-card p-5 rounded-xl border border-border shadow-2xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Monthly Revenue vs. Expenses</h3>
+              <h3 className="text-sm font-bold text-foreground">Monthly Revenue vs. Expenses</h3>
             </div>
-            <div className="flex items-center gap-4 text-xs font-medium">
-              <span className="flex items-center gap-1.5 text-blue-600">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-600" /> Revenue
+            <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground">
+              <span className="flex items-center gap-1.5 text-foreground">
+                <span className="h-2.5 w-2.5 rounded-full bg-foreground" /> Revenue
               </span>
-              <span className="flex items-center gap-1.5 text-emerald-600">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" /> Expenses
+              <span className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground" /> Expenses
               </span>
             </div>
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlySeries} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                 <YAxis
-                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
                   formatter={(val) => [formatINR(val), '']}
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
                 />
-                <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Service Revenue" />
-                <Bar dataKey="expenses" fill="#10b981" radius={[4, 4, 0, 0]} name="Operating Costs" />
+                <Bar dataKey="revenue" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} name="Service Revenue" />
+                <Bar dataKey="expenses" fill="#71717a" radius={[4, 4, 0, 0]} name="Operating Costs" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Expense Category Breakdown Donut */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs">
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-900">Expense Category Breakdown</h3>
-            <p className="text-xs text-slate-500">Distribution of expenditures by operational bucket</p>
+            <h3 className="text-sm font-bold text-foreground">Expense Category Breakdown</h3>
+            <p className="text-xs text-muted-foreground">Distribution of expenditures by operational bucket</p>
           </div>
           <div className="h-44 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -262,21 +262,27 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
                 </Pie>
                 <Tooltip
                   formatter={(val) => [formatINR(val), 'Amount']}
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-3 space-y-1.5 max-h-32 overflow-y-auto text-xs">
             {categoryBreakdown.slice(0, 5).map((cat, i) => (
-              <div key={cat.category} className="flex items-center justify-between text-slate-600">
+              <div key={cat.category} className="flex items-center justify-between text-muted-foreground">
                 <span className="flex items-center gap-2 truncate">
                   <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className={`truncate ${['rj', 'vj'].includes(cat.category?.toLowerCase()) ? 'uppercase font-bold' : 'capitalize'}`}>
+                  <span className={`truncate ${['rj', 'vj'].includes(cat.category?.toLowerCase()) ? 'uppercase font-bold text-foreground' : 'capitalize'}`}>
                     {formatCategory(cat.category)}
                   </span>
                 </span>
-                <span className="font-semibold text-slate-800">{formatINR(cat.amount, false)}</span>
+                <span className="font-semibold text-foreground tabular-nums">{formatINR(cat.amount, false)}</span>
               </div>
             ))}
           </div>
@@ -284,14 +290,14 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
       </div>
 
       {/* RECENT TRANSACTIONS TABLE SECTION */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
+        <div className="p-4 border-b border-border flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Recent Financial Transactions</h3>
+            <h3 className="text-sm font-bold text-foreground">Recent Financial Transactions</h3>
           </div>
           <button
             onClick={() => onQuickAdd('invoice')}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-xs font-semibold text-indigo-700 transition-colors cursor-pointer min-h-[36px]"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-secondary hover:bg-secondary/80 text-xs font-semibold text-foreground transition-colors cursor-pointer min-h-[36px]"
           >
             Quick Entry
           </button>
@@ -299,44 +305,38 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
 
         <div className="responsive-table-container overflow-y-auto max-h-[420px] text-xs">
           <table className="w-full min-w-[620px] text-left">
-            <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="sticky top-0 z-10 bg-secondary border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3">Date</th>
                 <th className="p-3">Transaction / Type</th>
                 <th className="p-3">Client / Vendor</th>
-                <th className="p-3">Amount</th>
+                <th className="p-3 text-right">Amount</th>
                 <th className="p-3">Status</th>
                 <th className="p-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border tabular-nums">
               {/* Invoices */}
               {(recentTransactions.invoices || []).slice(0, 3).map((inv) => (
-                <tr key={inv._id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="p-3 text-slate-600">{formatDateIST(inv.invoiceDate || inv.issueDate)}</td>
-                  <td className="p-3 font-semibold text-slate-900 flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-blue-500" />
-                    Invoice {inv.invoiceNumber}
+                <tr key={inv._id} className="hover:bg-secondary/40 transition-colors">
+                  <td className="p-3 text-muted-foreground">{formatDateIST(inv.invoiceDate || inv.issueDate)}</td>
+                  <td className="p-3 font-semibold text-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-foreground" />
+                      <span>Invoice {inv.invoiceNumber}</span>
+                    </span>
                   </td>
-                  <td className="p-3 text-slate-700">{inv.client?.company || inv.client?.name || 'Client'}</td>
-                  <td className="p-3 font-bold text-slate-900">{formatINR(inv.total || inv.totalAmount)}</td>
+                  <td className="p-3 text-muted-foreground">{inv.client?.company || inv.client?.name || 'Client'}</td>
+                  <td className="p-3 text-right font-bold text-foreground">{formatINR(inv.total || inv.totalAmount)}</td>
                   <td className="p-3">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                        inv.status === 'paid'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : inv.status === 'partially_paid'
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-blue-100 text-blue-700'
-                      }`}
-                    >
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-secondary text-foreground border border-border">
                       {inv.status}
                     </span>
                   </td>
                   <td className="p-3 text-right">
                     <button
                       onClick={() => onNavigateSection('invoices')}
-                      className="text-indigo-600 font-medium hover:underline text-xs"
+                      className="text-foreground font-medium hover:underline text-xs cursor-pointer"
                     >
                       View
                     </button>
@@ -346,23 +346,25 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
 
               {/* Payments */}
               {(recentTransactions.payments || []).slice(0, 3).map((pay) => (
-                <tr key={pay._id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="p-3 text-slate-600">{formatDateIST(pay.receivedDate || pay.paidAt)}</td>
-                  <td className="p-3 font-semibold text-slate-900 flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    Receipt ({pay.paymentMode})
+                <tr key={pay._id} className="hover:bg-secondary/40 transition-colors">
+                  <td className="p-3 text-muted-foreground">{formatDateIST(pay.receivedDate || pay.paidAt)}</td>
+                  <td className="p-3 font-semibold text-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-muted-foreground" />
+                      <span>Receipt ({pay.paymentMode})</span>
+                    </span>
                   </td>
-                  <td className="p-3 text-slate-700">{pay.client?.company || pay.client?.name || 'Client'}</td>
-                  <td className="p-3 font-bold text-emerald-600">+{formatINR(pay.amount)}</td>
+                  <td className="p-3 text-muted-foreground">{pay.client?.company || pay.client?.name || 'Client'}</td>
+                  <td className="p-3 text-right font-bold text-foreground">+{formatINR(pay.amount)}</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-emerald-100 text-emerald-700">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-secondary text-foreground border border-border">
                       Confirmed
                     </span>
                   </td>
                   <td className="p-3 text-right">
                     <button
                       onClick={() => onNavigateSection('income')}
-                      className="text-emerald-600 font-medium hover:underline text-xs"
+                      className="text-foreground font-medium hover:underline text-xs cursor-pointer"
                     >
                       Receipt
                     </button>
@@ -372,27 +374,25 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
 
               {/* Expenses */}
               {(recentTransactions.expenses || []).slice(0, 3).map((exp) => (
-                <tr key={exp._id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="p-3 text-slate-600">{formatDateIST(exp.date)}</td>
-                  <td className="p-3 font-semibold text-slate-900 flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-rose-500" />
-                    Expense ({formatCategory(exp.category)})
+                <tr key={exp._id} className="hover:bg-secondary/40 transition-colors">
+                  <td className="p-3 text-muted-foreground">{formatDateIST(exp.date)}</td>
+                  <td className="p-3 font-semibold text-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-zinc-400" />
+                      <span>Expense ({formatCategory(exp.category)})</span>
+                    </span>
                   </td>
-                  <td className="p-3 text-slate-700">{exp.vendor || exp.title}</td>
-                  <td className="p-3 font-bold text-rose-600">-{formatINR(exp.amount)}</td>
+                  <td className="p-3 text-muted-foreground">{exp.vendor || exp.title}</td>
+                  <td className="p-3 text-right font-bold text-foreground">-{formatINR(exp.amount)}</td>
                   <td className="p-3">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                        exp.paymentStatus === 'paid' ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-700'
-                      }`}
-                    >
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-secondary text-muted-foreground border border-border">
                       {exp.paymentStatus}
                     </span>
                   </td>
                   <td className="p-3 text-right">
                     <button
                       onClick={() => onNavigateSection('expenses')}
-                      className="text-rose-600 font-medium hover:underline text-xs"
+                      className="text-foreground font-medium hover:underline text-xs cursor-pointer"
                     >
                       Bill
                     </button>

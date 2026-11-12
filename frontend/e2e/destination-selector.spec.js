@@ -21,7 +21,7 @@ test.describe('Dynamic Objectives & Destination Selector E2E', () => {
   });
 
   test('1. Campaigns drawer supports Page Engagement, Awareness, Leads, and dynamic destinations', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/campaigns');
+    await page.goto('http://localhost:5175/smm/campaigns');
     await page.waitForLoadState('networkidle');
 
     // Click Create Campaign button
@@ -71,7 +71,7 @@ test.describe('Dynamic Objectives & Destination Selector E2E', () => {
   });
 
   test('2. Ad Sets drawer dynamically reacts to selected campaign objective', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/adsets');
+    await page.goto('http://localhost:5175/smm/adsets');
     await page.waitForLoadState('networkidle');
 
     // Click Create Ad Set button

@@ -22,12 +22,14 @@ import {
   subWeeks,
 } from 'date-fns';
 import {
+  AlertTriangle,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
   Clock3,
   Download,
+  Filter,
   LayoutGrid,
   List,
   PanelTop,
@@ -35,9 +37,8 @@ import {
   Rows3,
   TimerReset,
   X,
-  Palette,
   FileText,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { ClientTaskResponsePanel } from '../../components/tasks/ClientTaskResponsePanel';
 import { DailyCalendarTaskDialog } from '../../components/tasks/DailyCalendarTaskDialog';
 import { DailyTaskUpdateDialog } from '../../components/tasks/DailyTaskUpdateDialog';
@@ -92,93 +93,93 @@ const VIEW_OPTIONS = [
 export const TASK_STATUS_COLORS = {
   'To Do': {
     label: 'To Do / Scheduled',
-    dot: 'bg-slate-400',
-    border: 'border-slate-300 dark:border-slate-700',
-    bg: 'bg-slate-500/10 hover:bg-slate-500/20 text-slate-800 dark:text-slate-200',
-    badge: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700',
-    sign: '⚪ To Do',
+    dot: 'bg-muted-foreground',
+    border: 'border-border',
+    bg: 'bg-secondary/50 hover:bg-secondary/80 text-foreground',
+    badge: 'bg-secondary/70 text-muted-foreground border-border',
+    sign: 'To Do',
   },
   'On Process': {
     label: 'In Process / Active',
-    dot: 'bg-blue-500',
-    border: 'border-blue-400/70 dark:border-blue-600/70',
-    bg: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-900 dark:text-blue-200',
-    badge: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-400/40',
-    sign: '🔵 In Process',
+    dot: 'bg-foreground',
+    border: 'border-foreground/30',
+    bg: 'bg-secondary/70 hover:bg-secondary text-foreground',
+    badge: 'bg-secondary text-foreground border-foreground/30',
+    sign: 'In Process',
   },
   'Waiting for Client': {
     label: 'Waiting for Client',
-    dot: 'bg-amber-500',
-    border: 'border-amber-400/70 dark:border-amber-600/70',
-    bg: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 dark:text-amber-200',
-    badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-400/40',
-    sign: '🟡 Waiting Client',
+    dot: 'bg-foreground/70',
+    border: 'border-foreground/25',
+    bg: 'bg-secondary/60 hover:bg-secondary/90 text-foreground',
+    badge: 'bg-secondary/80 text-foreground border-border',
+    sign: 'Waiting Client',
   },
   'Review Required': {
     label: 'Review Required',
-    dot: 'bg-purple-500',
-    border: 'border-purple-400/70 dark:border-purple-600/70',
-    bg: 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-900 dark:text-purple-200',
-    badge: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-400/40',
-    sign: '🟣 Review Needed',
+    dot: 'bg-foreground',
+    border: 'border-foreground/35',
+    bg: 'bg-secondary/75 hover:bg-secondary text-foreground',
+    badge: 'bg-secondary text-foreground border-foreground/35',
+    sign: 'Review Needed',
   },
   'Rework': {
     label: 'Rework Required',
-    dot: 'bg-rose-500',
-    border: 'border-rose-400/70 dark:border-rose-600/70',
-    bg: 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-900 dark:text-rose-200',
-    badge: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-400/40',
-    sign: '🟠 Rework',
+    dot: 'bg-primary',
+    border: 'border-primary/40',
+    bg: 'bg-primary/[0.06] hover:bg-primary/10 text-foreground',
+    badge: 'bg-secondary text-foreground border-primary/40',
+    sign: 'Rework',
   },
   'Completed': {
     label: 'Completed / Approved',
-    dot: 'bg-emerald-500',
-    border: 'border-emerald-400/70 dark:border-emerald-600/70',
-    bg: 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-900 dark:text-emerald-200',
-    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40',
-    sign: '🟢 Completed',
+    dot: 'bg-primary-foreground',
+    border: 'border-primary',
+    bg: 'bg-secondary hover:bg-secondary/80 text-foreground',
+    badge: 'bg-primary text-primary-foreground border-primary',
+    sign: 'Completed',
   },
   'Approved': {
     label: 'Approved',
-    dot: 'bg-emerald-500',
-    border: 'border-emerald-400/70 dark:border-emerald-600/70',
-    bg: 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-900 dark:text-emerald-200',
-    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40',
-    sign: '🟢 Approved',
+    dot: 'bg-primary-foreground',
+    border: 'border-primary',
+    bg: 'bg-secondary hover:bg-secondary/80 text-foreground',
+    badge: 'bg-primary text-primary-foreground border-primary',
+    sign: 'Approved',
   },
 };
 
 export const TASK_PRIORITY_COLORS = {
   Urgent: {
     label: 'Urgent',
-    dot: 'bg-rose-500',
-    badge: 'bg-rose-500 text-white font-black shadow-xs ring-1 ring-rose-600',
-    pill: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-400/40',
-    sign: '🔴 Urgent',
-    borderLeft: 'border-l-4 border-l-rose-500',
+    dot: 'bg-primary',
+    badge: 'bg-primary text-primary-foreground font-black shadow-xs',
+    pill: 'bg-primary text-primary-foreground border-primary',
+    sign: 'Urgent',
+    borderLeft: 'border-l-4 border-l-primary',
   },
   High: {
     label: 'High',
-    dot: 'bg-amber-500',
-    badge: 'bg-amber-500 text-white font-bold',
-    pill: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-400/40',
-    sign: '🟠 High',
-    borderLeft: 'border-l-3 border-l-amber-500',
+    dot: 'bg-foreground',
+    badge: 'bg-secondary text-foreground border border-foreground/35 font-bold',
+    pill: 'bg-secondary text-foreground border-foreground/35',
+    sign: 'High',
+    borderLeft: 'border-l-4 border-l-foreground/50',
   },
   Medium: {
     label: 'Medium',
-    dot: 'bg-blue-500',
-    badge: 'bg-blue-500 text-white font-semibold',
-    pill: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-400/40',
-    sign: '🔵 Medium',
+    dot: 'bg-muted-foreground',
+    badge: 'bg-secondary/70 text-foreground border border-border font-semibold',
+    pill: 'bg-secondary/70 text-foreground border-border',
+    sign: 'Medium',
     borderLeft: '',
   },
   Low: {
     label: 'Low',
-    dot: 'bg-slate-400',
-    badge: 'bg-slate-500 text-white font-medium',
-    pill: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-400/40',
-    sign: '🟢 Low',
+    dot: 'bg-muted-foreground/60',
+    badge: 'bg-secondary/40 text-muted-foreground border border-border font-medium',
+    pill: 'bg-secondary/40 text-muted-foreground border-border',
+    sign: 'Low',
     borderLeft: '',
   },
 };
@@ -462,7 +463,7 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
       <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-3xl max-h-[90dvh]">
         <div className="flex flex-col min-h-0 h-full">
           {/* Pinned Header */}
-          <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+          <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
                 <FileText className="h-5 w-5" />
@@ -571,7 +572,7 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
           </div>
 
           {/* Pinned Sticky Footer */}
-          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
             <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
             <Button
               type="button"
@@ -600,30 +601,30 @@ const TaskSummaryCard = ({ task, onOpen }) => {
       type="button"
       onClick={() => onOpen(task)}
       className={cn(
-        "w-full rounded-[24px] border p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md relative overflow-hidden",
+        'w-full rounded-2xl border p-4 text-left shadow-sm transition-colors relative overflow-hidden cursor-pointer',
         statusTheme.border,
         statusTheme.bg,
-        isUrgent && "ring-2 ring-rose-500/50 border-l-6 border-l-rose-500 bg-rose-500/10 shadow-rose-500/10",
-        isHigh && !isUrgent && "border-l-4 border-l-amber-500",
-        task.isOverdue && "border-rose-500 bg-rose-500/15"
+        isUrgent && 'border-l-4 border-l-primary ring-1 ring-primary/30 bg-primary/[0.06]',
+        isHigh && !isUrgent && 'border-l-4 border-l-foreground/45',
+        task.isOverdue && 'border-primary/70 bg-primary/[0.08]',
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className={cn('px-2.5 py-0.5 rounded-lg text-[11px] font-bold border flex items-center gap-1', statusTheme.badge)}>
-              <span className={cn('h-2 w-2 rounded-full', statusTheme.dot)} />
+            <span className={cn('px-2.5 py-0.5 rounded-lg text-[11px] font-bold border inline-flex items-center gap-1.5', statusTheme.badge)}>
+              <span className={cn('h-2 w-2 rounded-full shrink-0', statusTheme.dot)} />
               <span>{normalizedStatus}</span>
             </span>
 
             {isUrgent ? (
-              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-rose-500 text-white shadow-xs animate-pulse flex items-center gap-1">
-                <span>🔴</span>
-                <span>URGENT PRIORITY</span>
+              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-primary text-primary-foreground shadow-xs inline-flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3 shrink-0" />
+                <span>URGENT</span>
               </span>
             ) : isHigh ? (
-              <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                🟠 High Priority
+              <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-secondary text-foreground border border-foreground/35">
+                High Priority
               </span>
             ) : task.priority ? (
               <span className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-secondary text-muted-foreground border border-border">
@@ -638,7 +639,7 @@ const TaskSummaryCard = ({ task, onOpen }) => {
             {task.isOverdue ? <StatusBadge tone="danger">Overdue</StatusBadge> : null}
           </div>
 
-          <h3 className="mt-3 text-base font-bold text-foreground hover:text-primary transition-colors">
+          <h3 className="mt-3 text-base font-bold text-foreground transition-colors">
             {task.taskTitle || task.title}
           </h3>
           <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
@@ -646,9 +647,9 @@ const TaskSummaryCard = ({ task, onOpen }) => {
           </p>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border px-3 py-2 text-right shadow-2xs">
+        <div className="rounded-xl bg-card border border-border px-3 py-2 text-right shadow-2xs shrink-0">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Due Date</p>
-          <p className="mt-0.5 text-xs font-black text-foreground">
+          <p className="mt-0.5 text-xs font-black text-foreground tabular-nums">
             {task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : 'No date'}
           </p>
         </div>
@@ -860,19 +861,10 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
     const key = format(date, 'yyyy-MM-dd');
     const dayTasks = tasksByDate.get(key) || [];
 
-    if (!dayTasks.length) {
-      if (canManageCalendar) {
-        setSelectedTask(null);
-        setDraftDueDate(format(date, 'yyyy-MM-dd'));
-        setShowAddModal(true);
-        return;
-      }
-
-      if (canLogDailyUpdates) {
-        setSelectedDate(date);
-        setShowDailyTaskDialog(true);
-        return;
-      }
+    if (!dayTasks.length && canLogDailyUpdates && !canManageCalendar) {
+      setSelectedDate(date);
+      setShowDailyTaskDialog(true);
+      return;
     }
 
     setSelectedDate(date);
@@ -912,7 +904,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                 <div className="flex items-center justify-between gap-1 leading-none">
                   <div
                     className={cn(
-                      'flex h-6 w-6 sm:h-6 sm:w-6 items-center justify-center rounded-full text-xs sm:text-sm font-black tracking-tight',
+                      'flex h-6 w-6 items-center justify-center rounded-full text-xs sm:text-sm font-black tracking-tight tabular-nums',
                       isDayToday
                         ? 'bg-primary text-primary-foreground font-black shadow-xs ring-1 ring-primary/40'
                         : inCurrentMonth
@@ -923,7 +915,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                     {format(day, 'd')}
                   </div>
                   {dayTasks.length ? (
-                    <span className="rounded-full bg-primary/10 border border-primary/20 px-1.5 py-0.2 text-[10px] font-black text-primary leading-none">
+                    <span className="rounded-full bg-secondary border border-border px-1.5 py-0.5 text-[10px] font-black text-foreground leading-none tabular-nums">
                       {dayTasks.length}
                     </span>
                   ) : null}
@@ -944,23 +936,23 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                           handleOpenTask(task);
                         }}
                         className={cn(
-                          'group/task relative rounded-md border px-1.5 py-0.5 text-left shadow-2xs transition-all hover:scale-[1.01] hover:shadow-xs cursor-pointer',
+                          'group/task relative rounded-md border px-1.5 py-0.5 text-left shadow-2xs transition-colors hover:shadow-xs cursor-pointer',
                           statusTheme.border,
                           statusTheme.bg,
-                          isUrgent && 'border-l-[3px] border-l-rose-500 ring-1 ring-rose-500/50 bg-rose-500/10',
-                          isHigh && !isUrgent && 'border-l-[3px] border-l-amber-500',
-                          task.isOverdue && 'border-rose-500/80 bg-rose-500/15',
+                          isUrgent && 'border-l-[3px] border-l-primary ring-1 ring-primary/35 bg-primary/[0.07]',
+                          isHigh && !isUrgent && 'border-l-[3px] border-l-foreground/45',
+                          task.isOverdue && 'border-primary/70 bg-primary/10',
                         )}
                       >
                         <div className="flex items-center justify-between gap-1">
                           <div className="flex items-center gap-1 min-w-0">
-                            <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', statusTheme.dot, isUrgent && 'animate-pulse')} />
-                            <p className="truncate text-[10px] font-bold text-foreground group-hover/task:text-primary transition-colors leading-tight">
+                            <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', statusTheme.dot)} />
+                            <p className="truncate text-[10px] font-bold text-foreground transition-colors leading-tight">
                               {task.taskTitle || task.title}
                             </p>
                           </div>
                           {isUrgent ? (
-                            <span className="shrink-0 px-1 py-0.2 rounded text-[7px] font-black bg-rose-500 text-white leading-none">
+                            <span className="shrink-0 px-1 py-0.5 rounded text-[8px] font-black bg-primary text-primary-foreground leading-none">
                               !
                             </span>
                           ) : null}
@@ -970,7 +962,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                   })}
 
                   {dayTasks.length > 2 ? (
-                    <div className="text-[9px] font-black text-primary px-0.5 leading-none">
+                    <div className="text-[9px] font-black text-foreground px-0.5 leading-none tabular-nums">
                       +{dayTasks.length - 2} more
                     </div>
                   ) : null}
@@ -1028,11 +1020,11 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             <div key={dateKey}>
               {/* Date Group Header */}
               <div className={cn(
-                'sticky top-0 z-10 flex items-center gap-3 border-y border-border bg-card/95 px-4 py-2 backdrop-blur-sm',
-                dateKey !== 'no-date' && isToday(new Date(dateKey)) && 'bg-primary/5 border-primary/20',
+                'sticky top-0 z-10 flex items-center gap-3 border-y border-border bg-card px-4 py-2',
+                dateKey !== 'no-date' && isToday(new Date(dateKey)) && 'bg-secondary border-foreground/25',
               )}>
                 <div className={cn(
-                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black',
+                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black tabular-nums',
                   dateKey !== 'no-date' && isToday(new Date(dateKey))
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-foreground',
@@ -1040,7 +1032,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                   {dateKey !== 'no-date' ? format(new Date(dateKey), 'd') : '—'}
                 </div>
                 <p className="text-xs font-bold text-foreground">{label}</p>
-                <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground tabular-nums">
                   {dateTasks.length} {dateTasks.length === 1 ? 'task' : 'tasks'}
                 </span>
               </div>
@@ -1057,7 +1049,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                     className={cn(
                       'w-full grid items-center gap-2 border-b border-border/50 px-4 py-3 text-left transition-all hover:bg-secondary/30',
                       idx % 2 === 0 ? 'bg-background' : 'bg-secondary/10',
-                      task.isOverdue && 'border-l-2 border-l-rose-500',
+                      task.isOverdue && 'border-l-2 border-l-primary',
                     )}
                     style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}
                   >
@@ -1065,14 +1057,14 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                     <div className="min-w-0 flex items-center gap-2">
                       <span className={cn(
                         'h-2 w-2 shrink-0 rounded-full',
-                        task.taskCategory === 'content' ? 'bg-blue-500' : 'bg-amber-500',
+                        task.taskCategory === 'content' ? 'bg-foreground' : 'bg-muted-foreground',
                       )} />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-foreground">{task.taskTitle || task.title}</p>
                         <p className="truncate text-[11px] text-muted-foreground">{formatTaskTypeLabel(task.taskType)}</p>
                       </div>
                       {task.isOverdue && (
-                        <span className="ml-1 shrink-0 rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-600 uppercase">Overdue</span>
+                        <span className="ml-1 shrink-0 rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-[9px] font-bold uppercase">Overdue</span>
                       )}
                     </div>
 
@@ -1099,7 +1091,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                     </div>
 
                     {/* Due Date */}
-                    <p className="text-right text-xs font-semibold text-foreground">
+                    <p className="text-right text-xs font-semibold text-foreground tabular-nums">
                       {task.dueDate ? format(new Date(task.dueDate), 'MMM d') : '—'}
                     </p>
                   </button>
@@ -1231,29 +1223,29 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
       </div>
 
       {/* ── Compact Metric Badges & Search Ribbon ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 bg-card/60 backdrop-blur-sm rounded-xl border border-border/80 px-3 py-1.5 shadow-2xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 bg-card rounded-xl border border-border px-3 py-1.5 shadow-2xs">
         {/* Metric Badges */}
         <div className="flex items-center gap-2 flex-wrap text-xs">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold">
-            <CalendarDays size={12} />
-            <span>Visible Tasks: <strong className="font-black text-sm">{summary.total}</strong></span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground font-semibold">
+            <CalendarDays size={12} className="text-muted-foreground shrink-0" />
+            <span>Visible Tasks: <strong className="font-black text-sm tabular-nums">{summary.total}</strong></span>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 font-bold">
-            <Clock3 size={12} />
-            <span>Waiting for Client: <strong className="font-black text-sm">{summary.waitingForClient}</strong></span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground font-semibold">
+            <Clock3 size={12} className="text-muted-foreground shrink-0" />
+            <span>Waiting for Client: <strong className="font-black text-sm tabular-nums">{summary.waitingForClient}</strong></span>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-bold">
-            <CheckCircle2 size={12} />
-            <span>Completed / Approved: <strong className="font-black text-sm">{summary.completed}</strong></span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground font-semibold">
+            <CheckCircle2 size={12} className="text-muted-foreground shrink-0" />
+            <span>Completed / Approved: <strong className="font-black text-sm tabular-nums">{summary.completed}</strong></span>
           </div>
           <div className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg font-bold border',
+            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg font-semibold border',
             summary.overdue > 0
-              ? 'bg-rose-500/10 border-rose-500/20 text-rose-600'
-              : 'bg-secondary border-border/80 text-muted-foreground'
+              ? 'bg-primary border-primary text-primary-foreground'
+              : 'bg-secondary border-border text-muted-foreground'
           )}>
-            <TimerReset size={12} />
-            <span>Overdue: <strong className="font-black text-sm">{summary.overdue}</strong></span>
+            <TimerReset size={12} className="shrink-0" />
+            <span>Overdue: <strong className="font-black text-sm tabular-nums">{summary.overdue}</strong></span>
           </div>
         </div>
 
@@ -1278,10 +1270,10 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
         </div>
       </div>
 
-      {/* ── Sleek Interactive Color Signs & Status Legend Bar ── */}
+      {/* ── Filter Chips & Legend Bar ── */}
       <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 custom-scrollbar">
-        <span className="text-[11px] font-bold text-muted-foreground shrink-0 flex items-center gap-1 mr-1">
-          <Palette size={12} className="text-primary" /> Filter:
+        <span className="text-[11px] font-bold text-muted-foreground shrink-0 inline-flex items-center gap-1 mr-1">
+          <Filter size={12} className="text-foreground" /> Filter:
         </span>
         {Object.entries(TASK_STATUS_COLORS).filter(([key]) => key !== 'Approved').map(([statusKey, meta]) => {
           const isSelected = filters.status === statusKey;
@@ -1293,16 +1285,16 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               type="button"
               onClick={() => setFilters((current) => ({ ...current, status: isSelected ? '' : statusKey }))}
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer shrink-0 shadow-2xs select-none',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer shrink-0 shadow-2xs select-none',
                 meta.badge,
                 isSelected
-                  ? 'ring-2 ring-primary ring-offset-1 scale-105 shadow-xs font-black'
-                  : 'hover:opacity-90 hover:scale-[1.02]'
+                  ? 'ring-2 ring-primary ring-offset-1 shadow-xs font-black'
+                  : 'hover:opacity-90'
               )}
             >
               <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', meta.dot)} />
               <span>{meta.label}</span>
-              <span className="ml-0.5 px-1 py-0.2 rounded-full text-[9px] font-black bg-black/10 dark:bg-white/10">
+              <span className="ml-0.5 px-1 py-0.5 rounded-full text-[9px] font-black bg-foreground/10 tabular-nums">
                 {count}
               </span>
             </button>
@@ -1321,17 +1313,16 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               type="button"
               onClick={() => setFilters((current) => ({ ...current, priority: isSelected ? '' : prioKey }))}
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer shrink-0 shadow-2xs select-none',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer shrink-0 shadow-2xs select-none',
                 meta.pill,
-                prioKey === 'Urgent' && 'border-rose-500/50',
                 isSelected
-                  ? 'ring-2 ring-primary ring-offset-1 scale-105 shadow-xs font-black'
-                  : 'hover:opacity-90 hover:scale-[1.02]'
+                  ? 'ring-2 ring-primary ring-offset-1 shadow-xs font-black'
+                  : 'hover:opacity-90'
               )}
             >
-              <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', meta.dot, prioKey === 'Urgent' && 'animate-ping')} />
+              <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', meta.dot)} />
               <span>{meta.sign}</span>
-              <span className="ml-0.5 px-1 py-0.2 rounded-full text-[9px] font-black bg-black/10 dark:bg-white/10">
+              <span className="ml-0.5 px-1 py-0.5 rounded-full text-[9px] font-black bg-foreground/10 tabular-nums">
                 {count}
               </span>
             </button>
@@ -1403,7 +1394,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
 
       <Dialog open={showDayDialog} onOpenChange={setShowDayDialog}>
         <DialogContent noPadding className="w-[calc(100vw-24px)] max-h-[90dvh] overflow-hidden p-0 sm:max-w-4xl">
-          <div className="border-b border-border bg-gradient-to-br from-background via-background to-secondary/60 px-4 sm:px-6 py-4 sm:py-5">
+          <div className="border-b border-border bg-card px-4 sm:px-6 py-4 sm:py-5">
             <DialogHeader className="border-b-0 mb-0 pb-0">
               <DialogTitle className="text-xl sm:text-2xl tracking-tight">
                 {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Tasks'}
@@ -1431,9 +1422,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                       <Button
                         onClick={() => {
                           setShowDayDialog(false);
-                          setSelectedTask(null);
-                          setDraftDueDate(selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '');
-                          setShowAddModal(true);
+                          navigate('/tasks/new');
                         }}
                       >
                         <Plus size={16} className="mr-2" />
@@ -1455,34 +1444,36 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               </div>
 
               <div className="space-y-4">
-                <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Do</p>
-                  <ul className="mt-3 space-y-3 text-sm text-foreground">
+                  <ul className="mt-3 space-y-2.5 text-sm text-foreground">
                     {selectedDateGuidance.dos.map((item) => (
-                      <li key={item} className="rounded-2xl border border-emerald-100 bg-emerald-50/80 px-3 py-3">
-                        {item}
+                      <li key={item} className="rounded-xl border border-border bg-secondary/50 px-3 py-2.5 flex items-start gap-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
+                        <span>{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Don't</p>
-                  <ul className="mt-3 space-y-3 text-sm text-foreground">
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Don&apos;t</p>
+                  <ul className="mt-3 space-y-2.5 text-sm text-foreground">
                     {selectedDateGuidance.donts.map((item) => (
-                      <li key={item} className="rounded-2xl border border-rose-100 bg-rose-50/80 px-3 py-3">
-                        {item}
+                      <li key={item} className="rounded-xl border border-border bg-secondary/35 px-3 py-2.5 flex items-start gap-2.5">
+                        <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                        <span>{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Work Process</p>
-                  <ol className="mt-3 space-y-3 text-sm text-foreground">
+                  <ol className="mt-3 space-y-2.5 text-sm text-foreground">
                     {selectedDateGuidance.process.map((item, index) => (
-                      <li key={item} className="flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/80 px-3 py-3">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
+                      <li key={item} className="flex items-start gap-3 rounded-xl border border-border bg-secondary/50 px-3 py-2.5">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground tabular-nums">
                           {index + 1}
                         </span>
                         <span>{item}</span>

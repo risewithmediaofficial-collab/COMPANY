@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   FileText, Download, Filter, Calendar, Users, BarChart, Sparkles,
   TrendingUp, Megaphone, CheckCircle2, AlertTriangle, ArrowUpRight, Printer
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import api from '../../api/index';
 import { PageHeader } from '../../components/ui/page';
@@ -90,10 +90,12 @@ export default function Reports() {
         actions={
           <div className="flex items-center gap-2">
             <button onClick={() => handleExport('csv')} className="app-button-secondary gap-2 text-xs">
-              <Download size={14} /> Export CSV
+              <Download size={14} className="shrink-0" />
+              <span>Export CSV</span>
             </button>
-            <button onClick={() => handleExport('print')} className="bg-primary text-primary-foreground font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md shadow-primary/20 hover:opacity-90">
-              <Printer size={15} /> Print / Save PDF
+            <button onClick={() => handleExport('print')} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-xs inline-flex items-center gap-2 shadow-xs hover:bg-primary/90 transition-colors">
+              <Printer size={15} className="shrink-0" />
+              <span>Print / Save PDF</span>
             </button>
           </div>
         }
@@ -109,7 +111,7 @@ export default function Reports() {
             <select
               value={filters.client}
               onChange={e => setFilters({...filters, client: e.target.value})}
-              className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none"
+              className="h-9 px-3 bg-secondary/50 border border-border rounded-xl font-semibold text-xs text-foreground outline-none"
             >
               <option value="">All Clients</option>
               {crmClients.map(c => <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>)}
@@ -118,13 +120,13 @@ export default function Reports() {
 
           <div>
             <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">Report Cadence</label>
-            <div className="flex items-center gap-1 bg-secondary/40 p-1 rounded-xl border border-border">
+            <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl border border-border">
               {['monthly', 'weekly', 'daily'].map((cad) => (
                 <button
                   key={cad}
                   onClick={() => setReportType(cad)}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg uppercase ${
-                    reportType === cad ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground'
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg uppercase transition-colors ${
+                    reportType === cad ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {cad}
@@ -134,82 +136,84 @@ export default function Reports() {
           </div>
         </div>
 
-        <span className="text-xs text-muted-foreground font-semibold">
-          Auto-compiling from live Content, Organic & Ads database
+        <span className="text-xs text-muted-foreground font-medium">
+          Auto-compiling from live Content, Organic &amp; Ads database
         </span>
       </div>
 
       {/* ── AUTOMATED CLIENT-READY MONTH-END REPORT DOCUMENT ── */}
-      <div className="bg-card border border-border rounded-3xl p-8 shadow-sm space-y-8 print:border-none print:shadow-none">
+      <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 print:border-none print:shadow-none">
         {/* Document Header */}
-        <div className="border-b border-border pb-6 flex items-start justify-between">
-          <div>
-            <span className="text-xs uppercase tracking-widest font-black text-primary block">
-              Rise With Media • Performance OS
+        <div className="border-b border-border pb-6 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <span className="text-xs uppercase tracking-widest font-bold text-muted-foreground block">
+              Rise With Media · Performance OS
             </span>
-            <h2 className="text-2xl font-black text-foreground mt-1">
-              Monthly Social Media & Paid Advertising Performance Report
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mt-1">
+              Monthly Social Media &amp; Paid Advertising Performance Report
             </h2>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5 font-medium">
-              <span>Client: <strong>{selectedClientObj?.company || selectedClientObj?.name}</strong></span>
-              <span>•</span>
-              <span>Period: <strong>August 2026</strong></span>
-              <span>•</span>
-              <span>Generated: <strong>{new Date().toLocaleDateString()}</strong></span>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1.5 font-medium">
+              <span>Client: <strong className="text-foreground">{selectedClientObj?.company || selectedClientObj?.name}</strong></span>
+              <span>·</span>
+              <span>Period: <strong className="text-foreground">August 2026</strong></span>
+              <span>·</span>
+              <span className="tabular-nums">Generated: <strong className="text-foreground">{new Date().toLocaleDateString()}</strong></span>
             </div>
           </div>
 
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg">
+          <div className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm tracking-tight shrink-0">
             RWM
           </div>
         </div>
 
         {/* 1. EXECUTIVE SUMMARY & KPIS */}
         <div className="space-y-3">
-          <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
-            <Sparkles size={16} className="text-primary" /> 1. Executive Performance Summary
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+            <Sparkles size={16} className="text-foreground shrink-0" />
+            <span>1. Executive Performance Summary</span>
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 bg-secondary/30 rounded-2xl border border-border/70 text-center">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold block">Total Videos Published</span>
-              <span className="text-2xl font-black text-foreground block mt-1">{content.posted || 0}</span>
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Total Videos Published</span>
+              <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">{content.posted || 0}</span>
             </div>
-            <div className="p-4 bg-secondary/30 rounded-2xl border border-border/70 text-center">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold block">Combined Views</span>
-              <span className="text-2xl font-black text-foreground block mt-1">
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Combined Views</span>
+              <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">
                 {((organic.views || 0) + (paid.views || 0)).toLocaleString()}
               </span>
             </div>
-            <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-center">
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-bold block">Leads Generated</span>
-              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-1">{paid.leads || 0}</span>
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Leads Generated</span>
+              <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">{paid.leads || 0}</span>
             </div>
-            <div className="p-4 bg-secondary/30 rounded-2xl border border-border/70 text-center">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold block">Average CPL</span>
-              <span className="text-2xl font-black text-emerald-500 block mt-1">₹{paid.costPerLead || 0}</span>
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Average CPL</span>
+              <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">₹{paid.costPerLead || 0}</span>
             </div>
           </div>
         </div>
 
         {/* 2. ORGANIC CONTENT & AUDIENCE GROWTH */}
         <div className="space-y-3">
-          <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
-            <TrendingUp size={16} className="text-blue-500" /> 2. Organic Traction & Community Growth
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+            <TrendingUp size={16} className="text-foreground shrink-0" />
+            <span>2. Organic Traction &amp; Community Growth</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 bg-secondary/20 rounded-2xl border border-border space-y-1">
-              <span className="text-xs font-bold text-muted-foreground block">Organic Reach</span>
-              <span className="text-xl font-black text-foreground block">{(organic.reach || 0).toLocaleString()}</span>
+            <div className="p-4 bg-secondary/35 rounded-xl border border-border space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground block">Organic Reach</span>
+              <span className="text-xl font-bold text-foreground block tabular-nums">{(organic.reach || 0).toLocaleString()}</span>
               <span className="text-[11px] text-muted-foreground">Unique accounts reached</span>
             </div>
-            <div className="p-4 bg-secondary/20 rounded-2xl border border-border space-y-1">
-              <span className="text-xs font-bold text-muted-foreground block">Organic Engagement Rate</span>
-              <span className="text-xl font-black text-indigo-500 block">{organic.engagementRate || 0}%</span>
-              <span className="text-[11px] text-muted-foreground">Based on {(organic.engagement || 0).toLocaleString()} interactions</span>
+            <div className="p-4 bg-secondary/35 rounded-xl border border-border space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground block">Organic Engagement Rate</span>
+              <span className="text-xl font-bold text-foreground block tabular-nums">{organic.engagementRate || 0}%</span>
+              <span className="text-[11px] text-muted-foreground tabular-nums">Based on {(organic.engagement || 0).toLocaleString()} interactions</span>
             </div>
-            <div className="p-4 bg-secondary/20 rounded-2xl border border-border space-y-1">
-              <span className="text-xs font-bold text-muted-foreground block">Net Followers Gained</span>
-              <span className="text-xl font-black text-emerald-500 block">+{organic.followersGained || 0}</span>
+            <div className="p-4 bg-secondary/35 rounded-xl border border-border space-y-1">
+              <span className="text-xs font-semibold text-muted-foreground block">Net Followers Gained</span>
+              <span className="text-xl font-bold text-foreground block tabular-nums">+{organic.followersGained || 0}</span>
               <span className="text-[11px] text-muted-foreground">Target demographic expansion</span>
             </div>
           </div>
@@ -217,57 +221,59 @@ export default function Reports() {
 
         {/* 3. PAID ADVERTISING & FINANCIAL LEDGER */}
         <div className="space-y-3">
-          <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
-            <Megaphone size={16} className="text-emerald-500" /> 3. Paid Advertising & Budget Ledger
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+            <Megaphone size={16} className="text-foreground shrink-0" />
+            <span>3. Paid Advertising &amp; Budget Ledger</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-            <div className="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-              <span className="text-[10px] text-blue-500 uppercase font-bold block">Total Funds Added</span>
-              <span className="text-xl font-black text-foreground block mt-1">₹{(paid.amountAdded || 0).toLocaleString()}</span>
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Total Funds Added</span>
+              <span className="text-xl font-bold text-foreground block mt-1 tabular-nums">₹{(paid.amountAdded || 0).toLocaleString()}</span>
             </div>
-            <div className="p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20">
-              <span className="text-[10px] text-rose-500 uppercase font-bold block">Total Spend Utilized</span>
-              <span className="text-xl font-black text-rose-500 block mt-1">₹{(paid.amountSpent || 0).toLocaleString()}</span>
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Total Spend Utilized</span>
+              <span className="text-xl font-bold text-foreground block mt-1 tabular-nums">₹{(paid.amountSpent || 0).toLocaleString()}</span>
             </div>
-            <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-              <span className="text-[10px] text-emerald-500 uppercase font-bold block">Remaining Account Balance</span>
-              <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 block mt-1">₹{(paid.remainingBalance || 0).toLocaleString()}</span>
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Remaining Account Balance</span>
+              <span className="text-xl font-bold text-foreground block mt-1 tabular-nums">₹{(paid.remainingBalance || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
 
         {/* 4. TOP PERFORMING VIDEOS SHOWCASE */}
         <div className="space-y-3">
-          <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-primary" /> 4. Top Performing Content Assets
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+            <CheckCircle2 size={16} className="text-foreground shrink-0" />
+            <span>4. Top Performing Content Assets</span>
           </h3>
-          <div className="responsive-table-container overflow-x-auto">
+          <div className="responsive-table-container overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-left text-xs min-w-[550px]">
-              <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
+              <thead className="bg-secondary/60 text-muted-foreground font-semibold border-b border-border">
                 <tr>
                   <th className="px-4 py-3">Content / Reel Name</th>
-                  <th className="px-4 py-3">Organic Views</th>
-                  <th className="px-4 py-3">Engagement Rate</th>
-                  <th className="px-4 py-3">Used as Ad?</th>
-                  <th className="px-4 py-3 text-right">Ad Leads & CPL</th>
+                  <th className="px-4 py-3 text-right">Organic Views</th>
+                  <th className="px-4 py-3 text-right">Engagement Rate</th>
+                  <th className="px-4 py-3 text-center">Used as Ad?</th>
+                  <th className="px-4 py-3 text-right">Ad Leads &amp; CPL</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border font-medium">
+              <tbody className="divide-y divide-border font-medium tabular-nums">
                 {topVideos.map((v, i) => (
-                  <tr key={v._id}>
-                    <td className="px-4 py-3 font-bold text-foreground">
+                  <tr key={v._id} className="hover:bg-secondary/30 transition-colors">
+                    <td className="px-4 py-3 font-semibold text-foreground">
                       #{i + 1} {v.name}
                     </td>
-                    <td className="px-4 py-3 font-semibold">{(v.views || 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 font-bold text-indigo-500">{v.engagementRate}%</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-right text-foreground">{(v.views || 0).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-foreground">{v.engagementRate}%</td>
+                    <td className="px-4 py-3 text-center">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        v.usedAsAd ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'
+                        v.usedAsAd ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground border border-border'
                       }`}>
                         {v.usedAsAd ? 'YES' : 'NO'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-bold text-foreground">
+                    <td className="px-4 py-3 text-right font-semibold text-foreground">
                       {v.paidLeads > 0 ? `${v.paidLeads} Leads (₹${v.paidCpl} CPL)` : '—'}
                     </td>
                   </tr>
@@ -280,26 +286,28 @@ export default function Reports() {
         {/* 5. CHALLENGES & NEXT MONTH STRATEGY */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-border">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-amber-500 uppercase tracking-wider block flex items-center gap-1.5">
-              <AlertTriangle size={15} /> Key Challenges & Bottlenecks
+            <label className="text-xs font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-1.5">
+              <AlertTriangle size={15} className="shrink-0" />
+              <span>Key Challenges &amp; Bottlenecks</span>
             </label>
             <textarea
               rows={3}
               value={strategyNotes.challenges}
               onChange={(e) => setStrategyNotes({ ...strategyNotes, challenges: e.target.value })}
-              className="w-full p-3 bg-secondary/30 border border-border rounded-2xl text-xs outline-none"
+              className="w-full p-3 bg-secondary/30 border border-border rounded-xl text-xs text-foreground outline-none focus:border-foreground/50"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-emerald-500 uppercase tracking-wider block flex items-center gap-1.5">
-              <Sparkles size={15} /> Strategic Recommendations for Next Month
+            <label className="text-xs font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-1.5">
+              <Sparkles size={15} className="shrink-0" />
+              <span>Strategic Recommendations for Next Month</span>
             </label>
             <textarea
               rows={3}
               value={strategyNotes.nextMonthStrategy}
               onChange={(e) => setStrategyNotes({ ...strategyNotes, nextMonthStrategy: e.target.value })}
-              className="w-full p-3 bg-secondary/30 border border-border rounded-2xl text-xs outline-none"
+              className="w-full p-3 bg-secondary/30 border border-border rounded-xl text-xs text-foreground outline-none focus:border-foreground/50"
             />
           </div>
         </div>

@@ -15,7 +15,7 @@ import {
   XCircle,
   FileCheck,
   Trash2,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { Button } from '../../components/ui/button';
 import { AddProposalModal } from '../../components/modals/AddProposalModal';
 import { useProposals, useUpdateProposal, useDeleteProposal } from '../../hooks/useProposals';
@@ -33,12 +33,12 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const statusTone = {
-  draft: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
-  sent: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  viewed: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  accepted: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  rejected: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
-  expired: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  draft: 'bg-secondary text-muted-foreground border-border',
+  sent: 'bg-secondary text-foreground border-border',
+  viewed: 'bg-muted text-foreground border-border',
+  accepted: 'bg-primary text-primary-foreground border-primary',
+  rejected: 'bg-secondary text-muted-foreground border-border line-through',
+  expired: 'bg-muted text-muted-foreground border-border',
 };
 
 const Proposals = () => {
@@ -107,7 +107,7 @@ const Proposals = () => {
         if (row.recipientType === 'lead' || row.lead) {
           return (
             <div className="flex items-center gap-1.5">
-              <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-bold text-[10px]">Lead</span>
+              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px]">Lead</span>
               <span className="font-semibold text-xs text-foreground">
                 {row.lead?.name || row.lead?.company || 'Lead Prospect'}
               </span>
@@ -116,7 +116,7 @@ const Proposals = () => {
         }
         return (
           <div className="flex items-center gap-1.5">
-            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 font-bold text-[10px]">Client</span>
+            <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px]">Client</span>
             <span className="font-semibold text-xs text-foreground">
               {row.client?.company || row.client?.name || 'Client Account'}
             </span>
@@ -128,7 +128,7 @@ const Proposals = () => {
       key: 'totalAmount',
       label: 'Proposal Value',
       render: (row) => (
-        <span className="font-bold text-xs text-foreground">
+        <span className="font-bold text-xs text-foreground tabular-nums">
           {row.amount || row.totalAmount ? formatINR(row.amount || row.totalAmount) : '—'}
         </span>
       ),
@@ -137,7 +137,7 @@ const Proposals = () => {
       key: 'validUntil',
       label: 'Valid Until',
       render: (row) => (
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {row.validUntil || row.endDate ? new Date(row.validUntil || row.endDate).toLocaleDateString() : 'No expiry'}
         </span>
       ),
@@ -146,8 +146,8 @@ const Proposals = () => {
       key: 'createdAt',
       label: 'Created Date',
       render: (row) => (
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap">
-          <Calendar size={11} className="text-muted-foreground/70" />
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap tabular-nums">
+          <Calendar size={11} className="text-muted-foreground/70 shrink-0" />
           <span>
             {row.createdAt
               ? new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
@@ -188,7 +188,7 @@ const Proposals = () => {
                 setProposalToDelete(row);
               }}
               title="Delete Proposal"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary cursor-pointer"
             >
               <Trash2 size={13} />
             </Button>
@@ -205,11 +205,11 @@ const Proposals = () => {
       className="group relative space-y-2.5 cursor-pointer"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary font-mono">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary font-mono tabular-nums">
           {row.proposalNumber || 'PROP'}
         </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-bold text-emerald-600">
+          <span className="text-xs font-bold text-foreground tabular-nums">
             {row.amount || row.totalAmount ? formatINR(row.amount || row.totalAmount) : '—'}
           </span>
           {canManage && (
@@ -220,7 +220,7 @@ const Proposals = () => {
                 setProposalToDelete(row);
               }}
               title="Delete Proposal"
-              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-all cursor-pointer"
+              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
             >
               <Trash2 size={13} />
             </button>
@@ -232,14 +232,14 @@ const Proposals = () => {
         <h4 className="font-bold text-sm text-foreground line-clamp-1">{row.title}</h4>
         <p className="text-xs text-muted-foreground mt-0.5">
           {row.recipientType === 'lead' || row.lead
-            ? `🎯 Lead: ${row.lead?.name || 'Lead'}${row.lead?.company ? ` (${row.lead.company})` : ''}`
-            : `🏢 Client: ${row.client?.company || row.client?.name || 'Client'}`}
+            ? `Lead: ${row.lead?.name || 'Lead'}${row.lead?.company ? ` (${row.lead.company})` : ''}`
+            : `Client: ${row.client?.company || row.client?.name || 'Client'}`}
         </p>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 border-t border-border/40">
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 border-t border-border/40 tabular-nums">
         <span className="flex items-center gap-1">
-          <Calendar size={11} className="text-muted-foreground/70" />
+          <Calendar size={11} className="text-muted-foreground/70 shrink-0" />
           <span>{row.createdAt ? `Created ${new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : ''}</span>
         </span>
         {(row.validUntil || row.endDate) && (
@@ -261,12 +261,12 @@ const Proposals = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Growth & Sales', 'Proposals']}
       title="Client Proposals & Pitch Decks"
-      icon="📄"
+      icon={FileText}
       properties={[
         { label: 'Total Proposals', value: total, icon: FileText },
-        { label: 'Signed / Won', value: acceptedCount, tone: 'success', icon: FileCheck },
-        { label: 'Under Review', value: sentCount, tone: sentCount > 0 ? 'warning' : 'neutral', icon: Clock },
-        { label: 'Pipeline Value', value: formatINR(totalValue), tone: 'info', icon: IndianRupee },
+        { label: 'Signed / Won', value: acceptedCount, tone: 'neutral', icon: FileCheck },
+        { label: 'Under Review', value: sentCount, tone: 'neutral', icon: Clock },
+        { label: 'Pipeline Value', value: formatINR(totalValue), tone: 'neutral', icon: IndianRupee },
       ]}
       actions={
         canManage && (
@@ -348,7 +348,7 @@ const Proposals = () => {
             <AlertDialogAction
               onClick={handleDeleteProposal}
               disabled={deleteProposalMutation.isPending}
-              className="rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500"
+              className="rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {deleteProposalMutation.isPending ? 'Deleting...' : 'Delete Proposal'}
             </AlertDialogAction>

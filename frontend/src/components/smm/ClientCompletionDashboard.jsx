@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, CheckCircle2, TrendingUp, Info, Trash2 } from 'lucide-react';
+import { BarChart3, CheckCircle2, TrendingUp, Info, Trash2 } from '@/components/ui/muiIcons';
 
 export const parseClientMetrics = (row, daysInMonth = 30) => {
   const clientName = row.client?.companyName || 'Unknown';
@@ -73,7 +73,7 @@ const EditableNumber = ({ value, onSave, min = 0, max = 999 }) => {
             setEditing(false);
           }
         }}
-        className="w-12 text-center text-xs py-0.5 px-1 border border-cyan-500 rounded bg-background text-foreground font-bold outline-none shadow-xs"
+        className="w-12 text-center text-xs py-0.5 px-1 border border-foreground rounded bg-background text-foreground font-bold outline-none shadow-xs tabular-nums"
       />
     );
   }
@@ -84,7 +84,7 @@ const EditableNumber = ({ value, onSave, min = 0, max = 999 }) => {
         setDraft(value);
         setEditing(true);
       }}
-      className="w-full text-center hover:bg-cyan-100/60 dark:hover:bg-cyan-900/40 rounded py-0.5 text-xs font-semibold text-foreground transition-colors cursor-pointer"
+      className="w-full text-center hover:bg-secondary rounded py-0.5 text-xs font-semibold text-foreground transition-colors cursor-pointer tabular-nums"
       title="Click to edit quota"
     >
       {value}
@@ -132,9 +132,9 @@ export const ClientCompletionDashboard = ({
       {/* ── Section Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
         <div className="flex items-center gap-2">
-          <TrendingUp className="text-cyan-600 dark:text-cyan-400 shrink-0" size={18} />
+          <TrendingUp className="text-foreground shrink-0" size={18} />
           <h2 className="text-sm sm:text-base font-black text-foreground tracking-tight uppercase">
-            Client Completion & Performance Analytics
+            Client Completion &amp; Performance Analytics
           </h2>
         </div>
         <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
@@ -146,30 +146,30 @@ export const ClientCompletionDashboard = ({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* ── Left Column: Summary Table + Workflow Callout ── */}
         <div className="xl:col-span-7 flex flex-col space-y-3">
-          <div className="border border-border/80 rounded-xl overflow-hidden shadow-xs bg-card">
-            {/* Navy Header Banner */}
-            <div className="bg-[#0b1727] dark:bg-[#070d18] text-white text-center py-2 sm:py-2.5 px-3 sm:px-4">
-              <h3 className="text-xs md:text-sm font-black tracking-widest uppercase text-slate-100">
+          <div className="border border-border rounded-xl overflow-hidden shadow-xs bg-card">
+            {/* Monochrome Header Banner */}
+            <div className="bg-zinc-950 text-zinc-50 text-center py-2 sm:py-2.5 px-3 sm:px-4 border-b border-zinc-800">
+              <h3 className="text-xs md:text-sm font-black tracking-widest uppercase">
                 CLIENT COMPLETION DASHBOARD
               </h3>
             </div>
 
-            {/* Table with crisp Excel-like grid borders */}
+            {/* Table with crisp CRM grid borders */}
             <div className="overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
               <table className="w-full text-xs border-collapse min-w-[500px]">
                 <thead>
-                  <tr className="bg-[#0097a7] text-white uppercase text-[10.5px] font-black tracking-wider">
-                    <th className="py-2.5 px-3 text-left w-36 border border-teal-700/60">CLIENT</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-teal-700/60">REELS</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-teal-700/60">POSTS</th>
-                    <th className="py-2.5 px-2 text-center w-16 border border-teal-700/60">STORIES</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-teal-700/60">TOTAL</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-teal-700/60">DONE</th>
-                    <th className="py-2.5 px-2 text-center w-16 border border-teal-700/60">PENDING</th>
-                    <th className="py-2.5 px-2 text-center w-20 border border-teal-700/60">COMPLETE %</th>
+                  <tr className="bg-secondary text-muted-foreground uppercase text-[10.5px] font-black tracking-wider">
+                    <th className="py-2.5 px-3 text-left w-36 border border-border">CLIENT</th>
+                    <th className="py-2.5 px-2 text-center w-14 border border-border">REELS</th>
+                    <th className="py-2.5 px-2 text-center w-14 border border-border">POSTS</th>
+                    <th className="py-2.5 px-2 text-center w-16 border border-border">STORIES</th>
+                    <th className="py-2.5 px-2 text-center w-14 border border-border">TOTAL</th>
+                    <th className="py-2.5 px-2 text-center w-14 border border-border">DONE</th>
+                    <th className="py-2.5 px-2 text-center w-16 border border-border">PENDING</th>
+                    <th className="py-2.5 px-2 text-center w-20 border border-border">COMPLETE %</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="tabular-nums">
                   {metrics.map((item, idx) => {
                     const isHovered = hoveredIndex === idx;
                     return (
@@ -179,14 +179,14 @@ export const ClientCompletionDashboard = ({
                         onMouseLeave={() => setHoveredIndex(null)}
                         className={`transition-colors ${
                           isHovered
-                            ? 'bg-cyan-50/80 dark:bg-cyan-950/40'
+                            ? 'bg-secondary/70'
                             : idx % 2 === 0
                             ? 'bg-background'
-                            : 'bg-muted/15'
+                            : 'bg-muted/20'
                         }`}
                       >
                         {/* Client Name */}
-                        <td className="py-2 px-3 font-bold text-foreground border border-border/60">
+                        <td className="py-2 px-3 font-bold text-foreground border border-border/80">
                           <div className="flex items-center justify-between gap-1.5">
                             <span className="truncate max-w-[120px]" title={item.clientName}>
                               {item.clientName}
@@ -195,7 +195,7 @@ export const ClientCompletionDashboard = ({
                               <button
                                 type="button"
                                 onClick={() => onDeleteClient(item.rawRow)}
-                                className="p-1 rounded text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex-shrink-0 cursor-pointer"
+                                className="p-1 rounded text-muted-foreground/60 hover:text-foreground hover:bg-secondary transition-colors flex-shrink-0 cursor-pointer"
                                 title={`Delete ${item.clientName} from tracker`}
                               >
                                 <Trash2 size={12} />
@@ -205,7 +205,7 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Editable Reels */}
-                        <td className="py-2 px-2 text-center border border-border/60">
+                        <td className="py-2 px-2 text-center border border-border/80">
                           <EditableNumber
                             value={item.reels}
                             onSave={(val) => onUpdatePlan?.(idx, val, item.posts)}
@@ -213,7 +213,7 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Editable Posts */}
-                        <td className="py-2 px-2 text-center border border-border/60">
+                        <td className="py-2 px-2 text-center border border-border/80">
                           <EditableNumber
                             value={item.posts}
                             onSave={(val) => onUpdatePlan?.(idx, item.reels, val)}
@@ -221,7 +221,7 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Editable Stories */}
-                        <td className="py-2 px-2 text-center border border-border/60">
+                        <td className="py-2 px-2 text-center border border-border/80">
                           <EditableNumber
                             value={item.stories}
                             onSave={(val) => onUpdateStories?.(idx, val)}
@@ -229,28 +229,28 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Total Quota */}
-                        <td className="py-2 px-2 text-center font-bold text-foreground border border-border/60">
+                        <td className="py-2 px-2 text-center font-bold text-foreground border border-border/80">
                           {item.total}
                         </td>
 
                         {/* Done */}
-                        <td className="py-2 px-2 text-center font-bold text-emerald-600 dark:text-emerald-400 border border-border/60">
+                        <td className="py-2 px-2 text-center font-bold text-foreground border border-border/80">
                           {item.done}
                         </td>
 
                         {/* Pending */}
-                        <td className="py-2 px-2 text-center font-semibold text-amber-600 dark:text-amber-400 border border-border/60">
+                        <td className="py-2 px-2 text-center font-semibold text-muted-foreground border border-border/80">
                           {item.pending}
                         </td>
 
                         {/* Complete % */}
-                        <td className="py-2 px-2 text-center font-black border border-border/60">
+                        <td className="py-2 px-2 text-center font-black border border-border/80">
                           <span
                             className={`inline-block px-1.5 py-0.5 rounded text-[11px] ${
                               item.pct === 100
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                                ? 'bg-primary text-primary-foreground'
                                 : item.pct > 0
-                                ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300 font-bold'
+                                ? 'bg-secondary text-foreground border border-border font-bold'
                                 : 'text-muted-foreground'
                             }`}
                           >
@@ -265,11 +265,11 @@ export const ClientCompletionDashboard = ({
             </div>
           </div>
 
-          {/* Workflow Callout Box (matching Excel layout) */}
-          <div className="border-1.5 border-cyan-500 bg-cyan-50/60 dark:bg-cyan-950/25 dark:border-cyan-600 rounded-lg p-3 text-cyan-900 dark:text-cyan-200">
-            <p className="text-[11px] font-semibold leading-relaxed">
-              <span className="font-bold tracking-wide text-cyan-800 dark:text-cyan-300 uppercase">WORKFLOW:</span>{' '}
-              Plan row shows upload schedule → status row below it: select DONE → green box → percentage and chart update automatically
+          {/* Workflow Callout Box */}
+          <div className="border border-border bg-secondary/50 rounded-lg p-3 text-foreground">
+            <p className="text-[11px] font-semibold leading-relaxed text-muted-foreground">
+              <span className="font-bold tracking-wide text-foreground uppercase">WORKFLOW:</span>{' '}
+              Plan row shows upload schedule → status row below it: select DONE → completion badge → percentage and chart update automatically
             </p>
           </div>
         </div>
@@ -301,10 +301,10 @@ export const ClientCompletionDashboard = ({
                     y1={t.y}
                     x2={svgWidth - marginRight}
                     y2={t.y}
-                    stroke={t.pct === 0 ? '#94a3b8' : t.pct === 100 ? '#cbd5e1' : '#e2e8f0'}
+                    stroke={t.pct === 0 ? '#71717a' : t.pct === 100 ? '#a1a1aa' : '#d4d4d8'}
                     strokeWidth={t.pct === 0 ? 1.5 : 1}
                     strokeDasharray={t.pct === 0 || t.pct === 100 ? 'none' : '4 4'}
-                    className="dark:stroke-slate-700"
+                    className="dark:stroke-zinc-700"
                   />
                   <text
                     x={marginLeft - 8}
@@ -339,7 +339,8 @@ export const ClientCompletionDashboard = ({
                         y={marginTop}
                         width={colWidth}
                         height={plotHeight}
-                        fill="rgba(6, 182, 212, 0.08)"
+                        fill="hsl(var(--secondary))"
+                        fillOpacity="0.65"
                         rx="4"
                       />
                     )}
@@ -351,7 +352,7 @@ export const ClientCompletionDashboard = ({
                         y={barY}
                         width={barWidth}
                         height={barHeight}
-                        fill={isHovered ? '#06b6d4' : '#0891b2'}
+                        fill={isHovered ? 'hsl(var(--foreground))' : '#52525b'}
                         rx="2"
                         style={{
                           transition: 'height 0.4s ease-out, y 0.4s ease-out, fill 0.2s',
@@ -365,7 +366,7 @@ export const ClientCompletionDashboard = ({
                         x={centerX}
                         y={barY - 5}
                         textAnchor="middle"
-                        fill={isHovered ? '#0891b2' : '#0e7490'}
+                        className="fill-foreground"
                         style={{
                           fontSize: 10,
                           fontWeight: 800,
@@ -382,7 +383,7 @@ export const ClientCompletionDashboard = ({
                       y={baselineY + 16}
                       transform={`rotate(-45, ${centerX}, ${baselineY + 16})`}
                       textAnchor="end"
-                      className={isHovered ? 'fill-primary font-bold' : 'fill-muted-foreground'}
+                      className={isHovered ? 'fill-foreground font-bold' : 'fill-muted-foreground'}
                       style={{
                         fontSize: 10.5,
                         fontWeight: isHovered ? 800 : 600,
@@ -398,10 +399,10 @@ export const ClientCompletionDashboard = ({
           </div>
 
           {/* Quick Metrics Bar at bottom of chart */}
-          <div className="mt-auto pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground px-2">
-            <span>Clients: <strong>{metrics.length}</strong></span>
-            <span>Avg Completion: <strong>{metrics.length > 0 ? Math.round(metrics.reduce((a,c)=>a+c.pct,0)/metrics.length) : 0}%</strong></span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Total Done: {metrics.reduce((a,c)=>a+c.done,0)}</span>
+          <div className="mt-auto pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground px-2 tabular-nums">
+            <span>Clients: <strong className="text-foreground">{metrics.length}</strong></span>
+            <span>Avg Completion: <strong className="text-foreground">{metrics.length > 0 ? Math.round(metrics.reduce((a,c)=>a+c.pct,0)/metrics.length) : 0}%</strong></span>
+            <span className="text-foreground font-semibold">Total Done: {metrics.reduce((a,c)=>a+c.done,0)}</span>
           </div>
         </div>
       </div>

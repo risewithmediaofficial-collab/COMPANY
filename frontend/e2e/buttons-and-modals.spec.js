@@ -4,7 +4,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
 
   test.beforeEach(async ({ page }) => {
     // Authenticate as SuperAdmin
-    await page.goto('http://localhost:5173/login');
+    await page.goto('http://localhost:5175/login');
     await page.waitForLoadState('networkidle');
 
     const emailInput = page.locator('form input[type="email"]').first();
@@ -19,7 +19,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('1. Dashboard Buttons & Action Widgets', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:5175/');
     await page.waitForLoadState('networkidle');
 
     // Revenue/Financials toggle button
@@ -37,7 +37,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('2. Clients Page Buttons, Modals & Dropdowns', async ({ page }) => {
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     // Add Client Modal Button
@@ -76,7 +76,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('3. Client Details Sub-Navigation Tabs & Actions', async ({ page }) => {
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     const clientLink = page.locator('table a[href*="/clients/"], .font-semibold[href*="/clients/"]').first();
@@ -106,7 +106,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('4. Task Calendar Collapsible Filter Toggle & Add Task Modal', async ({ page }) => {
-    await page.goto('http://localhost:5173/calendar');
+    await page.goto('http://localhost:5175/calendar');
     await page.waitForLoadState('networkidle');
 
     // Collapsible Filters Toggle Button
@@ -129,7 +129,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('5. Projects Module Buttons & Filter Controls', async ({ page }) => {
-    await page.goto('http://localhost:5173/projects');
+    await page.goto('http://localhost:5175/projects');
     await page.waitForLoadState('networkidle');
 
     // Create Project Button Modal
@@ -143,7 +143,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('6. CRM Leads & Pipeline Board Controls', async ({ page }) => {
-    await page.goto('http://localhost:5173/crm/leads');
+    await page.goto('http://localhost:5175/crm/leads');
     await page.waitForLoadState('networkidle');
 
     // Add Lead Button Modal
@@ -157,7 +157,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('7. Finance Operations Buttons, Invoices & Expense Modals', async ({ page }) => {
-    await page.goto('http://localhost:5173/finance');
+    await page.goto('http://localhost:5175/finance');
     await page.waitForLoadState('networkidle');
 
     // + Invoice Button Modal
@@ -181,7 +181,7 @@ test.describe('Exhaustive Buttons, Modals & Functions Test Suite', () => {
   });
 
   test('8. Social Media Management (SMM) Buttons & Actions', async ({ page }) => {
-    await page.goto('http://localhost:5173/smm/dashboard');
+    await page.goto('http://localhost:5175/smm/dashboard');
     await page.waitForLoadState('networkidle');
 
     const buttons = page.locator('button');

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Check, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Search, X } from '@/components/ui/muiIcons';
 import { cn } from '../../utils/cn';
 
 export const Select = React.forwardRef(({ value, defaultValue, ...props }, ref) => {
@@ -126,7 +126,7 @@ export const SelectContent = React.forwardRef(
           position={position}
           onKeyDown={handleContentKeyDown}
           className={cn(
-            'z-[99999] min-w-[8rem] max-h-[340px] overflow-hidden rounded-2xl border border-slate-200/90 dark:border-border bg-white/98 dark:bg-card/98 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in-80 zoom-in-95 duration-100',
+            'z-[99999] min-w-[8rem] max-h-[340px] overflow-hidden rounded-2xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100',
             position === 'popper' &&
               'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
             className

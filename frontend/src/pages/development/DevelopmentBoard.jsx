@@ -7,6 +7,14 @@ import { PageHeader } from '../../components/ui/page';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { CreateDevTaskModal } from '../../components/development/CreateDevTaskModal';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '../../components/ui/dialog';
+import {
   Kanban,
   Search,
   Filter,
@@ -29,29 +37,29 @@ import {
   GripVertical,
   Zap,
   X,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 
 const PIPELINE_COLUMNS = [
-  { id: 'backlog', title: 'Backlog', color: 'border-slate-500/30 bg-slate-500/5' },
-  { id: 'analysis', title: 'Analysis', color: 'border-blue-500/30 bg-blue-500/5' },
-  { id: 'ready_for_dev', title: 'Ready for Dev', color: 'border-indigo-500/30 bg-indigo-500/5' },
-  { id: 'in_development', title: 'In Development', color: 'border-amber-500/30 bg-amber-500/5' },
-  { id: 'code_review', title: 'Code Review', color: 'border-purple-500/30 bg-purple-500/5' },
-  { id: 'qa_testing', title: 'QA / Testing', color: 'border-cyan-500/30 bg-cyan-500/5' },
-  { id: 'client_uat', title: 'Client / UAT', color: 'border-teal-500/30 bg-teal-500/5' },
-  { id: 'approved', title: 'Approved', color: 'border-emerald-500/30 bg-emerald-500/5' },
-  { id: 'deployment', title: 'Deployment', color: 'border-sky-500/30 bg-sky-500/5' },
-  { id: 'live', title: 'Live', color: 'border-green-500/30 bg-green-500/5' },
-  { id: 'closed', title: 'Closed', color: 'border-gray-500/30 bg-gray-500/5' },
+  { id: 'backlog', title: 'Backlog', color: 'border-border bg-secondary/20' },
+  { id: 'analysis', title: 'Analysis', color: 'border-border bg-secondary/30' },
+  { id: 'ready_for_dev', title: 'Ready for Dev', color: 'border-border bg-secondary/35' },
+  { id: 'in_development', title: 'In Development', color: 'border-foreground/30 bg-secondary/50' },
+  { id: 'code_review', title: 'Code Review', color: 'border-border bg-secondary/40' },
+  { id: 'qa_testing', title: 'QA / Testing', color: 'border-border bg-secondary/40' },
+  { id: 'client_uat', title: 'Client / UAT', color: 'border-border bg-secondary/35' },
+  { id: 'approved', title: 'Approved', color: 'border-foreground/30 bg-secondary/45' },
+  { id: 'deployment', title: 'Deployment', color: 'border-border bg-secondary/35' },
+  { id: 'live', title: 'Live', color: 'border-foreground/40 bg-secondary/50' },
+  { id: 'closed', title: 'Closed', color: 'border-border bg-muted/40' },
 ];
 
 const PRIORITY_BADGES = {
-  urgent: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/20',
-  high: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20',
-  medium: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20',
-  low: 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border-slate-500/20',
+  urgent: 'bg-primary text-primary-foreground border-primary',
+  high: 'bg-zinc-800 text-zinc-100 border-zinc-700 dark:bg-zinc-200 dark:text-zinc-900 dark:border-zinc-300',
+  medium: 'bg-secondary text-foreground border-border',
+  low: 'bg-muted text-muted-foreground border-border',
 };
 
 export default function DevelopmentBoard() {
@@ -458,10 +466,10 @@ export default function DevelopmentBoard() {
               title="Filter by Priority"
             >
               <option value="">All Priorities</option>
-              <option value="urgent">🔴 Urgent</option>
-              <option value="high">🟠 High</option>
-              <option value="medium">🔵 Medium</option>
-              <option value="low">⚪ Low</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
             </select>
           </div>
 
@@ -471,7 +479,7 @@ export default function DevelopmentBoard() {
             <label
               className={`flex-1 flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold select-none h-9 px-2 rounded-xl border transition-all ${
                 filterBlockedOnly
-                  ? 'bg-rose-500/15 border-rose-500/40 text-rose-600 dark:text-rose-400 shadow-xs'
+                  ? 'bg-primary border-primary text-primary-foreground shadow-xs'
                   : 'bg-secondary/40 border-border text-muted-foreground hover:text-foreground'
               }`}
               title="Show only blocked tasks"
@@ -482,7 +490,7 @@ export default function DevelopmentBoard() {
                 onChange={(e) => setFilterBlockedOnly(e.target.checked)}
                 className="sr-only"
               />
-              <ShieldAlert size={13} className={filterBlockedOnly ? 'text-rose-600 dark:text-rose-400' : ''} />
+              <ShieldAlert size={13} />
               <span className="text-[11px]">Blocked</span>
             </label>
 
@@ -490,7 +498,7 @@ export default function DevelopmentBoard() {
             <label
               className={`flex-1 flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold select-none h-9 px-2 rounded-xl border transition-all ${
                 filterBugOnly
-                  ? 'bg-purple-500/15 border-purple-500/40 text-purple-600 dark:text-purple-400 shadow-xs'
+                  ? 'bg-primary border-primary text-primary-foreground shadow-xs'
                   : 'bg-secondary/40 border-border text-muted-foreground hover:text-foreground'
               }`}
               title="Show only bug tasks"
@@ -501,7 +509,7 @@ export default function DevelopmentBoard() {
                 onChange={(e) => setFilterBugOnly(e.target.checked)}
                 className="sr-only"
               />
-              <Bug size={13} className={filterBugOnly ? 'text-purple-600 dark:text-purple-400' : ''} />
+              <Bug size={13} />
               <span className="text-[11px]">Bugs</span>
             </label>
 
@@ -510,7 +518,7 @@ export default function DevelopmentBoard() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="flex items-center justify-center gap-1 h-9 px-2.5 text-[11px] font-bold text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors border border-border shrink-0"
+                className="flex items-center justify-center gap-1 h-9 px-2.5 text-[11px] font-bold text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors border border-border shrink-0 cursor-pointer"
                 title="Reset all filters"
               >
                 <X size={12} />
@@ -630,10 +638,10 @@ export default function DevelopmentBoard() {
                           }}
                           className={`p-3 bg-card border rounded-xl shadow-xs space-y-2 hover:shadow-md transition-all group relative cursor-grab active:cursor-grabbing select-none ${
                             isCardBeingDragged
-                              ? 'opacity-40 scale-95 border-dashed border-primary ring-2 ring-primary/40'
+                              ? 'opacity-40 scale-95 border-dashed border-foreground ring-2 ring-ring/40'
                               : isBlocked
-                              ? 'border-rose-500/50 bg-rose-500/5'
-                              : 'border-border hover:border-primary/40'
+                              ? 'border-foreground bg-secondary/50'
+                              : 'border-border hover:border-foreground/40'
                           }`}
                           onClick={() => {
                             if (isDraggingRef.current) return;
@@ -643,7 +651,7 @@ export default function DevelopmentBoard() {
                         >
                           {/* Blocked Alert Banner */}
                           {isBlocked && (
-                            <div className="px-2 py-1 rounded-md bg-rose-500/15 border border-rose-500/30 text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center justify-between">
+                            <div className="px-2 py-1 rounded-md bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-between">
                               <span className="flex items-center gap-1">
                                 <ShieldAlert size={11} /> BLOCKED
                               </span>
@@ -660,7 +668,7 @@ export default function DevelopmentBoard() {
                             </span>
                             <div className="flex items-center gap-1">
                               {dev.isBug && (
-                                <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold flex items-center gap-0.5">
+                                <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border text-[10px] font-bold flex items-center gap-0.5">
                                   <Bug size={9} /> Bug
                                 </span>
                               )}
@@ -676,7 +684,7 @@ export default function DevelopmentBoard() {
                           </div>
 
                           {/* Title */}
-                          <h4 className="font-bold text-foreground text-xs leading-snug line-clamp-2 hover:text-primary transition-colors">
+                          <h4 className="font-bold text-foreground text-xs leading-snug line-clamp-2 group-hover:underline">
                             {task.title}
                           </h4>
 
@@ -685,11 +693,11 @@ export default function DevelopmentBoard() {
                             <div className="flex items-center gap-1 flex-wrap pt-0.5">
                               {dev.branch && (
                                 <span className="text-[9px] font-mono px-1.5 py-0.5 bg-secondary text-muted-foreground rounded truncate max-w-[110px]">
-                                  🌿 {dev.branch}
+                                  {dev.branch}
                                 </span>
                               )}
                               {(dev.pullRequestNumber || dev.pullRequestUrl) && (
-                                <span className="text-[9px] font-mono px-1.5 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded flex items-center gap-0.5">
+                                <span className="text-[9px] font-mono px-1.5 py-0.5 bg-secondary text-foreground border border-border rounded flex items-center gap-0.5">
                                   <GitPullRequest size={9} /> #{dev.pullRequestNumber || 'PR'}
                                 </span>
                               )}
@@ -740,43 +748,72 @@ export default function DevelopmentBoard() {
         </div>
       </div>
 
-      {/* ── Block Reason Modal ───────────────────────────────────────── */}
-      {blockingTask && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl w-[calc(100vw-24px)] max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-5 space-y-4 shadow-xl custom-scrollbar">
-            <div className="flex items-center gap-2 text-rose-500 font-bold">
-              <ShieldAlert size={18} />
-              <h3>Mark Task as Blocked</h3>
+      {/* ── Block Reason Side Drawer ──────────────────────────────────── */}
+      <Dialog open={!!blockingTask} onOpenChange={(open) => !open && setBlockingTask(null)}>
+        <DialogContent
+          variant="side"
+          size="sm"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl"
+        >
+          <DialogHeader className="px-5 py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground">
+                <ShieldAlert size={18} />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-base font-bold text-foreground truncate">
+                  Mark Task as Blocked
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground truncate">
+                  Document why this task cannot progress
+                </DialogDescription>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Provide a reason why "{blockingTask.title}" is blocked (e.g. Waiting on third-party API keys, design review).
+            <DialogClose
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all cursor-pointer shrink-0"
+            >
+              <X size={16} />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </DialogHeader>
+
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Provide a reason why <strong className="text-foreground">"{blockingTask?.title}"</strong> is blocked (e.g. Waiting on third-party API keys, design review).
             </p>
-            <textarea
-              rows={3}
-              placeholder="Enter blocked reason..."
-              value={blockedReasonInput}
-              onChange={(e) => setBlockedReasonInput(e.target.value)}
-              className="w-full p-2.5 bg-background border border-border rounded-xl text-xs outline-none focus:border-rose-500"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setBlockingTask(null)}
-                className="app-button-secondary text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmBlock}
-                className="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 shadow-md shadow-rose-600/20"
-              >
-                Confirm Block
-              </button>
+            <div>
+              <label className="text-xs font-semibold text-foreground block mb-1.5">Blocked Reason</label>
+              <textarea
+                rows={4}
+                placeholder="Enter blocked reason..."
+                value={blockedReasonInput}
+                onChange={(e) => setBlockedReasonInput(e.target.value)}
+                className="w-full p-3 bg-background border border-border rounded-xl text-xs text-foreground outline-none focus:border-foreground"
+              />
             </div>
           </div>
-        </div>
-      )}
+
+          <div className="shrink-0 border-t border-border bg-card px-5 py-4 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setBlockingTask(null)}
+              className="app-button-secondary text-xs min-h-[38px] px-4"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmBlock}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/90 shadow-xs min-h-[38px] cursor-pointer"
+            >
+              Confirm Block
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Existing Task Detail Modal (Reused directly) ─────────────── */}
       {selectedTaskId && (

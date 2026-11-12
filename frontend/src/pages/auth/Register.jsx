@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Loader2, AlertCircle, Briefcase, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Loader2, AlertCircle, Briefcase, Eye, EyeOff } from '@/components/ui/muiIcons';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -148,7 +148,7 @@ const Register = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center min-h-[44px] py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+          className="w-full flex items-center justify-center min-h-[44px] py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4"
         >
           {loading ? <Loader2 className="animate-spin" size={18} /> : 'Create New Account'}
         </button>

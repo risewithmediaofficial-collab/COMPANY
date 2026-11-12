@@ -10,7 +10,7 @@ import {
   Pencil,
   Trash2,
   Calendar,
-} from 'lucide-react';
+} from '@/components/ui/muiIcons';
 import { useDeleteEmployee, useEmployees } from '../../hooks/useHR';
 import { AddEmployeeModal } from '../../components/modals/AddEmployeeModal';
 import { Button } from '../../components/ui/button';
@@ -78,7 +78,7 @@ const HR = () => {
       label: 'Employee Name',
       render: (row) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="h-8 w-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {row.name?.charAt(0) || 'E'}
           </div>
           <div>
@@ -105,9 +105,9 @@ const HR = () => {
         return (
           <div className="flex items-center gap-1.5">
             <span
-              className={`h-2 w-2 rounded-full ${clockedIn ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}
+              className={`h-2 w-2 rounded-full shrink-0 ${clockedIn ? 'bg-foreground' : 'bg-muted-foreground/40'}`}
             />
-            <span className="text-xs font-semibold text-foreground">
+            <span className="text-xs font-semibold text-foreground tabular-nums">
               {clockedIn ? `Clocked In (${formatTime(row.todayAttendance?.clockIn)})` : 'Not Clocked In'}
             </span>
           </div>
@@ -118,7 +118,7 @@ const HR = () => {
       key: 'totalHours',
       label: 'Logged Hours',
       render: (row) => (
-        <span className="font-bold text-xs text-foreground">
+        <span className="font-bold text-xs text-foreground tabular-nums">
           {row.todayAttendance?.totalHours ? `${row.todayAttendance.totalHours} hrs` : '0 hrs'}
         </span>
       ),
@@ -133,14 +133,14 @@ const HR = () => {
               setSelectedEmployee(row);
               setShowAddEmployeeModal(true);
             }}
-            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
             title="Edit"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => setDeleteEmployeeId(row._id)}
-            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -156,23 +156,23 @@ const HR = () => {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border uppercase tracking-wider">
             {row.department || 'General'}
           </span>
           <span
             className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
               clockedIn
-                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                : 'bg-slate-500/10 text-slate-600 border-slate-500/20'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-secondary text-muted-foreground border-border'
             }`}
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${clockedIn ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+            <span className={`h-1.5 w-1.5 rounded-full ${clockedIn ? 'bg-primary-foreground' : 'bg-muted-foreground'}`} />
             {clockedIn ? 'Clocked In' : 'Offline'}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center font-black text-sm text-foreground">
+          <div className="h-10 w-10 rounded-2xl bg-secondary border border-border flex items-center justify-center font-black text-sm text-foreground shrink-0">
             {row.name?.charAt(0) || 'E'}
           </div>
           <div>
@@ -184,13 +184,13 @@ const HR = () => {
         <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Today's Hours:</span>
-            <span className="font-bold text-foreground">
+            <span className="font-bold text-foreground tabular-nums">
               {row.todayAttendance?.totalHours ? `${row.todayAttendance.totalHours} hrs` : '0 hrs'}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Join Date:</span>
-            <span className="font-medium text-foreground">{new Date(row.joinDate || row.createdAt).toLocaleDateString()}</span>
+            <span className="font-medium text-foreground tabular-nums">{new Date(row.joinDate || row.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
 
@@ -200,13 +200,13 @@ const HR = () => {
               setSelectedEmployee(row);
               setShowAddEmployeeModal(true);
             }}
-            className="p-1 rounded hover:bg-secondary text-muted-foreground"
+            className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <Pencil size={13} />
           </button>
           <button
             onClick={() => setDeleteEmployeeId(row._id)}
-            className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <Trash2 size={13} />
           </button>
@@ -219,10 +219,10 @@ const HR = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Team & Workload', 'HR & Hiring']}
       title="HR & Team Directory"
-      icon="👥"
+      icon={Users}
       properties={[
-        { label: 'Active Team', value: activeEmployees, tone: 'success', icon: Users },
-        { label: 'Clocked In Now', value: clockedInNow, tone: clockedInNow > 0 ? 'info' : 'neutral', icon: UserCheck },
+        { label: 'Active Team', value: activeEmployees, tone: 'neutral', icon: Users },
+        { label: 'Clocked In Now', value: clockedInNow, tone: 'neutral', icon: UserCheck },
         { label: 'Departments', value: departments.length - 1, icon: Building2 },
         { label: 'Logged Hours Today', value: `${loggedHoursToday.toFixed(1)} hrs`, tone: 'neutral', icon: Clock },
       ]}

@@ -1,4 +1,4 @@
-import { Edit2, Eye, Inbox, Trash2 } from 'lucide-react';
+import { Edit2, Eye, Inbox, Trash2 } from '@/components/ui/muiIcons';
 import { cn } from '../../utils/cn';
 import { EmptyState } from './page';
 

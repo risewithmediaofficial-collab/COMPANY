@@ -4,7 +4,7 @@ test.describe('Complete System & Button Audit Spec', () => {
 
   test.beforeEach(async ({ page }) => {
     // Navigate to Login
-    await page.goto('http://localhost:5173/login');
+    await page.goto('http://localhost:5175/login');
     await page.waitForLoadState('networkidle');
 
     // Perform Login if not already logged in
@@ -20,7 +20,7 @@ test.describe('Complete System & Button Audit Spec', () => {
   });
 
   test('1. Dashboard Navigation & Web Activity Metrics Panel', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:5175/');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('body')).toBeVisible();
@@ -39,7 +39,7 @@ test.describe('Complete System & Button Audit Spec', () => {
   });
 
   test('2. Clients Module & SelectDropdown Floating Popovers', async ({ page }) => {
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     // Test Search input in page toolbar
@@ -72,7 +72,7 @@ test.describe('Complete System & Button Audit Spec', () => {
   });
 
   test('3. Client Details Page Layout & Financial Summary', async ({ page }) => {
-    await page.goto('http://localhost:5173/clients');
+    await page.goto('http://localhost:5175/clients');
     await page.waitForLoadState('networkidle');
 
     // Locate client link or navigate to client detail
@@ -87,7 +87,7 @@ test.describe('Complete System & Button Audit Spec', () => {
   });
 
   test('4. Task Management & Collapsible Filters', async ({ page }) => {
-    await page.goto('http://localhost:5173/calendar');
+    await page.goto('http://localhost:5175/calendar');
     await page.waitForLoadState('networkidle');
 
     // Click "Filters" toggle button
@@ -98,13 +98,13 @@ test.describe('Complete System & Button Audit Spec', () => {
     }
 
     // Tasks list route
-    await page.goto('http://localhost:5173/tasks');
+    await page.goto('http://localhost:5175/tasks');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('5. Projects Module & Modals', async ({ page }) => {
-    await page.goto('http://localhost:5173/projects');
+    await page.goto('http://localhost:5175/projects');
     await page.waitForLoadState('networkidle');
 
     const addProjectBtn = page.getByRole('button', { name: /Create Project|Add Project/i }).first();
@@ -115,7 +115,7 @@ test.describe('Complete System & Button Audit Spec', () => {
   });
 
   test('6. CRM Leads & Pipeline Board', async ({ page }) => {
-    await page.goto('http://localhost:5173/crm/leads');
+    await page.goto('http://localhost:5175/crm/leads');
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('body')).toBeVisible();
@@ -124,7 +124,7 @@ test.describe('Complete System & Button Audit Spec', () => {
   test('7. Operations & Admin Routes Audit', async ({ page }) => {
     const routes = ['/finance', '/reports', '/sop', '/hr', '/settings', '/smm/dashboard'];
     for (const route of routes) {
-      await page.goto(`http://localhost:5173${route}`);
+      await page.goto(`http://localhost:5175${route}`);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(300);
       await expect(page.locator('#root')).toBeVisible();

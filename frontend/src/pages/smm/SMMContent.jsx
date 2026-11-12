@@ -6,8 +6,9 @@ import { SMMFilterBar } from '../../components/smm/SMMFilterBar';
 import {
   Plus, Calendar as CalendarIcon, FileText, Image as ImageIcon,
   Share2, Eye, Edit3, Trash2, Megaphone, TrendingUp, X, CheckCircle2,
-  Video, Layers, Clock, AlertCircle, Sparkles, ExternalLink, Bookmark, Heart, MessageSquare
-} from 'lucide-react';
+  Video, Layers, Clock, AlertCircle, Sparkles, ExternalLink, Bookmark, Heart, MessageSquare,
+  RefreshCw, Flame, Rocket
+} from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -294,7 +295,7 @@ export const SMMContent = () => {
 
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all w-full sm:w-auto"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-colors w-full sm:w-auto cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Video / Content</span>
@@ -307,52 +308,52 @@ export const SMMContent = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
         <div
           onClick={() => setActiveTab('all')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
-            activeTab === 'all' ? 'border-primary shadow-sm bg-primary/5' : 'border-border hover:border-border/80'
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
+            activeTab === 'all' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
           }`}
         >
           <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Total Videos</span>
-          <span className="text-xl sm:text-2xl font-black text-foreground block mt-1">{totalCount}</span>
+          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{totalCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('posted')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
-            activeTab === 'posted' ? 'border-emerald-500 shadow-sm bg-emerald-500/5' : 'border-border hover:border-emerald-500/30'
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
+            activeTab === 'posted' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
           }`}
         >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Posted</span>
-          <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-1">{postedCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Posted</span>
+          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{postedCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('not_posted')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
-            activeTab === 'not_posted' ? 'border-amber-500 shadow-sm bg-amber-500/5' : 'border-border hover:border-amber-500/30'
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
+            activeTab === 'not_posted' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
           }`}
         >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Not Posted</span>
-          <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 block mt-1">{notPostedCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Not Posted</span>
+          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{notPostedCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('scheduled')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
-            activeTab === 'scheduled' ? 'border-sky-500 shadow-sm bg-sky-500/5' : 'border-border hover:border-sky-500/30'
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
+            activeTab === 'scheduled' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
           }`}
         >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Scheduled</span>
-          <span className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 block mt-1">{scheduledCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Scheduled</span>
+          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{scheduledCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('pending_approval')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all col-span-2 sm:col-span-1 ${
-            activeTab === 'pending_approval' ? 'border-rose-500 shadow-sm bg-rose-500/5' : 'border-border hover:border-rose-500/30'
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors col-span-2 sm:col-span-1 ${
+            activeTab === 'pending_approval' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
           }`}
         >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-rose-500 block">Approval Pending</span>
-          <span className="text-xl sm:text-2xl font-black text-rose-500 block mt-1">{pendingApprovalCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Approval Pending</span>
+          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{pendingApprovalCount}</span>
         </div>
       </div>
 
@@ -405,8 +406,8 @@ export const SMMContent = () => {
                   <th className="px-4 py-3">Client</th>
                   <th className="px-4 py-3">Type & Platform</th>
                   <th className="px-4 py-3">Status</th>
-                  {activeTab === 'not_posted' && <th className="px-4 py-3 text-amber-500">Not Posted Reason</th>}
-                  {activeTab === 'pending_approval' && <th className="px-4 py-3 text-rose-500">Approval Aging</th>}
+                  {activeTab === 'not_posted' && <th className="px-4 py-3 text-foreground">Not Posted Reason</th>}
+                  {activeTab === 'pending_approval' && <th className="px-4 py-3 text-foreground">Approval Aging</th>}
                   <th className="px-4 py-3">Organic Performance</th>
                   <th className="px-4 py-3">Ad Status</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -421,18 +422,18 @@ export const SMMContent = () => {
                   return (
                     <tr key={item._id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold shrink-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold shrink-0">
                             {['Reel', 'Reel / Story', 'Video', 'Short'].includes(item.contentType) ? <Video size={16} /> : <FileText size={16} />}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <button
                               onClick={() => openDetailModal(item)}
-                              className="font-bold text-foreground hover:text-primary transition-colors text-left block"
+                              className="font-bold text-foreground hover:underline transition-colors text-left block truncate max-w-[220px] cursor-pointer"
                             >
                               {item.name}
                             </button>
-                            <span className="text-[10px] text-muted-foreground block">
+                            <span className="text-[10px] text-muted-foreground block tabular-nums">
                               {item.actualPostedDate
                                 ? `Published: ${new Date(item.actualPostedDate).toLocaleDateString()}`
                                 : item.scheduledDate
@@ -450,7 +451,7 @@ export const SMMContent = () => {
 
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-primary/10 text-primary">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-secondary border border-border text-foreground">
                             {item.contentType}
                           </span>
                           <span className="text-muted-foreground text-[11px] font-medium">
@@ -461,14 +462,14 @@ export const SMMContent = () => {
 
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
                             item.postingStatus === 'Published'
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                              ? 'bg-primary text-primary-foreground border-primary'
                               : item.postingStatus === 'Scheduled'
-                              ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
+                              ? 'bg-secondary text-foreground border-border'
                               : item.postingStatus === 'Pending Approval'
-                              ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                              ? 'bg-card text-foreground border-foreground/40'
+                              : 'bg-secondary/50 text-muted-foreground border-border'
                           }`}
                         >
                           {item.postingStatus}
@@ -477,7 +478,7 @@ export const SMMContent = () => {
 
                       {activeTab === 'not_posted' && (
                         <td className="px-4 py-3">
-                          <span className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                          <span className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-secondary text-foreground border border-border">
                             {item.notPostedReason || 'Not Scheduled'}
                           </span>
                         </td>
@@ -485,30 +486,31 @@ export const SMMContent = () => {
 
                       {activeTab === 'pending_approval' && (
                         <td className="px-4 py-3">
-                          <span className={`px-2.5 py-1 rounded-xl text-xs font-bold ${
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold tabular-nums border ${
                             (item.approvalAgingDays || 1) >= 3
-                              ? 'bg-rose-500 text-white animate-pulse'
+                              ? 'bg-primary text-primary-foreground border-primary'
                               : (item.approvalAgingDays || 1) >= 2
-                              ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                              : 'bg-muted text-muted-foreground'
+                              ? 'bg-secondary text-foreground border-border'
+                              : 'bg-card text-muted-foreground border-border'
                           }`}>
-                            {item.approvalAgingDays || 1} days waiting {(item.approvalAgingDays || 1) >= 3 && '🔴'}
+                            {(item.approvalAgingDays || 1) >= 3 && <AlertCircle size={11} className="shrink-0" />}
+                            <span>{item.approvalAgingDays || 1} days waiting</span>
                           </span>
                         </td>
                       )}
 
                       {/* Organic performance */}
                       <td className="px-4 py-3">
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 tabular-nums">
                           <div className="font-bold text-foreground flex items-center gap-2">
                             <span>{(p.views || p.videoViews || p.plays || 0).toLocaleString()} Views</span>
-                            <span className="text-primary text-[11px] font-bold">({p.engagementRate || 0}%)</span>
+                            <span className="text-muted-foreground text-[11px] font-bold">({p.engagementRate || 0}%)</span>
                           </div>
-                          <div className="text-[10px] text-muted-foreground flex items-center gap-2">
-                            <span>❤️ {p.likes || 0}</span>
-                            <span>💬 {p.comments || 0}</span>
-                            <span>🔄 {p.shares || 0}</span>
-                            <span>💾 {p.saves || 0}</span>
+                          <div className="text-[10px] text-muted-foreground flex items-center gap-2.5">
+                            <span className="inline-flex items-center gap-1"><Heart size={10} /> {p.likes || 0}</span>
+                            <span className="inline-flex items-center gap-1"><MessageSquare size={10} /> {p.comments || 0}</span>
+                            <span className="inline-flex items-center gap-1"><RefreshCw size={10} /> {p.shares || 0}</span>
+                            <span className="inline-flex items-center gap-1"><Bookmark size={10} /> {p.saves || 0}</span>
                           </div>
                         </div>
                       </td>
@@ -517,19 +519,19 @@ export const SMMContent = () => {
                       <td className="px-4 py-3">
                         {isAdUsed ? (
                           <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-primary text-primary-foreground">
                               Active Ad
                             </span>
-                            <span className="text-[10px] text-muted-foreground block font-medium">
+                            <span className="text-[10px] text-muted-foreground block font-medium tabular-nums">
                               Spent: ₹{(adv.amountSpent || 0).toLocaleString()} • Leads: {adv.leads || 0}
                             </span>
                           </div>
                         ) : item.adRecommendation === '🔥 HIGH POTENTIAL' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold text-amber-500 bg-amber-500/10 border border-amber-500/30">
-                            🔥 High Potential
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold text-foreground bg-secondary border border-border">
+                            <Flame size={10} className="shrink-0" /> High Potential
                           </span>
                         ) : (
-                          <span className="text-[11px] text-muted-foreground/60 font-medium">Organic Only</span>
+                          <span className="text-[11px] text-muted-foreground/70 font-medium">Organic Only</span>
                         )}
                       </td>
 
@@ -539,7 +541,7 @@ export const SMMContent = () => {
                             <button
                               onClick={() => handleCreateAdFromContent(item)}
                               title="Create Ad Campaign from this Video"
-                              className="flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-lg text-[11px] transition-all shadow-xs"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-lg text-[11px] transition-colors shadow-xs cursor-pointer"
                             >
                               <Megaphone size={12} />
                               <span>Create Ad</span>
@@ -548,21 +550,21 @@ export const SMMContent = () => {
                           <button
                             onClick={() => openPerfModal(item)}
                             title="Log / Update Performance"
-                            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary"
+                            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary cursor-pointer"
                           >
                             <TrendingUp size={14} />
                           </button>
                           <button
                             onClick={() => openDetailModal(item)}
                             title="View Full Video 360"
-                            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary"
+                            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary cursor-pointer"
                           >
                             <Eye size={14} />
                           </button>
                           <button
                             onClick={() => handleDelete(item._id)}
                             title="Delete Record"
-                            className="p-1.5 text-rose-500 hover:text-rose-600 rounded-lg hover:bg-rose-50"
+                            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary cursor-pointer"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -686,11 +688,11 @@ export const SMMContent = () => {
 
               {formData.postingStatus !== 'Published' ? (
                 <div>
-                  <label className="text-sm font-semibold text-amber-500 mb-1.5 block">Not Posted Reason</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Not Posted Reason</label>
                   <select
                     value={formData.notPostedReason}
                     onChange={(e) => setFormData({ ...formData, notPostedReason: e.target.value })}
-                    className="w-full h-11 px-4 bg-background border border-amber-500/40 rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-amber-500/20 outline-none shadow-2xs cursor-pointer"
+                    className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                   >
                     {NOT_POSTED_REASONS.map((r) => (
                       <option key={r} value={r}>{r}</option>
@@ -699,8 +701,8 @@ export const SMMContent = () => {
                 </div>
               ) : (
                 <div>
-                  <label className="text-sm font-semibold text-emerald-500 mb-1.5 block">Live Status</label>
-                  <div className="h-11 px-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center font-bold text-sm shadow-2xs">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Live Status</label>
+                  <div className="h-11 px-4 bg-secondary/50 border border-border text-foreground rounded-xl flex items-center font-bold text-sm shadow-2xs">
                     Published Live to Audience
                   </div>
                 </div>
@@ -731,7 +733,7 @@ export const SMMContent = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -751,7 +753,7 @@ export const SMMContent = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
                 >
                   Save Video Record
                 </Button>
@@ -877,7 +879,7 @@ export const SMMContent = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
@@ -897,7 +899,7 @@ export const SMMContent = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
                 >
                   Save & Recalculate Score
                 </Button>
@@ -914,7 +916,7 @@ export const SMMContent = () => {
             <DialogHeader>
               <DialogTitle className="flex flex-wrap items-center justify-between gap-2">
                 <span className="truncate max-w-[240px] sm:max-w-none">{selectedContent.name}</span>
-                <span className="text-xs font-black text-primary px-3 py-1 bg-primary/10 rounded-full">
+                <span className="text-xs font-black text-foreground px-3 py-1 bg-secondary border border-border rounded-full tabular-nums">
                   Score: {selectedContent.performanceScore || 85} / 100
                 </span>
               </DialogTitle>
@@ -936,7 +938,7 @@ export const SMMContent = () => {
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">Published Date</span>
-                  <span className="font-bold text-foreground text-xs">
+                  <span className="font-bold text-foreground text-xs tabular-nums">
                     {selectedContent.actualPostedDate || selectedContent.scheduledDate
                       ? new Date(selectedContent.actualPostedDate || selectedContent.scheduledDate).toLocaleDateString('en-IN')
                       : 'Today (Live)'}
@@ -948,37 +950,37 @@ export const SMMContent = () => {
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">Recommendation</span>
-                  <span className="font-extrabold text-amber-500 text-xs">{selectedContent.adRecommendation || 'Good Organic'}</span>
+                  <span className="font-extrabold text-foreground text-xs">{selectedContent.adRecommendation || 'Good Organic'}</span>
                 </div>
               </div>
 
               {/* SECTION: ORGANIC METRICS */}
               <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                 <h4 className="font-bold text-foreground text-xs flex items-center gap-2 uppercase tracking-wider">
-                  <TrendingUp size={15} className="text-blue-500" /> Organic Performance
+                  <TrendingUp size={15} className="text-foreground shrink-0" /> Organic Performance
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Views</span>
-                    <span className="font-black text-foreground text-base">
+                    <span className="font-black text-foreground text-base tabular-nums">
                       {(selectedContent.performance?.views || selectedContent.performance?.videoViews || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Reach</span>
-                    <span className="font-black text-foreground text-base">
+                    <span className="font-black text-foreground text-base tabular-nums">
                       {(selectedContent.performance?.reach || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Likes</span>
-                    <span className="font-black text-foreground text-base">
+                    <span className="font-black text-foreground text-base tabular-nums">
                       {(selectedContent.performance?.likes || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Engagement Rate</span>
-                    <span className="font-black text-indigo-500 text-base">
+                    <span className="font-black text-foreground text-base tabular-nums">
                       {selectedContent.performance?.engagementRate || 0}%
                     </span>
                   </div>
@@ -989,36 +991,36 @@ export const SMMContent = () => {
               <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-foreground text-xs flex items-center gap-2 uppercase tracking-wider">
-                    <Megaphone size={15} className="text-emerald-500" /> Advertising Performance
+                    <Megaphone size={15} className="text-foreground shrink-0" /> Advertising Performance
                   </h4>
-                  <span className="text-[10px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-extrabold text-foreground bg-secondary border border-border px-2.5 py-0.5 rounded-full">
                     {selectedContent.advertising?.usedAsAd ? 'Used as Ad: YES' : 'Used as Ad: NO'}
                   </span>
                 </div>
 
                 {selectedContent.advertising?.usedAsAd ? (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Amount Added</span>
-                      <span className="font-black text-foreground text-base">
+                      <span className="font-black text-foreground text-base tabular-nums">
                         ₹{(selectedContent.advertising?.amountAdded || 0).toLocaleString()}
                       </span>
                     </div>
-                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Amount Spent</span>
-                      <span className="font-black text-rose-500 text-base">
+                      <span className="font-black text-foreground text-base tabular-nums">
                         ₹{(selectedContent.advertising?.amountSpent || 0).toLocaleString()}
                       </span>
                     </div>
-                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Leads Generated</span>
-                      <span className="font-black text-emerald-500 text-base">
+                      <span className="font-black text-foreground text-base tabular-nums">
                         {selectedContent.advertising?.leads || 0}
                       </span>
                     </div>
-                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Cost Per Lead</span>
-                      <span className="font-black text-foreground text-base">
+                      <span className="font-black text-foreground text-base tabular-nums">
                         ₹{selectedContent.advertising?.cpl || 0}
                       </span>
                     </div>
@@ -1031,9 +1033,10 @@ export const SMMContent = () => {
                         setIsDetailModalOpen(false);
                         handleCreateAdFromContent(selectedContent);
                       }}
-                      className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-xs hover:bg-primary/90"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-xs hover:bg-primary/90 cursor-pointer"
                     >
-                      🚀 Boost / Create Ad from this Video
+                      <Rocket size={13} />
+                      <span>Boost / Create Ad from this Video</span>
                     </button>
                   </div>
                 )}

@@ -10,8 +10,6 @@ import User from '../models/user.model.js';
 import CallHistory from '../models/callHistory.model.js';
 import SOP from '../models/sop.model.js';
 import ActivityLog from '../models/activityLog.model.js';
-import TaskNote from '../models/taskNote.model.js';
-import DmVideoShoot from '../models/dmVideoShoot.model.js';
 import ProjectMonthlyDeliverable from '../models/projectMonthlyDeliverable.model.js';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -53,11 +51,22 @@ export const getAdminDashboard = async (req, res) => {
 
     let periodStart, periodEnd, priorPeriodStart, priorPeriodEnd;
 
-    if (qStartDate && qEndDate) {
-      periodStart = new Date(qStartDate);
-      periodStart.setHours(0, 0, 0, 0);
-      periodEnd = new Date(qEndDate);
-      periodEnd.setHours(23, 59, 59, 999);
+    if (qStartDate || qEndDate) {
+      const parseLocalDate = (str, endOfDay = false) => {
+        if (!str) return null;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(String(str).trim())) {
+          const [y, m, d] = String(str).trim().split('-').map(Number);
+          return endOfDay
+            ? new Date(y, m - 1, d, 23, 59, 59, 999)
+            : new Date(y, m - 1, d, 0, 0, 0, 0);
+        }
+        const dt = new Date(str);
+        if (endOfDay) dt.setHours(23, 59, 59, 999);
+        else dt.setHours(0, 0, 0, 0);
+        return dt;
+      };
+      periodStart = parseLocalDate(qStartDate, false) || new Date(0);
+      periodEnd = parseLocalDate(qEndDate, true) || new Date(now);
 
       const spanMs = Math.max(86400000, periodEnd.getTime() - periodStart.getTime());
       priorPeriodStart = new Date(periodStart.getTime() - spanMs);
@@ -72,7 +81,7 @@ export const getAdminDashboard = async (req, res) => {
       priorPeriodStart.setDate(priorPeriodStart.getDate() - 7);
       priorPeriodEnd = new Date(periodStart);
       priorPeriodEnd.setMilliseconds(-1);
-    } else if (period === 'lastMonth') {
+    } else if (period === 'lastMonth' || period === 'previous_month') {
       periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       periodEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
@@ -80,10 +89,10 @@ export const getAdminDashboard = async (req, res) => {
       priorPeriodEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999);
     } else if (period === 'yearly') {
       periodStart = new Date(now.getFullYear(), 0, 1);
-      periodEnd = new Date(now);
+      periodEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
 
       priorPeriodStart = new Date(now.getFullYear() - 1, 0, 1);
-      priorPeriodEnd = new Date(now.getFullYear(), 0, 0, 23, 59, 59, 999);
+      priorPeriodEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
     } else if (period === 'allTime') {
       periodStart = new Date(0);
       periodEnd = new Date(now);
@@ -91,9 +100,9 @@ export const getAdminDashboard = async (req, res) => {
       priorPeriodStart = new Date(0);
       priorPeriodEnd = new Date(now);
     } else {
-      // 'monthly'
+      // 'monthly' / 'this_month'
       periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      periodEnd = new Date(now);
+      periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
       priorPeriodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       priorPeriodEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
@@ -112,12 +121,10 @@ export const getAdminDashboard = async (req, res) => {
       totalUsers,
       expiringRenewals,
       pendingBalanceAgg,
-      pendingNotesCount,
       allProjects,
       allTasks,
       allClients,
       allUsers,
-      allVideoShoots,
       leadsList,
     ] = await Promise.all([
       Lead.countDocuments(),
@@ -164,12 +171,10 @@ export const getAdminDashboard = async (req, res) => {
           },
         },
       ]),
-      TaskNote.countDocuments({ status: 'pending' }).catch(() => 0),
       Project.find({}, 'name status priority startDate dueDate endDate progress budget client').populate('client', 'name company').lean(),
       Task.find({ parent: null }, 'title taskTitle status priority dueDate taskCategory postingPlatforms shootStatus editingStatus reviewStatus postingStatus assignedTo').populate('assignedTo', 'name email avatar role department').lean(),
       Client.find({}, 'name company status monthlyRetainer service createdAt').lean(),
       User.find({ isActive: true }, 'name email role department avatar position').lean(),
-      DmVideoShoot.find({}, 'title date status client').lean().catch(() => []),
       Lead.find({}, 'name company stage value createdAt source').lean(),
     ]);
 
@@ -245,7 +250,7 @@ export const getAdminDashboard = async (req, res) => {
       'Review Required': 0,
       Completed: 0,
     };
-    let pendingApprovals = pendingNotesCount;
+    let pendingApprovals = 0;
 
     allTasks.forEach((t) => {
       const s = t.status || 'To Do';
@@ -362,7 +367,7 @@ export const getAdminDashboard = async (req, res) => {
     // 8. Content Production Pipeline
     const contentPipeline = {
       ideas: allTasks.filter((t) => t.status === 'To Do' || t.status === 'todo' || t.status === 'pending').length,
-      shoot: allVideoShoots.filter((s) => s.status !== 'completed').length || allTasks.filter((t) => t.shootStatus === 'in_progress' || t.shootStatus === 'pending').length,
+      shoot: allTasks.filter((t) => t.shootStatus === 'in_progress' || t.shootStatus === 'pending').length,
       editing: allTasks.filter((t) => t.editingStatus === 'in_progress' || t.editingStatus === 'pending' || (t.status === 'On Process' && (t.taskCategory === 'video_content' || t.taskCategory === 'reel' || t.taskType?.toLowerCase().includes('video') || t.taskType?.toLowerCase().includes('reel')))).length,
       review: allTasks.filter((t) => t.status === 'Review Required' || t.reviewStatus === 'review_ready' || t.reviewStatus === 'in_review').length,
       approval: allTasks.filter((t) => t.status === 'Waiting for Client').length,
@@ -540,9 +545,23 @@ export const getAdminAuditLogs = async (req, res) => {
       }
     } else if (startDate || endDate) {
       query.createdAt = {};
-      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (startDate) {
+        const s = /^\d{4}-\d{2}-\d{2}$/.test(String(startDate).trim())
+          ? (() => {
+              const [y, m, d] = String(startDate).trim().split('-').map(Number);
+              return new Date(y, m - 1, d, 0, 0, 0, 0);
+            })()
+          : new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        query.createdAt.$gte = s;
+      }
       if (endDate) {
-        const e = new Date(endDate);
+        const e = /^\d{4}-\d{2}-\d{2}$/.test(String(endDate).trim())
+          ? (() => {
+              const [y, m, d] = String(endDate).trim().split('-').map(Number);
+              return new Date(y, m - 1, d, 23, 59, 59, 999);
+            })()
+          : new Date(endDate);
         e.setHours(23, 59, 59, 999);
         query.createdAt.$lte = e;
       }
