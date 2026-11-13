@@ -98,6 +98,8 @@ const ClientDetails = () => {
     enabled: Boolean(id),
   });
 
+  const { data: clientProposals = [] } = useClientProposals(id);
+
   const handleCopy = (text, copyKey) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
@@ -266,8 +268,6 @@ const ClientDetails = () => {
   const paymentNotes = financeRecords.flatMap((record) => record.paymentHistory || []);
 
   const isFinanceVisible = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager' || !!user?.permissions?.canManageFinance;
-
-  const { data: clientProposals = [] } = useClientProposals(id);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: TrendingUp },
