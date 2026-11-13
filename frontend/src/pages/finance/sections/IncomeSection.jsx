@@ -25,6 +25,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '../../../components/ui/button';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 import {
   usePaymentReceipts,
   useModuleInvoices,
@@ -182,18 +183,21 @@ export default function IncomeSection({ onQuickAdd }) {
             />
           </div>
 
-          <select
-            value={clientFilter}
-            onChange={(e) => setClientFilter(e.target.value)}
-            className="w-full sm:w-auto rounded-lg px-3 py-1.5 text-xs bg-background text-foreground font-medium"
-          >
-            <option value="all">All Clients</option>
-            {clients.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.company || c.name}
-              </option>
-            ))}
-          </select>
+          <SelectDropdown
+            value={clientFilter || 'all'}
+            onChange={(val) => setClientFilter(val || 'all')}
+            options={[
+              { value: 'all', label: 'All Clients' },
+              ...clients.map((c) => ({
+                value: c._id,
+                label: c.company || c.name,
+              })),
+            ]}
+            placeholder="All Clients"
+            allowCustom={false}
+            className="w-full sm:w-48"
+            buttonClassName="h-8 rounded-lg px-3 text-xs bg-background text-foreground font-medium border border-border/50"
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
@@ -351,17 +355,22 @@ export default function IncomeSection({ onQuickAdd }) {
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Payment Mode *</label>
-                  <select
-                    value={receiptForm.paymentMode}
-                    onChange={(e) => setReceiptForm({ ...receiptForm, paymentMode: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
-                  >
-                    <option value="Bank">Bank Transfer / NEFT / IMPS</option>
-                    <option value="UPI">UPI / QR</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Cheque">Cheque</option>
-                    <option value="Stripe">Stripe / Card</option>
-                  </select>
+                  <SelectDropdown
+                    value={receiptForm.paymentMode || 'Bank'}
+                    onChange={(val) => setReceiptForm({ ...receiptForm, paymentMode: val || 'Bank' })}
+                    options={[
+                      { value: 'Bank', label: 'Bank Transfer / NEFT / IMPS' },
+                      { value: 'UPI', label: 'UPI / QR' },
+                      { value: 'Cash', label: 'Cash' },
+                      { value: 'Cheque', label: 'Cheque' },
+                      { value: 'Stripe', label: 'Stripe / Card' },
+                    ]}
+                    placeholder="Payment Mode"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground border border-border/50"
+                  />
                 </div>
 
                 <div>

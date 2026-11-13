@@ -162,6 +162,8 @@ export const DateFilterProvider = ({ children }) => {
         const trimmed = dateValue.trim();
         if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
           targetStr = trimmed;
+        } else if (/^\d{4}-\d{2}-\d{2}T00:00:00(?:\.000)?Z?$/i.test(trimmed)) {
+          targetStr = trimmed.slice(0, 10);
         } else {
           targetStr = toLocalYMD(trimmed);
         }

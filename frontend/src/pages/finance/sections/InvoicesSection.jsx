@@ -27,6 +27,7 @@ import {
 import { useClients } from '../../../hooks/useClients';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { useDateFilter } from '../../../context/DateFilterContext';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 import {
   Dialog,
   DialogContent,
@@ -200,31 +201,38 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
             />
           </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto rounded-lg px-3 py-1.5 text-xs bg-background text-foreground font-medium cursor-pointer"
-          >
-            <option value="all">All Statuses</option>
-            <option value="draft">Drafts</option>
-            <option value="unpaid">Unpaid / Issued</option>
-            <option value="partially_paid">Partially Paid</option>
-            <option value="paid">Paid</option>
-            <option value="void">Voided</option>
-          </select>
+          <SelectDropdown
+            value={statusFilter || 'all'}
+            onChange={(val) => setStatusFilter(val || 'all')}
+            options={[
+              { value: 'all', label: 'All Statuses' },
+              { value: 'draft', label: 'Drafts' },
+              { value: 'unpaid', label: 'Unpaid / Issued' },
+              { value: 'partially_paid', label: 'Partially Paid' },
+              { value: 'paid', label: 'Paid' },
+              { value: 'void', label: 'Voided' },
+            ]}
+            placeholder="All Statuses"
+            allowCustom={false}
+            className="w-full sm:w-40"
+            buttonClassName="h-8 rounded-lg px-3 text-xs bg-background text-foreground font-medium border border-border/50"
+          />
 
-          <select
-            value={clientFilter}
-            onChange={(e) => setClientFilter(e.target.value)}
-            className="w-full sm:w-auto rounded-lg px-3 py-1.5 text-xs bg-background text-foreground font-medium cursor-pointer"
-          >
-            <option value="all">All Clients</option>
-            {clients.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.company || c.name}
-              </option>
-            ))}
-          </select>
+          <SelectDropdown
+            value={clientFilter || 'all'}
+            onChange={(val) => setClientFilter(val || 'all')}
+            options={[
+              { value: 'all', label: 'All Clients' },
+              ...clients.map((c) => ({
+                value: c._id,
+                label: c.company || c.name,
+              })),
+            ]}
+            placeholder="All Clients"
+            allowCustom={false}
+            className="w-full sm:w-48"
+            buttonClassName="h-8 rounded-lg px-3 text-xs bg-background text-foreground font-medium border border-border/50"
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
@@ -587,18 +595,23 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Payment Status *</label>
-                  <select
-                    value={invoiceForm.status}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
-                  >
-                    <option value="unpaid">Unpaid</option>
-                    <option value="partially_paid">Partially Paid</option>
-                    <option value="paid">Paid</option>
-                    <option value="overdue">Overdue</option>
-                    <option value="draft">Draft</option>
-                    <option value="void">Void</option>
-                  </select>
+                  <SelectDropdown
+                    value={invoiceForm.status || 'unpaid'}
+                    onChange={(val) => setInvoiceForm({ ...invoiceForm, status: val || 'unpaid' })}
+                    options={[
+                      { value: 'unpaid', label: 'Unpaid' },
+                      { value: 'partially_paid', label: 'Partially Paid' },
+                      { value: 'paid', label: 'Paid' },
+                      { value: 'overdue', label: 'Overdue' },
+                      { value: 'draft', label: 'Draft' },
+                      { value: 'void', label: 'Void' },
+                    ]}
+                    placeholder="Payment Status"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground border border-border/50"
+                  />
                 </div>
 
                 <div>

@@ -40,6 +40,7 @@ import { formatINR } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
 import api from '../../../api';
 import DuplicateConfirmDialog from '../../../components/modals/DuplicateConfirmDialog';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
 export default function FinanceQuickAddModal({ open, onOpenChange, initialAction = 'invoice' }) {
   const [activeAction, setActiveAction] = useState(initialAction);
@@ -512,18 +513,19 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
             <form id="finance-modal-form" onSubmit={handleInvoiceSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Select Client *</label>
-                <select
+                <SelectDropdown
                   value={invForm.client}
-                  onChange={(e) => setInvForm({ ...invForm, client: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="">-- Choose Client --</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.company || c.name} {c.monthlyPlanFee ? `(₹${c.monthlyPlanFee}/mo)` : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setInvForm({ ...invForm, client: val || '' })}
+                  options={clients.map((c) => ({
+                    value: c._id,
+                    label: c.company || c.name,
+                    subLabel: c.monthlyPlanFee ? `₹${c.monthlyPlanFee}/mo` : undefined,
+                  }))}
+                  placeholder="-- Choose Client --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -561,15 +563,20 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Tax Treatment</label>
-                <select
-                  value={invForm.taxType}
-                  onChange={(e) => setInvForm({ ...invForm, taxType: e.target.value, taxRate: e.target.value === 'exempt' ? 0 : 18 })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                >
-                  <option value="exclusive">GST 18% Exclusive</option>
-                  <option value="inclusive">GST 18% Inclusive</option>
-                  <option value="exempt">Tax Exempt (0%)</option>
-                </select>
+                <SelectDropdown
+                  value={invForm.taxType || 'exclusive'}
+                  onChange={(val) => setInvForm({ ...invForm, taxType: val || 'exclusive', taxRate: val === 'exempt' ? 0 : 18 })}
+                  options={[
+                    { value: 'exclusive', label: 'GST 18% Exclusive' },
+                    { value: 'inclusive', label: 'GST 18% Inclusive' },
+                    { value: 'exempt', label: 'Tax Exempt (0%)' },
+                  ]}
+                  placeholder="Tax Treatment"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               {/* Line Items Card */}
@@ -658,19 +665,24 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                         </div>
                         <div>
                           <label className="block text-sm font-semibold text-foreground mb-1.5">Type</label>
-                          <select
+                          <SelectDropdown
                             value={item.itemType || 'service'}
-                            onChange={(e) => {
+                            onChange={(val) => {
                               const copy = [...invForm.lineItems];
-                              copy[idx].itemType = e.target.value;
+                              copy[idx].itemType = val || 'service';
                               setInvForm({ ...invForm, lineItems: copy });
                             }}
-                            className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                          >
-                            <option value="service">Service Fee</option>
-                            <option value="ad_budget_pass_through">Ad Budget (Pass)</option>
-                            <option value="management_fee">Mgmt Fee</option>
-                          </select>
+                            options={[
+                              { value: 'service', label: 'Service Fee' },
+                              { value: 'ad_budget_pass_through', label: 'Ad Budget (Pass)' },
+                              { value: 'management_fee', label: 'Mgmt Fee' },
+                            ]}
+                            placeholder="Type"
+                            allowCustom={false}
+                            allowDeselect={false}
+                            className="w-full"
+                            buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground border border-border/50"
+                          />
                         </div>
                         <div>
                           <label className="block text-sm font-semibold text-foreground mb-1.5">Quantity</label>
@@ -721,35 +733,40 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
             <form id="finance-modal-form" onSubmit={handleReceiptSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Client *</label>
-                <select
+                <SelectDropdown
                   value={receiptForm.client}
-                  onChange={(e) => setReceiptForm({ ...receiptForm, client: e.target.value })}
-                  required
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                >
-                  <option value="">-- Choose Client --</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>{c.company || c.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setReceiptForm({ ...receiptForm, client: val || '' })}
+                  options={clients.map((c) => ({
+                    value: c._id,
+                    label: c.company || c.name,
+                  }))}
+                  placeholder="-- Choose Client --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Allocate to Invoice (Optional)</label>
-                <select
+                <SelectDropdown
                   value={receiptForm.invoice}
-                  onChange={(e) => setReceiptForm({ ...receiptForm, invoice: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                >
-                  <option value="">-- Unallocated / Advance Credit --</option>
-                  {unpaidInvoices
-                    .filter((inv) => !receiptForm.client || (inv.client?._id || inv.client) === receiptForm.client)
-                    .map((inv) => (
-                      <option key={inv._id} value={inv._id}>
-                        #{inv.invoiceNumber} — Balance Due: ₹{inv.outstandingBalance || inv.balanceDue || inv.total}
-                      </option>
-                    ))}
-                </select>
+                  onChange={(val) => setReceiptForm({ ...receiptForm, invoice: val || '' })}
+                  options={[
+                    { value: '', label: '-- Unallocated / Advance Credit --' },
+                    ...unpaidInvoices
+                      .filter((inv) => !receiptForm.client || (inv.client?._id || inv.client) === receiptForm.client)
+                      .map((inv) => ({
+                        value: inv._id,
+                        label: `#${inv.invoiceNumber}`,
+                        subLabel: `Balance Due: ₹${inv.outstandingBalance || inv.balanceDue || inv.total}`,
+                      })),
+                  ]}
+                  placeholder="-- Unallocated / Advance Credit --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -766,15 +783,20 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Payment Mode</label>
-                <select
-                  value={receiptForm.paymentMode}
-                  onChange={(e) => setReceiptForm({ ...receiptForm, paymentMode: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="Bank">Bank Transfer (NEFT/RTGS/IMPS)</option>
-                  <option value="UPI">UPI (GPay / PhonePe / QR)</option>
-                  <option value="Cash">Cash Vault</option>
-                </select>
+                <SelectDropdown
+                  value={receiptForm.paymentMode || 'Bank'}
+                  onChange={(val) => setReceiptForm({ ...receiptForm, paymentMode: val || 'Bank' })}
+                  options={[
+                    { value: 'Bank', label: 'Bank Transfer (NEFT/RTGS/IMPS)' },
+                    { value: 'UPI', label: 'UPI (GPay / PhonePe / QR)' },
+                    { value: 'Cash', label: 'Cash Vault' },
+                  ]}
+                  placeholder="Payment Mode"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -858,48 +880,63 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Category</label>
-                <select
-                  value={expForm.category}
-                  onChange={(e) => setExpForm({ ...expForm, category: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="production_shoot">Production / Video Shoot</option>
-                  <option value="rj">RJ (Radio Jockey / Voice Talent)</option>
-                  <option value="vj">VJ (Video Jockey / Presenter / Anchor)</option>
-                  <option value="travel">Client / Shoot Travel</option>
-                  <option value="freelancers">Freelancers</option>
-                  <option value="software_subscriptions">Software & Subscriptions</option>
-                  <option value="rent">Office Rent</option>
-                  <option value="internet">Internet & Utilities</option>
-                  <option value="marketing">Agency Marketing</option>
-                  <option value="office">Office Expenses</option>
-                  <option value="other">Other</option>
-                </select>
+                <SelectDropdown
+                  value={expForm.category || 'production_shoot'}
+                  onChange={(val) => setExpForm({ ...expForm, category: val || 'production_shoot' })}
+                  options={[
+                    { value: 'production_shoot', label: 'Production / Video Shoot' },
+                    { value: 'rj', label: 'RJ (Radio Jockey / Voice Talent)' },
+                    { value: 'vj', label: 'VJ (Video Jockey / Presenter / Anchor)' },
+                    { value: 'travel', label: 'Client / Shoot Travel' },
+                    { value: 'freelancers', label: 'Freelancers' },
+                    { value: 'software_subscriptions', label: 'Software & Subscriptions' },
+                    { value: 'rent', label: 'Office Rent' },
+                    { value: 'internet', label: 'Internet & Utilities' },
+                    { value: 'marketing', label: 'Agency Marketing' },
+                    { value: 'office', label: 'Office Expenses' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                  placeholder="Category"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Cost Classification</label>
-                <select
-                  value={expForm.costType}
-                  onChange={(e) => setExpForm({ ...expForm, costType: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="agency_overhead">Agency Overhead</option>
-                  <option value="client_project">Direct Client Project Cost</option>
-                </select>
+                <SelectDropdown
+                  value={expForm.costType || 'agency_overhead'}
+                  onChange={(val) => setExpForm({ ...expForm, costType: val || 'agency_overhead' })}
+                  options={[
+                    { value: 'agency_overhead', label: 'Agency Overhead' },
+                    { value: 'client_project', label: 'Direct Client Project Cost' },
+                  ]}
+                  placeholder="Cost Classification"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Payment Status</label>
-                <select
-                  value={expForm.paymentStatus}
-                  onChange={(e) => setExpForm({ ...expForm, paymentStatus: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="paid">Paid Now (Full Cash Outflow)</option>
-                  <option value="partially_paid">Partially Paid (Advance / 1st Installment)</option>
-                  <option value="unpaid">Unpaid Vendor Bill (Payable Later)</option>
-                </select>
+                <SelectDropdown
+                  value={expForm.paymentStatus || 'paid'}
+                  onChange={(val) => setExpForm({ ...expForm, paymentStatus: val || 'paid' })}
+                  options={[
+                    { value: 'paid', label: 'Paid Now (Full Cash Outflow)' },
+                    { value: 'partially_paid', label: 'Partially Paid (Advance / 1st Installment)' },
+                    { value: 'unpaid', label: 'Unpaid Vendor Bill (Payable Later)' },
+                  ]}
+                  placeholder="Payment Status"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -940,33 +977,42 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <>
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">Payment Mode</label>
-                    <select
-                      value={expForm.paymentMode}
-                      onChange={(e) => setExpForm({ ...expForm, paymentMode: e.target.value })}
-                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                    >
-                      <option value="Bank">Bank Transfer (NEFT/RTGS/IMPS)</option>
-                      <option value="UPI">UPI (GPay / PhonePe / QR)</option>
-                      <option value="Cash">Cash</option>
-                      <option value="Card">Corporate / Credit Card</option>
-                      <option value="Cheque">Cheque</option>
-                    </select>
+                    <SelectDropdown
+                      value={expForm.paymentMode || 'Bank'}
+                      onChange={(val) => setExpForm({ ...expForm, paymentMode: val || 'Bank' })}
+                      options={[
+                        { value: 'Bank', label: 'Bank Transfer (NEFT/RTGS/IMPS)' },
+                        { value: 'UPI', label: 'UPI (GPay / PhonePe / QR)' },
+                        { value: 'Cash', label: 'Cash' },
+                        { value: 'Card', label: 'Corporate / Credit Card' },
+                        { value: 'Cheque', label: 'Cheque' },
+                      ]}
+                      placeholder="Payment Mode"
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">Paid From Account</label>
-                    <select
+                    <SelectDropdown
                       value={expForm.fundingAccount}
-                      onChange={(e) => setExpForm({ ...expForm, fundingAccount: e.target.value })}
-                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                    >
-                      <option value="">Default / Not specified</option>
-                      {accounts.map((acc) => (
-                        <option key={acc._id} value={acc._id}>
-                          {acc.accountName} ({acc.accountType})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setExpForm({ ...expForm, fundingAccount: val || '' })}
+                      options={[
+                        { value: '', label: 'Default / Not specified' },
+                        ...accounts.map((acc) => ({
+                          value: acc._id,
+                          label: acc.accountName,
+                          subLabel: acc.accountType,
+                        })),
+                      ]}
+                      placeholder="Default / Not specified"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                    />
                   </div>
                 </>
               )}
@@ -1077,42 +1123,46 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
             <form id="finance-modal-form" onSubmit={handlePayrollSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Select Employee *</label>
-                <select
+                <SelectDropdown
                   value={payrollForm.employee}
-                  onChange={(e) => {
-                    const empId = e.target.value;
+                  onChange={(val) => {
+                    const empId = val;
                     const emp = employees.find((x) => x._id === empId);
                     const base = emp?.salary ? Number(emp.salary) : 30000;
                     setPayrollForm({
                       ...payrollForm,
-                      employee: empId,
+                      employee: empId || '',
                       baseSalary: String(base),
                       netSalary: String(base + Number(payrollForm.additions || 0) - Number(payrollForm.deductions || 0)),
                     });
                   }}
-                  required
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="">-- Choose Employee --</option>
-                  {employees.map((emp) => (
-                    <option key={emp._id} value={emp._id}>
-                      {emp.name} ({emp.department || emp.role || 'Staff'}) {emp.salary ? `— Base: ₹${emp.salary}` : ''}
-                    </option>
-                  ))}
-                </select>
+                  options={employees.map((emp) => ({
+                    value: emp._id,
+                    label: emp.name,
+                    subLabel: `${emp.department || emp.role || 'Staff'}${emp.salary ? ` — Base: ₹${emp.salary}` : ''}`,
+                  }))}
+                  placeholder="-- Choose Employee --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Month Period</label>
-                <select
+                <SelectDropdown
                   value={payrollForm.month}
-                  onChange={(e) => setPayrollForm({ ...payrollForm, month: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m) => (
-                    <option key={m} value={m}>{m} {payrollForm.year}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setPayrollForm({ ...payrollForm, month: val || 'January' })}
+                  options={['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m) => ({
+                    value: m,
+                    label: `${m} ${payrollForm.year}`,
+                  }))}
+                  placeholder="Month Period"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-semibold text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -1181,29 +1231,39 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
             <form id="finance-modal-form" onSubmit={handleFounderSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Founder *</label>
-                <select
-                  value={founderForm.founderName}
-                  onChange={(e) => setFounderForm({ ...founderForm, founderName: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                >
-                  <option value="Dinesh M">Dinesh M (Founder / CEO)</option>
-                  <option value="Sathish Kumar">Sathish Kumar (Founder / Partner)</option>
-                </select>
+                <SelectDropdown
+                  value={founderForm.founderName || 'Dinesh M'}
+                  onChange={(val) => setFounderForm({ ...founderForm, founderName: val || 'Dinesh M' })}
+                  options={[
+                    { value: 'Dinesh M', label: 'Dinesh M', subLabel: 'Founder / CEO' },
+                    { value: 'Sathish Kumar', label: 'Sathish Kumar', subLabel: 'Founder / Partner' },
+                  ]}
+                  placeholder="Founder"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-semibold text-foreground border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Transaction Type *</label>
-                <select
-                  value={founderForm.transactionType}
-                  onChange={(e) => setFounderForm({ ...founderForm, transactionType: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                >
-                  <option value="capital_introduced">Capital Introduced (Equity Inflow)</option>
-                  <option value="drawings">Drawings (Equity Outflow)</option>
-                  <option value="loan_to_company">Founder Loan to Company (Liability)</option>
-                  <option value="loan_repayment">Founder Loan Repayment</option>
-                  <option value="profit_allocation">Profit Allocation (Paper Entry)</option>
-                </select>
+                <SelectDropdown
+                  value={founderForm.transactionType || 'capital_introduced'}
+                  onChange={(val) => setFounderForm({ ...founderForm, transactionType: val || 'capital_introduced' })}
+                  options={[
+                    { value: 'capital_introduced', label: 'Capital Introduced (Equity Inflow)' },
+                    { value: 'drawings', label: 'Drawings (Equity Outflow)' },
+                    { value: 'loan_to_company', label: 'Founder Loan to Company (Liability)' },
+                    { value: 'loan_repayment', label: 'Founder Loan Repayment' },
+                    { value: 'profit_allocation', label: 'Profit Allocation (Paper Entry)' },
+                  ]}
+                  placeholder="Transaction Type"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -1248,30 +1308,36 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <>
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">From Account (Source Outflow) *</label>
-                    <select
+                    <SelectDropdown
                       value={transferForm.fromAccount}
-                      onChange={(e) => setTransferForm({ ...transferForm, fromAccount: e.target.value })}
-                      required
-                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                    >
-                      {accounts.map((a) => (
-                        <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setTransferForm({ ...transferForm, fromAccount: val || '' })}
+                      options={accounts.map((a) => ({
+                        value: a._id,
+                        label: a.accountName,
+                        subLabel: `Balance: ₹${a.currentBalance}`,
+                      }))}
+                      placeholder="-- Source Account --"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">To Account (Destination Inflow) *</label>
-                    <select
+                    <SelectDropdown
                       value={transferForm.toAccount}
-                      onChange={(e) => setTransferForm({ ...transferForm, toAccount: e.target.value })}
-                      required
-                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                    >
-                      {accounts.map((a) => (
-                        <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setTransferForm({ ...transferForm, toAccount: val || '' })}
+                      options={accounts.map((a) => ({
+                        value: a._id,
+                        label: a.accountName,
+                        subLabel: `Balance: ₹${a.currentBalance}`,
+                      }))}
+                      placeholder="-- Destination Account --"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                    />
                   </div>
                 </>
               )}
@@ -1352,14 +1418,19 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Frequency</label>
-                <select
-                  value={subForm.frequency}
-                  onChange={(e) => setSubForm({ ...subForm, frequency: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="annual">Annual</option>
-                </select>
+                <SelectDropdown
+                  value={subForm.frequency || 'monthly'}
+                  onChange={(val) => setSubForm({ ...subForm, frequency: val || 'monthly' })}
+                  options={[
+                    { value: 'monthly', label: 'Monthly' },
+                    { value: 'annual', label: 'Annual' },
+                  ]}
+                  placeholder="Frequency"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>

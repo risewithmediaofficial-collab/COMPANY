@@ -31,6 +31,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, IndianRupee, MapPin, User, Globe, Phone, X } from '@/components/ui/muiIcons';
 import { useCreateInfluencer, useUpdateInfluencer } from '../../hooks/useInfluencers';
 
+const optionalNumber = z.preprocess((val) => {
+  if (val === '' || val === null || val === undefined) return 0;
+  const num = Number(val);
+  return isNaN(num) ? 0 : num;
+}, z.number().min(0).default(0));
+
 const influencerSchema = z.object({
   name: z.string().min(1, 'Influencer name is required'),
   handle: z.string().min(1, 'Handle/Username is required'),
@@ -38,13 +44,13 @@ const influencerSchema = z.object({
   platform: z.enum(['Instagram', 'YouTube', 'Facebook', 'Moj', 'Josh', 'X', 'Multi-platform']),
   category: z.string().min(1, 'Category is required'),
   cityLocation: z.string().optional().or(z.literal('')),
-  followersCount: z.coerce.number().min(0, 'Followers must be >= 0'),
-  engagementRate: z.coerce.number().min(0, 'Engagement rate must be >= 0'),
+  followersCount: optionalNumber,
+  engagementRate: optionalNumber,
   pricing: z.object({
-    reelCost: z.coerce.number().min(0),
-    storyCost: z.coerce.number().min(0),
-    postCost: z.coerce.number().min(0),
-    eventCost: z.coerce.number().min(0),
+    reelCost: optionalNumber,
+    storyCost: optionalNumber,
+    postCost: optionalNumber,
+    eventCost: optionalNumber,
   }),
   contactName: z.string().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
@@ -52,7 +58,7 @@ const influencerSchema = z.object({
   email: z.string().optional().or(z.literal('')),
   profileUrl: z.string().optional().or(z.literal('')),
   mediaKitUrl: z.string().optional().or(z.literal('')),
-  rating: z.coerce.number().min(1).max(5),
+  rating: z.coerce.number().min(1).max(5).default(5),
   notes: z.string().optional().or(z.literal('')),
 });
 
@@ -83,13 +89,13 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
       platform: 'Instagram',
       category: 'Lifestyle',
       cityLocation: '',
-      followersCount: 50000,
-      engagementRate: 4.5,
+      followersCount: '',
+      engagementRate: '',
       pricing: {
-        reelCost: 5000,
-        storyCost: 2000,
-        postCost: 4000,
-        eventCost: 10000,
+        reelCost: '',
+        storyCost: '',
+        postCost: '',
+        eventCost: '',
       },
       contactName: '',
       phone: '',
@@ -115,13 +121,13 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
           platform: influencer.platform || 'Instagram',
           category: influencer.category || 'Lifestyle',
           cityLocation: influencer.cityLocation || '',
-          followersCount: influencer.followersCount || 0,
-          engagementRate: influencer.engagementRate || 0,
+          followersCount: influencer.followersCount ?? '',
+          engagementRate: influencer.engagementRate ?? '',
           pricing: {
-            reelCost: influencer.pricing?.reelCost || 0,
-            storyCost: influencer.pricing?.storyCost || 0,
-            postCost: influencer.pricing?.postCost || 0,
-            eventCost: influencer.pricing?.eventCost || 0,
+            reelCost: influencer.pricing?.reelCost ?? '',
+            storyCost: influencer.pricing?.storyCost ?? '',
+            postCost: influencer.pricing?.postCost ?? '',
+            eventCost: influencer.pricing?.eventCost ?? '',
           },
           contactName: influencer.contactName || '',
           phone: influencer.phone || '',
@@ -135,18 +141,18 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
       } else {
         form.reset({
           name: '',
-          handle: '@',
+          handle: '',
           influencerType: defaultType,
           platform: 'Instagram',
           category: 'Fashion & Lifestyle',
-          cityLocation: defaultType === 'Local Influencer' ? 'Chennai' : '',
-          followersCount: 25000,
-          engagementRate: 4.2,
+          cityLocation: '',
+          followersCount: '',
+          engagementRate: '',
           pricing: {
-            reelCost: 4000,
-            storyCost: 1500,
-            postCost: 3000,
-            eventCost: 8000,
+            reelCost: '',
+            storyCost: '',
+            postCost: '',
+            eventCost: '',
           },
           contactName: '',
           phone: '',
@@ -356,6 +362,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                           placeholder="e.g. 50000"
                           className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -377,6 +384,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                           placeholder="e.g. 4.5"
                           className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -403,6 +411,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                               placeholder="e.g. 15000"
                               className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                               {...field}
+                              value={field.value ?? ''}
                             />
                           </FormControl>
                           <FormMessage />
@@ -423,6 +432,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                               placeholder="e.g. 5000"
                               className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                               {...field}
+                              value={field.value ?? ''}
                             />
                           </FormControl>
                           <FormMessage />
@@ -443,6 +453,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                               placeholder="e.g. 10000"
                               className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                               {...field}
+                              value={field.value ?? ''}
                             />
                           </FormControl>
                           <FormMessage />
@@ -463,6 +474,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                               placeholder="e.g. 25000"
                               className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                               {...field}
+                              value={field.value ?? ''}
                             />
                           </FormControl>
                           <FormMessage />

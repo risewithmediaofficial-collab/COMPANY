@@ -52,6 +52,7 @@ import {
 } from '@/components/ui/muiIcons';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import { ProgressUpdateForm } from '../../components/ui/ProgressUpdateForm';
@@ -422,22 +423,18 @@ export const TaskDetails = () => {
           {/* Status Changer */}
           {!isClient && (
             <NotionPropertyRow icon={ShieldCheck} label="Status">
-              <div className="relative inline-flex items-center">
-                <select
+              <div className="relative inline-flex items-center min-w-[140px]">
+                <SelectDropdown
                   value={normalizedStatus}
-                  onChange={(e) => updateStatus.mutate({ id: task._id, status: e.target.value })}
-                  className={`appearance-none cursor-pointer pl-3 pr-8 py-1 rounded-lg text-xs font-bold transition-all outline-none focus:ring-2 focus:ring-primary/20 hover:brightness-105 ${
+                  onChange={(val) => val && updateStatus.mutate({ id: task._id, status: val })}
+                  options={allowedStatusOptions.map((opt) => ({ value: opt, label: opt }))}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-40 text-xs"
+                  buttonClassName={`h-8 py-1 px-3 text-xs font-bold rounded-lg border-none ${
                     STATUS_TONES[normalizedStatus] || STATUS_TONES['To Do']
                   }`}
-                  title="Change Task Status"
-                >
-                  {allowedStatusOptions.map((opt) => (
-                    <option key={opt} value={opt} className="bg-card text-foreground font-semibold py-1">
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={13} className="absolute right-2.5 pointer-events-none opacity-60 shrink-0" />
+                />
               </div>
             </NotionPropertyRow>
           )}

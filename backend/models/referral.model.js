@@ -8,8 +8,20 @@ const referralSchema = new mongoose.Schema(
   {
     organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
     brandId: { type: mongoose.Schema.Types.ObjectId, ref: 'BrandWorkspace' },
-    referrer: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: 'referrerModel' },
-    referrerModel: { type: String, required: true, enum: ['User', 'Client'] },
+    referrer: { type: mongoose.Schema.Types.ObjectId, required: false, refPath: 'referrerModel' },
+    referrerModel: { type: String, required: false, enum: ['User', 'Client', 'Partner', 'Outside'], default: 'User' },
+    referrerType: {
+      type: String,
+      enum: ['employee', 'partner', 'outside'],
+      default: 'outside',
+    },
+    outsideReferrerName: { type: String, default: '' },
+    outsideReferrerContact: { type: String, default: '' },
+    payoutType: {
+      type: String,
+      enum: ['one_time', 'monthly'],
+      default: 'one_time',
+    },
     lead: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' },
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },

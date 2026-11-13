@@ -18,6 +18,7 @@ import {
 import { formatINR } from '../../utils/currency';
 import LinksEditor, { LinksList } from '../../components/ui/LinksEditor';
 import { NotionDetailPage } from '../../components/ui/NotionDetailTemplate';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -307,42 +308,61 @@ const ProposalDetails = () => {
 
           {/* Dynamic Dropdown: Clients or Leads */}
           {form.recipientType === 'client' ? (
-            <select
-              className="app-input"
+            <SelectDropdown
               value={form.client}
-              onChange={(e) => setForm((current) => ({ ...current, client: e.target.value }))}
-            >
-              <option value="">Select client *</option>
-              {clients.map((client) => (
-                <option key={client._id} value={client._id}>{client.company || client.name}</option>
-              ))}
-            </select>
+              onChange={(val) => setForm((current) => ({ ...current, client: val || '' }))}
+              options={clients.map((client) => ({
+                value: client._id,
+                label: client.company || client.name,
+              }))}
+              placeholder="Select client *"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-10 bg-background text-sm rounded-xl border border-border/50"
+            />
           ) : (
-            <select
-              className="app-input"
+            <SelectDropdown
               value={form.lead}
-              onChange={(e) => setForm((current) => ({ ...current, lead: e.target.value }))}
-            >
-              <option value="">Select lead *</option>
-              {leads.map((lead) => (
-                <option key={lead._id} value={lead._id}>
-                  {lead.name} {lead.company ? `(${lead.company})` : ''} {lead.email ? `- ${lead.email}` : ''}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setForm((current) => ({ ...current, lead: val || '' }))}
+              options={leads.map((lead) => ({
+                value: lead._id,
+                label: `${lead.name} ${lead.company ? `(${lead.company})` : ''}`,
+                subLabel: lead.email || undefined,
+              }))}
+              placeholder="Select lead *"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-10 bg-background text-sm rounded-xl border border-border/50"
+            />
           )}
-          <select className="app-input" value={form.serviceCategory} onChange={(e) => setForm((current) => ({ ...current, serviceCategory: e.target.value }))}>
-            {SERVICE_CATEGORIES.map((service) => (
-              <option key={service.value} value={service.value}>{service.label}</option>
-            ))}
-          </select>
+          <SelectDropdown
+            value={form.serviceCategory}
+            onChange={(val) => setForm((current) => ({ ...current, serviceCategory: val || 'social_media' }))}
+            options={SERVICE_CATEGORIES.map((service) => ({
+              value: service.value,
+              label: service.label,
+            }))}
+            placeholder="Service Category"
+            allowCustom={false}
+            allowDeselect={false}
+            className="w-full"
+            buttonClassName="h-10 bg-background text-sm rounded-xl border border-border/50"
+          />
           <Input placeholder="Proposal Type" value={form.proposalType} onChange={(e) => setForm((current) => ({ ...current, proposalType: e.target.value }))} />
           <Input type="number" placeholder="Total Amount (INR)" value={form.amount} onChange={(e) => setForm((current) => ({ ...current, amount: e.target.value }))} />
-          <select className="app-input" value={form.status} onChange={(e) => setForm((current) => ({ ...current, status: e.target.value }))}>
-            {['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired'].map((status) => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
+          <SelectDropdown
+            value={form.status || 'draft'}
+            onChange={(val) => setForm((current) => ({ ...current, status: val || 'draft' }))}
+            options={['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired'].map((status) => ({
+              value: status,
+              label: status.charAt(0).toUpperCase() + status.slice(1),
+            }))}
+            placeholder="Proposal Status"
+            allowCustom={false}
+            allowDeselect={false}
+            className="w-full"
+            buttonClassName="h-10 bg-background text-sm rounded-xl border border-border/50"
+          />
           <Input type="date" value={form.startDate} onChange={(e) => setForm((current) => ({ ...current, startDate: e.target.value }))} />
           <Input type="date" value={form.endDate} onChange={(e) => setForm((current) => ({ ...current, endDate: e.target.value }))} />
           <Textarea className="md:col-span-2" rows={3} placeholder="Description" value={form.description} onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))} />

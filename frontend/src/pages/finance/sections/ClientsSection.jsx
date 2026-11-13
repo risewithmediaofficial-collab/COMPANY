@@ -21,6 +21,7 @@ import {
   X,
 } from '@/components/ui/muiIcons';
 import { useClients, useUpdateClient } from '../../../hooks/useClients';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useClientProfitability,
@@ -406,30 +407,40 @@ export default function ClientsSection({ onQuickAdd }) {
               <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Activity / Deliverable *</label>
-                  <select
-                    value={allocForm.activityDeliverable}
-                    onChange={(e) => setAllocForm({ ...allocForm, activityDeliverable: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
-                  >
-                    <option value="Video Editing">Video Editing (Editor Cost)</option>
-                    <option value="Graphic Design">Graphic Design (Designer Cost)</option>
-                    <option value="Production Shoot">Shoot & Travel Allowance</option>
-                    <option value="Freelancer Fee">Freelancer Deliverable Fee</option>
-                    <option value="Tools Allocation">Software Tools Allocation</option>
-                    <option value="Overhead Allocation">Shared Agency Overhead</option>
-                  </select>
+                  <SelectDropdown
+                    value={allocForm.activityDeliverable || 'Video Editing'}
+                    onChange={(val) => setAllocForm({ ...allocForm, activityDeliverable: val || 'Video Editing' })}
+                    options={[
+                      { value: 'Video Editing', label: 'Video Editing (Editor Cost)' },
+                      { value: 'Graphic Design', label: 'Graphic Design (Designer Cost)' },
+                      { value: 'Production Shoot', label: 'Shoot & Travel Allowance' },
+                      { value: 'Freelancer Fee', label: 'Freelancer Deliverable Fee' },
+                      { value: 'Tools Allocation', label: 'Software Tools Allocation' },
+                      { value: 'Overhead Allocation', label: 'Shared Agency Overhead' },
+                    ]}
+                    placeholder="Activity / Deliverable"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 px-4 rounded-xl text-sm text-foreground bg-background border border-border/50"
+                  />
                 </div>
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Cost Type</label>
-                  <select
-                    value={allocForm.costType}
-                    onChange={(e) => setAllocForm({ ...allocForm, costType: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
-                  >
-                    <option value="direct">Direct Service Cost (Reduces Contribution)</option>
-                    <option value="overhead">Shared Overhead (Reduces Net Profit)</option>
-                  </select>
+                  <SelectDropdown
+                    value={allocForm.costType || 'direct'}
+                    onChange={(val) => setAllocForm({ ...allocForm, costType: val || 'direct' })}
+                    options={[
+                      { value: 'direct', label: 'Direct Service Cost (Reduces Contribution)' },
+                      { value: 'overhead', label: 'Shared Overhead (Reduces Net Profit)' },
+                    ]}
+                    placeholder="Cost Type"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 px-4 rounded-xl text-sm text-foreground bg-background border border-border/50"
+                  />
                 </div>
 
                 <div>
@@ -560,31 +571,38 @@ export default function ClientsSection({ onQuickAdd }) {
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Billing Day of Month</label>
-                  <select
-                    value={clientForm.billingDate}
-                    onChange={(e) => setClientForm({ ...clientForm, billingDate: e.target.value })}
-                    className="w-full h-11 rounded-xl px-4 text-sm text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
-                  >
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                      <option key={d} value={d}>
-                        Day {d} of month
-                      </option>
-                    ))}
-                  </select>
+                  <SelectDropdown
+                    value={clientForm.billingDate || 1}
+                    onChange={(val) => setClientForm({ ...clientForm, billingDate: Number(val) || 1 })}
+                    options={Array.from({ length: 31 }, (_, i) => i + 1).map((d) => ({
+                      value: d,
+                      label: `Day ${d} of month`,
+                    }))}
+                    placeholder="Billing Day"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 rounded-xl px-4 text-sm text-foreground bg-background border border-border/50"
+                  />
                 </div>
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Billing Cycle</label>
-                  <select
-                    value={clientForm.billingCycle}
-                    onChange={(e) => setClientForm({ ...clientForm, billingCycle: e.target.value })}
-                    className="w-full h-11 rounded-xl px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="annually">Annually</option>
-                    <option value="one_time">One-time / Milestone</option>
-                  </select>
+                  <SelectDropdown
+                    value={clientForm.billingCycle || 'monthly'}
+                    onChange={(val) => setClientForm({ ...clientForm, billingCycle: val || 'monthly' })}
+                    options={[
+                      { value: 'monthly', label: 'Monthly' },
+                      { value: 'quarterly', label: 'Quarterly' },
+                      { value: 'annually', label: 'Annually' },
+                      { value: 'one_time', label: 'One-time / Milestone' },
+                    ]}
+                    placeholder="Billing Cycle"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 rounded-xl px-4 text-sm text-foreground bg-background border border-border/50"
+                  />
                 </div>
 
                 {/* Direct Cost Allocations for this client in current period */}

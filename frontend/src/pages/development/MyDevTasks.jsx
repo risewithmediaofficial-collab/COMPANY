@@ -49,7 +49,7 @@ export default function MyDevTasks() {
 
   // Filter tasks based on global date filter + activeTab
   const filteredTasks = useMemo(() => tasks.filter((t) => {
-    if (!isDateInRange([t.dueDate, t.createdAt])) return false;
+    if (!isDateInRange(t.dueDate || t.createdAt)) return false;
     const dev = t.development || {};
     const uId = user?._id?.toString();
 

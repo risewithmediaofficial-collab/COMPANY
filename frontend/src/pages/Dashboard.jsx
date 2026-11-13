@@ -71,6 +71,7 @@ import { AddClientModal } from '../components/modals/AddClientModal';
 import { useEodReports } from '../hooks/useEodReports';
 import { AttendanceWidget } from '../components/attendance/AttendanceWidget';
 import { WeeklyTodosWidget } from '../components/todos/WeeklyTodosWidget';
+import { SelectDropdown } from '../components/ui/SelectDropdown';
 import api from '../api';
 import { formatINR } from '../utils/currency';
 import { useSocket } from '../context/SocketContext';
@@ -85,7 +86,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSynced, setLastSynced] = useState(new Date());
-  const [activeTab, setActiveTab] = useState('command'); // 'command' | 'metrics' | 'operations' | 'team'
+  const [activeTab, setActiveTab] = useState('command'); // 'command' | 'todos' | 'metrics' | 'team'
 
   // Modals
   const [showEodModal, setShowEodModal] = useState(false);
@@ -101,7 +102,7 @@ const Dashboard = () => {
   const [userMetricRoleFilter, setUserMetricRoleFilter] = useState('all');
 
   const socket = useSocket();
-  const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager';
+  const isAdminOrManager = ['superAdmin', 'admin', 'organizationOwner', 'manager'].includes(user?.role);
 
   // Queries for manager and employee EOD views
   const { data: eodData } = useEodReports(
@@ -133,7 +134,7 @@ const Dashboard = () => {
     if (showLoader) setLoading(true);
     setIsRefreshing(true);
     try {
-      const endpoint = user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager'
+      const endpoint = ['superAdmin', 'admin', 'organizationOwner', 'manager'].includes(user.role)
         ? '/reports/admin'
         : user.role === 'client'
           ? '/reports/client'
@@ -309,7 +310,6 @@ const Dashboard = () => {
                 { id: 'command', label: 'Command Center', icon: Activity },
                 { id: 'todos', label: 'Weekly Todos', icon: CheckSquare },
                 { id: 'metrics', label: 'All Metrics & Analytics', icon: BarChart3 },
-                { id: 'operations', label: 'My Focus & Deliverables', icon: Target },
                 { id: 'team', label: 'Team Workload & EOD', icon: Users },
               ].map((tab) => {
                 const Icon = tab.icon;
@@ -910,16 +910,22 @@ const Dashboard = () => {
                     />
                   </div>
 
-                  <select
-                    value={userMetricRoleFilter}
-                    onChange={(e) => setUserMetricRoleFilter(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-background text-xs font-semibold text-foreground focus:ring-2 focus:ring-brand/40 outline-none cursor-pointer flex-1 sm:flex-initial"
-                  >
-                    <option value="all">All Roles</option>
-                    <option value="employee">Employees</option>
-                    <option value="manager">Managers</option>
-                    <option value="admin">Admins</option>
-                  </select>
+                  <div className="w-36">
+                    <SelectDropdown
+                      value={userMetricRoleFilter}
+                      onChange={(val) => setUserMetricRoleFilter(val || 'all')}
+                      options={[
+                        { value: 'all', label: 'All Roles' },
+                        { value: 'employee', label: 'Employees' },
+                        { value: 'manager', label: 'Managers' },
+                        { value: 'admin', label: 'Admins' },
+                      ]}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-36 text-xs"
+                      buttonClassName="h-8.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-background border border-border/40"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1260,14 +1266,16 @@ const Dashboard = () => {
               <span>Sync</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowEodModal(true)}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors min-h-[38px] cursor-pointer"
-            >
-              <CheckCircle2 size={15} />
-              <span>Submit Daily EOD</span>
-            </button>
+            {!['superAdmin', 'organizationOwner', 'admin'].includes(user?.role) && (
+              <button
+                type="button"
+                onClick={() => setShowEodModal(true)}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors min-h-[38px] cursor-pointer"
+              >
+                <CheckCircle2 size={15} />
+                <span>Submit Daily EOD</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -1437,7 +1445,7 @@ const Dashboard = () => {
 
   return (
     <div className="animate-in fade-in duration-300">
-      {user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager'
+      {['superAdmin', 'admin', 'organizationOwner', 'manager'].includes(user.role)
         ? renderAdminCommandCenter()
         : user.role === 'client'
         ? renderClientStats()

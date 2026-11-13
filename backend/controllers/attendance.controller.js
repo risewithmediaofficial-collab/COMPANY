@@ -204,7 +204,7 @@ export const ensureSundayHolidaysForPeriod = async (startDate, endDate, specific
     const User = (await import('../models/user.model.js')).default;
     const userQuery = {
       isActive: true,
-      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral', 'superAdmin', 'organizationOwner', 'admin'] },
     };
     if (specificUserId && specificUserId !== 'all') {
       userQuery._id = specificUserId;
@@ -310,7 +310,7 @@ export const ensureAutoAbsentForToday = async (startOfToday, endOfToday) => {
     const User = (await import('../models/user.model.js')).default;
     const eligibleUsers = await User.find({
       isActive: true,
-      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral', 'superAdmin', 'organizationOwner', 'admin'] },
     }).select('_id name').lean();
 
     if (!eligibleUsers.length) return;
@@ -382,8 +382,19 @@ export const getAttendance = async (req, res) => {
     if (!isPrivileged || req.user.role === 'employee') {
       filter.user = req.user._id;
     } else {
+      const User = (await import('../models/user.model.js')).default;
+      const ownerUsers = await User.find({ role: { $in: ['superAdmin', 'organizationOwner'] } }).select('_id').lean();
+      if (ownerUsers.length) {
+        await Attendance.deleteMany({
+          user: { $in: ownerUsers.map((o) => o._id) },
+          status: { $in: ['absent', 'holiday'] },
+        }).catch(() => {});
+      }
+
       if (userId && userId !== 'all') {
         filter.user = userId;
+      } else if (ownerUsers.length) {
+        filter.user = { $nin: ownerUsers.map((o) => o._id) };
       }
     }
 
@@ -468,8 +479,13 @@ export const getTeamAttendance = async (req, res) => {
       await ensureAutoAbsentForToday(startOfToday, endOfToday);
     }
 
+    const User = (await import('../models/user.model.js')).default;
+    const ownerUsers = await User.find({ role: { $in: ['superAdmin', 'organizationOwner'] } }).select('_id').lean();
+    const teamUserQuery = ownerUsers.length ? { $nin: ownerUsers.map((o) => o._id) } : { $exists: true };
+
     const records = await Attendance.find({
       date: { $gte: startOfToday, $lte: endOfToday },
+      user: teamUserQuery,
     })
       .populate('user', 'name avatar department position role email')
       .populate('approvedBy', 'name role');

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { smmApi } from '../../api/smm';
 import { Building2, FolderKanban, Share2, Filter, RefreshCw, ChevronDown, ChevronUp } from '@/components/ui/muiIcons';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
   const [clients, setClients] = useState([]);
@@ -84,21 +85,24 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
           <label className="text-[11px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
             <Building2 size={12} /> Client
           </label>
-          <select
+          <SelectDropdown
             value={filters.client || ''}
-            onChange={(e) => {
-              onFilterChange('client', e.target.value);
+            onChange={(val) => {
+              onFilterChange('client', val || '');
               onFilterChange('project', '');
             }}
-            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
-          >
-            <option value="">All Clients (Agency View)</option>
-            {clients.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.companyName || c.name}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: 'All Clients (Agency View)' },
+              ...clients.map((c) => ({
+                value: c._id,
+                label: c.companyName || c.name,
+              })),
+            ]}
+            placeholder="All Clients"
+            allowCustom={false}
+            className="w-full"
+            buttonClassName="h-9 px-3 text-xs bg-background rounded-xl border border-border/50"
+          />
         </div>
 
         {/* 2. Project Select */}
@@ -106,19 +110,21 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
           <label className="text-[11px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
             <FolderKanban size={12} /> Project
           </label>
-          <select
+          <SelectDropdown
             value={filters.project || ''}
-            onChange={(e) => onFilterChange('project', e.target.value)}
-            disabled={loadingProjects}
-            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            <option value="">All Projects</option>
-            {projects.map((p) => (
-              <option key={p._id} value={p._id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => onFilterChange('project', val || '')}
+            options={[
+              { value: '', label: 'All Projects' },
+              ...projects.map((p) => ({
+                value: p._id,
+                label: p.name,
+              })),
+            ]}
+            placeholder="All Projects"
+            allowCustom={false}
+            className="w-full"
+            buttonClassName="h-9 px-3 text-xs bg-background rounded-xl border border-border/50"
+          />
         </div>
 
         {/* 3. Platform */}
@@ -126,56 +132,68 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
           <label className="text-[11px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
             <Share2 size={12} /> Platform
           </label>
-          <select
+          <SelectDropdown
             value={filters.platform || ''}
-            onChange={(e) => onFilterChange('platform', e.target.value)}
-            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
-          >
-            <option value="">All Platforms</option>
-            <option value="Instagram">Instagram</option>
-            <option value="Facebook">Facebook</option>
-            <option value="Meta">Meta Ads</option>
-            <option value="Google">Google Ads</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="YouTube">YouTube</option>
-            <option value="X/Twitter">Twitter / X</option>
-          </select>
+            onChange={(val) => onFilterChange('platform', val || '')}
+            options={[
+              { value: '', label: 'All Platforms' },
+              { value: 'Instagram', label: 'Instagram' },
+              { value: 'Facebook', label: 'Facebook' },
+              { value: 'Meta', label: 'Meta Ads' },
+              { value: 'Google', label: 'Google Ads' },
+              { value: 'LinkedIn', label: 'LinkedIn' },
+              { value: 'YouTube', label: 'YouTube' },
+              { value: 'X/Twitter', label: 'Twitter / X' },
+            ]}
+            placeholder="All Platforms"
+            allowCustom={false}
+            className="w-full"
+            buttonClassName="h-9 px-3 text-xs bg-background rounded-xl border border-border/50"
+          />
         </div>
 
         {/* 4. Content Type */}
         <div>
           <label className="text-[11px] font-medium text-muted-foreground mb-1 block">Content Type</label>
-          <select
+          <SelectDropdown
             value={filters.contentType || ''}
-            onChange={(e) => onFilterChange('contentType', e.target.value)}
-            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
-          >
-            <option value="">All Content</option>
-            <option value="Reel">Reel</option>
-            <option value="Story">Story</option>
-            <option value="Reel / Story">Reel / Story</option>
-            <option value="Post">Post</option>
-            <option value="Video">Video</option>
-            <option value="Short">Short</option>
-          </select>
+            onChange={(val) => onFilterChange('contentType', val || '')}
+            options={[
+              { value: '', label: 'All Content' },
+              { value: 'Reel', label: 'Reel' },
+              { value: 'Story', label: 'Story' },
+              { value: 'Reel / Story', label: 'Reel / Story' },
+              { value: 'Post', label: 'Post' },
+              { value: 'Video', label: 'Video' },
+              { value: 'Short', label: 'Short' },
+            ]}
+            placeholder="All Content"
+            allowCustom={false}
+            className="w-full"
+            buttonClassName="h-9 px-3 text-xs bg-background rounded-xl border border-border/50"
+          />
         </div>
 
         {/* 5. Campaign Status */}
         <div>
           <label className="text-[11px] font-medium text-muted-foreground mb-1 block">Ad Campaign Status</label>
-          <select
+          <SelectDropdown
             value={filters.campaignStatus || ''}
-            onChange={(e) => onFilterChange('campaignStatus', e.target.value)}
-            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
-          >
-            <option value="">All Statuses</option>
-            <option value="Draft">Draft</option>
-            <option value="Scheduled">Scheduled</option>
-            <option value="Running">Running</option>
-            <option value="Paused">Paused</option>
-            <option value="Stopped">Stopped</option>
-            <option value="Completed">Completed</option>
-          </select>
+            onChange={(val) => onFilterChange('campaignStatus', val || '')}
+            options={[
+              { value: '', label: 'All Statuses' },
+              { value: 'Draft', label: 'Draft' },
+              { value: 'Scheduled', label: 'Scheduled' },
+              { value: 'Running', label: 'Running' },
+              { value: 'Paused', label: 'Paused' },
+              { value: 'Stopped', label: 'Stopped' },
+              { value: 'Completed', label: 'Completed' },
+            ]}
+            placeholder="All Statuses"
+            allowCustom={false}
+            className="w-full"
+            buttonClassName="h-9 px-3 text-xs bg-background rounded-xl border border-border/50"
+          />
         </div>
       </div>
     </div>

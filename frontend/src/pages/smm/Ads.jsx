@@ -10,6 +10,7 @@ import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 export default function Ads() {
   const location = useLocation();
@@ -36,7 +37,7 @@ export default function Ads() {
 
   const [adMetrics, setAdMetrics] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
-    leads: 0, spend: 0, revenue: 0, conversions: 0, impressions: 0, clicks: 0, ctr: 0, cpc: 0, cpl: 0, roas: 0
+    leads: '', spend: '', revenue: '', conversions: '', impressions: '', clicks: '', ctr: '', cpc: '', cpl: '', roas: ''
   });
 
   const fetchData = async () => {
@@ -195,16 +196,16 @@ export default function Ads() {
     setSelectedAdForLog(ad);
     setAdMetrics({
       date: format(new Date(), 'yyyy-MM-dd'),
-      leads: ad.performance?.leads || 0,
-      spend: ad.performance?.spend || 0,
-      revenue: ad.performance?.revenue || 0,
-      conversions: ad.performance?.conversions || 0,
-      impressions: ad.performance?.impressions || 0,
-      clicks: ad.performance?.clicks || 0,
-      ctr: ad.performance?.ctr || 0,
-      cpc: ad.performance?.cpc || 0,
-      cpl: ad.performance?.cpl || 0,
-      roas: ad.performance?.roas || 0,
+      leads: ad.performance?.leads ?? '',
+      spend: ad.performance?.spend ?? '',
+      revenue: ad.performance?.revenue ?? '',
+      conversions: ad.performance?.conversions ?? '',
+      impressions: ad.performance?.impressions ?? '',
+      clicks: ad.performance?.clicks ?? '',
+      ctr: ad.performance?.ctr ?? '',
+      cpc: ad.performance?.cpc ?? '',
+      cpl: ad.performance?.cpl ?? '',
+      roas: ad.performance?.roas ?? '',
     });
     setIsLogDrawerOpen(true);
   };
@@ -400,12 +401,20 @@ export default function Ads() {
           <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Ads by name, video, or headline..." />
         </div>
         <div className="w-full sm:w-48">
-          <select value={approvalFilter} onChange={(e) => setApprovalFilter(e.target.value)} className="app-select w-full">
-            <option value="">All Approvals</option>
-            <option value="Pending">Pending Approval</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-          </select>
+          <SelectDropdown
+            value={approvalFilter}
+            onChange={(val) => setApprovalFilter(val || '')}
+            options={[
+              { value: '', label: 'All Approvals' },
+              { value: 'Pending', label: 'Pending Approval' },
+              { value: 'Approved', label: 'Approved' },
+              { value: 'Rejected', label: 'Rejected' },
+            ]}
+            placeholder="All Approvals"
+            allowCustom={false}
+            className="w-full"
+            buttonClassName="h-10 text-xs font-semibold rounded-xl bg-background border border-border/50"
+          />
         </div>
       </div>
 
@@ -440,8 +449,8 @@ export default function Ads() {
               <input
                 type="number"
                 required
-                value={adMetrics.leads}
-                onChange={e => setAdMetrics({...adMetrics, leads: Number(e.target.value)})}
+                value={adMetrics.leads ?? ''}
+                onChange={e => setAdMetrics({ ...adMetrics, leads: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input tabular-nums"
                 placeholder="e.g. 25"
               />
@@ -450,8 +459,8 @@ export default function Ads() {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Ad Spend Amount (₹)</label>
               <input
                 type="number"
-                value={adMetrics.spend}
-                onChange={e => setAdMetrics({...adMetrics, spend: Number(e.target.value)})}
+                value={adMetrics.spend ?? ''}
+                onChange={e => setAdMetrics({ ...adMetrics, spend: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input tabular-nums"
                 placeholder="e.g. 2500"
               />
@@ -460,8 +469,8 @@ export default function Ads() {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Revenue Generated (₹)</label>
               <input
                 type="number"
-                value={adMetrics.revenue}
-                onChange={e => setAdMetrics({...adMetrics, revenue: Number(e.target.value)})}
+                value={adMetrics.revenue ?? ''}
+                onChange={e => setAdMetrics({ ...adMetrics, revenue: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input tabular-nums"
                 placeholder="e.g. 15000"
               />
@@ -470,8 +479,8 @@ export default function Ads() {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Conversions / Sales</label>
               <input
                 type="number"
-                value={adMetrics.conversions}
-                onChange={e => setAdMetrics({...adMetrics, conversions: Number(e.target.value)})}
+                value={adMetrics.conversions ?? ''}
+                onChange={e => setAdMetrics({ ...adMetrics, conversions: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input tabular-nums"
                 placeholder="e.g. 4"
               />
@@ -480,8 +489,8 @@ export default function Ads() {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Clicks Count</label>
               <input
                 type="number"
-                value={adMetrics.clicks}
-                onChange={e => setAdMetrics({...adMetrics, clicks: Number(e.target.value)})}
+                value={adMetrics.clicks ?? ''}
+                onChange={e => setAdMetrics({ ...adMetrics, clicks: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input tabular-nums"
                 placeholder="e.g. 350"
               />
@@ -490,8 +499,8 @@ export default function Ads() {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Impressions Count</label>
               <input
                 type="number"
-                value={adMetrics.impressions}
-                onChange={e => setAdMetrics({...adMetrics, impressions: Number(e.target.value)})}
+                value={adMetrics.impressions ?? ''}
+                onChange={e => setAdMetrics({ ...adMetrics, impressions: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input tabular-nums"
                 placeholder="e.g. 12000"
               />
@@ -514,11 +523,10 @@ export default function Ads() {
         <form onSubmit={handleSave} className="space-y-5 text-left">
           <div>
             <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Ad Set *</label>
-            <select
-              required
+            <SelectDropdown
               value={formData.adSet}
-              onChange={e => {
-                const chosenSetId = e.target.value;
+              onChange={(val) => {
+                const chosenSetId = val;
                 const chosenSet = adSets.find(s => String(s._id) === String(chosenSetId));
                 const newCta = (chosenSet?.formType === 'Call' || chosenSet?.formType === 'Calls')
                   ? 'Call Now'
@@ -533,11 +541,16 @@ export default function Ads() {
                           : (formData.cta || 'Learn More');
                 setFormData(prev => ({ ...prev, adSet: chosenSetId, cta: newCta }));
               }}
-              className="app-select"
-            >
-              <option value="">Select Ad Set</option>
-              {adSets.map(s => <option key={s._id} value={s._id}>{s.name} ({s.campaign?.name || 'Campaign'})</option>)}
-            </select>
+              options={adSets.map(s => ({
+                value: s._id,
+                label: s.name,
+                subLabel: s.campaign?.name || 'Campaign',
+              }))}
+              placeholder="Select Ad Set"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+            />
           </div>
 
           {/* Select Video from Campaign / Database */}
@@ -554,18 +567,20 @@ export default function Ads() {
                 </span>
               )}
             </div>
-            <select
+            <SelectDropdown
               value={formData.sourceContentId}
-              onChange={e => handleSelectExistingVideo(e.target.value)}
-              className="app-select bg-background"
-            >
-              <option value="">-- Choose Campaign Video / Reel to Run Ad --</option>
-              {campaignVideos.map(v => (
-                <option key={v._id} value={v._id}>
-                  {v.name} ({v.contentType}){v.adRecommendation === '🔥 HIGH POTENTIAL' ? ' [High Potential]' : ''}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => handleSelectExistingVideo(val || '')}
+              options={campaignVideos.map(v => ({
+                value: v._id,
+                label: v.name,
+                subLabel: `${v.contentType || 'Video'}${v.adRecommendation === '🔥 HIGH POTENTIAL' ? ' · 🔥 High Potential' : ''}`,
+              }))}
+              placeholder="-- Choose Campaign Video / Reel to Run Ad --"
+              allOptionLabel="-- None / New Creative --"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+            />
           </div>
 
           <div>
@@ -583,31 +598,41 @@ export default function Ads() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Delivery Status</label>
-              <select
+              <SelectDropdown
                 value={formData.status}
-                onChange={e => setFormData({...formData, status: e.target.value})}
-                className="app-select"
-              >
-                <option value="Active">Active &amp; Running</option>
-                <option value="Draft">Draft</option>
-                <option value="Paused">Paused</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, status: val || 'Active' })}
+                options={[
+                  { value: 'Active', label: 'Active & Running' },
+                  { value: 'Draft', label: 'Draft' },
+                  { value: 'Paused', label: 'Paused' },
+                ]}
+                placeholder="Select Delivery Status"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">CTA Button</label>
-              <select
+              <SelectDropdown
                 value={formData.cta}
-                onChange={e => setFormData({...formData, cta: e.target.value})}
-                className="app-select"
-              >
-                <option value="WhatsApp">WhatsApp (Direct Message)</option>
-                <option value="Learn More">Learn More</option>
-                <option value="Book Now">Book Now</option>
-                <option value="Contact Us">Contact Us</option>
-                <option value="Call Now">Call Now</option>
-                <option value="Sign Up">Sign Up</option>
-                <option value="Get Quote">Get Quote</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, cta: val || 'Learn More' })}
+                options={[
+                  { value: 'WhatsApp', label: 'WhatsApp (Direct Message)' },
+                  { value: 'Learn More', label: 'Learn More' },
+                  { value: 'Book Now', label: 'Book Now' },
+                  { value: 'Contact Us', label: 'Contact Us' },
+                  { value: 'Call Now', label: 'Call Now' },
+                  { value: 'Sign Up', label: 'Sign Up' },
+                  { value: 'Get Quote', label: 'Get Quote' },
+                ]}
+                placeholder="Select CTA Button"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
           </div>
 

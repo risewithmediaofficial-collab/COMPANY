@@ -28,6 +28,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '../../../components/ui/button';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 import {
   usePaymentReminders,
   useCreatePaymentReminder,
@@ -721,17 +722,22 @@ export default function PaymentRemindersTab() {
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Category
                 </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
-                >
-                  <option value="referral">Referral Cut</option>
-                  <option value="client_cut">Client-Side Share</option>
-                  <option value="commission">Commission Payout</option>
-                  <option value="consulting">Consulting / Advisor</option>
-                  <option value="other">Other Settlement</option>
-                </select>
+                <SelectDropdown
+                  value={formData.category || 'referral'}
+                  onChange={(val) => setFormData({ ...formData, category: val || 'referral' })}
+                  options={[
+                    { value: 'referral', label: 'Referral Cut' },
+                    { value: 'client_cut', label: 'Client-Side Share' },
+                    { value: 'commission', label: 'Commission Payout' },
+                    { value: 'consulting', label: 'Consulting / Advisor' },
+                    { value: 'other', label: 'Other Settlement' },
+                  ]}
+                  placeholder="Category"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -797,35 +803,43 @@ export default function PaymentRemindersTab() {
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Expected Payment Mode
                 </label>
-                <select
-                  value={formData.paymentMode}
-                  onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
-                >
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Cheque">Cheque</option>
-                  <option value="Other">Other</option>
-                </select>
+                <SelectDropdown
+                  value={formData.paymentMode || 'Bank Transfer'}
+                  onChange={(val) => setFormData({ ...formData, paymentMode: val || 'Bank Transfer' })}
+                  options={[
+                    { value: 'Bank Transfer', label: 'Bank Transfer' },
+                    { value: 'UPI', label: 'UPI' },
+                    { value: 'Cash', label: 'Cash' },
+                    { value: 'Cheque', label: 'Cheque' },
+                    { value: 'Other', label: 'Other' },
+                  ]}
+                  placeholder="Expected Payment Mode"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Link to Client (Optional)
                 </label>
-                <select
+                <SelectDropdown
                   value={formData.client}
-                  onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
-                >
-                  <option value="">None / External Party</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name} {c.company ? `(${c.company})` : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, client: val || '' })}
+                  options={[
+                    { value: '', label: 'None / External Party' },
+                    ...clients.map((c) => ({
+                      value: c._id,
+                      label: `${c.name}${c.company ? ` (${c.company})` : ''}`,
+                    })),
+                  ]}
+                  placeholder="None / External Party"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -976,17 +990,22 @@ export default function PaymentRemindersTab() {
 
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Payment Mode</label>
-                  <select
-                    value={paymentForm.paymentMode}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, paymentMode: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
-                  >
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Cheque">Cheque</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  <SelectDropdown
+                    value={paymentForm.paymentMode || 'Bank Transfer'}
+                    onChange={(val) => setPaymentForm({ ...paymentForm, paymentMode: val || 'Bank Transfer' })}
+                    options={[
+                      { value: 'Bank Transfer', label: 'Bank Transfer' },
+                      { value: 'UPI', label: 'UPI' },
+                      { value: 'Cash', label: 'Cash' },
+                      { value: 'Cheque', label: 'Cheque' },
+                      { value: 'Other', label: 'Other' },
+                    ]}
+                    placeholder="Payment Mode"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground border border-border/50"
+                  />
                 </div>
 
                 <div>

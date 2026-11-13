@@ -172,6 +172,7 @@ const buildUserTaskAssignmentOr = (userId) => [
   { scriptWriterAssigned: userId },
   { voiceArtistAssigned: userId },
   { videographerAssigned: userId },
+  { extraShootPersons: userId },
   { editorAssigned: userId },
   { publisherAssigned: userId },
   { designerAssigned: userId },
@@ -184,6 +185,7 @@ const isTaskAssignedToUser = (task, userId) => {
     || toIdString(task.scriptWriterAssigned) === id
     || toIdString(task.voiceArtistAssigned) === id
     || toIdString(task.videographerAssigned) === id
+    || toArray(task.extraShootPersons).map(toIdString).includes(id)
     || toIdString(task.editorAssigned) === id
     || toIdString(task.publisherAssigned) === id
     || toIdString(task.designerAssigned) === id;
@@ -253,6 +255,10 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.scriptWriterAssigned !== undefined) payload.scriptWriterAssigned = toObjectIdOrNull(payload.scriptWriterAssigned);
   if (payload.voiceArtistAssigned !== undefined) payload.voiceArtistAssigned = toObjectIdOrNull(payload.voiceArtistAssigned);
   if (payload.videographerAssigned !== undefined) payload.videographerAssigned = toObjectIdOrNull(payload.videographerAssigned);
+  if (payload.extraShootPersons !== undefined) {
+    const list = toArray(payload.extraShootPersons).map(toObjectIdOrNull).filter(Boolean);
+    payload.extraShootPersons = [...new Set(list.map((id) => id.toString()))].map((id) => new mongoose.Types.ObjectId(id));
+  }
   if (payload.editorAssigned !== undefined) payload.editorAssigned = toObjectIdOrNull(payload.editorAssigned);
   if (payload.publisherAssigned !== undefined) payload.publisherAssigned = toObjectIdOrNull(payload.publisherAssigned);
   if (payload.designerAssigned !== undefined) payload.designerAssigned = toObjectIdOrNull(payload.designerAssigned);
@@ -454,6 +460,7 @@ const hydrateTask = async (taskId) => Task.findById(taskId)
   .populate('scriptWriterAssigned', 'name email avatar role')
   .populate('voiceArtistAssigned', 'name email avatar role')
   .populate('videographerAssigned', 'name email avatar role')
+  .populate('extraShootPersons', 'name email avatar role position')
   .populate('editorAssigned', 'name email avatar role')
   .populate('publisherAssigned', 'name email avatar role')
   .populate('designerAssigned', 'name email avatar role')
@@ -515,6 +522,7 @@ const syncTaskDerivedFields = async (task) => {
     task.scriptWriterAssigned,
     task.voiceArtistAssigned,
     task.videographerAssigned,
+    ...toArray(task.extraShootPersons),
     task.editorAssigned,
     task.publisherAssigned,
     task.designerAssigned,
@@ -689,11 +697,13 @@ export const getTasks = async (req, res) => {
       parent,
       scope,
       period,
+      startDate,
+      endDate,
       sortBy,
       sortOrder,
     } = req.query;
 
-    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 100, maxLimit: 1000 });
 
     const filter = {
       department: { $ne: 'Development' },
@@ -719,6 +729,9 @@ export const getTasks = async (req, res) => {
     if (priority) filter.priority = priorityMap[priority] || priority;
     if (assignedTo) filter.assignedTo = assignedTo;
     if (assignedManager) filter.assignedManager = assignedManager;
+
+    const andConditions = [];
+
     if (dueDate) {
       const date = new Date(dueDate);
       if (!Number.isNaN(date.getTime())) {
@@ -729,54 +742,90 @@ export const getTasks = async (req, res) => {
         filter.dueDate = { $gte: start, $lte: end };
       }
     }
-    if (period) {
+
+    // Date range & period handling (This Month, Previous Month, Yearly, Custom)
+    let dateRangeStart = null;
+    let dateRangeEnd = null;
+
+    if (startDate || endDate) {
+      if (startDate) {
+        const [y, m, d] = String(startDate).split('-').map(Number);
+        dateRangeStart = !Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(d)
+          ? new Date(y, m - 1, d, 0, 0, 0, 0)
+          : new Date(startDate);
+      }
+      if (endDate) {
+        const [y, m, d] = String(endDate).split('-').map(Number);
+        dateRangeEnd = !Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(d)
+          ? new Date(y, m - 1, d, 23, 59, 59, 999)
+          : new Date(endDate);
+      }
+    } else if (period) {
       const now = new Date();
       if (period === 'today') {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-        filter.$or = [
-          { dueDate: { $gte: start, $lte: end } },
-          { shootDate: { $gte: start, $lte: end } },
-          { postingScheduleDate: { $gte: start, $lte: end } },
-          { createdAt: { $gte: start, $lte: end } },
-        ];
+        dateRangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        dateRangeEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
       } else if (period === 'weekly' || period === 'this_week') {
         const day = now.getDay();
         const diffToMonday = day === 0 ? -6 : 1 - day;
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
-        const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 999);
-        filter.$or = [
-          { dueDate: { $gte: start, $lte: end } },
-          { shootDate: { $gte: start, $lte: end } },
-          { postingScheduleDate: { $gte: start, $lte: end } },
-          { createdAt: { $gte: start, $lte: end } },
-        ];
-      } else if (period === 'this_month') {
-        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        filter.$or = [
-          { dueDate: { $gte: start, $lte: end } },
-          { shootDate: { $gte: start, $lte: end } },
-          { postingScheduleDate: { $gte: start, $lte: end } },
-          { createdAt: { $gte: start, $lte: end } },
-        ];
+        dateRangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
+        dateRangeEnd = new Date(dateRangeStart.getFullYear(), dateRangeStart.getMonth(), dateRangeStart.getDate() + 6, 23, 59, 59, 999);
+      } else if (period === 'this_month' || period === 'monthly') {
+        dateRangeStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        dateRangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      } else if (period === 'previous_month' || period === 'lastMonth') {
+        dateRangeStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        dateRangeEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      } else if (period === 'yearly' || period === 'this_year') {
+        dateRangeStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+        dateRangeEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
       } else if (period === 'overdue') {
         filter.dueDate = { $lt: now };
         filter.status = { $nin: ['approved', 'done', 'completed', 'Completed', 'Done', 'Approved'] };
       }
     }
 
+    if (dateRangeStart || dateRangeEnd) {
+      const start = dateRangeStart || new Date(0);
+      const end = dateRangeEnd || new Date(8640000000000000);
+      andConditions.push({
+        $or: [
+          { dueDate: { $gte: start, $lte: end } },
+          { postingScheduleDate: { $gte: start, $lte: end } },
+          { shootDate: { $gte: start, $lte: end } },
+          { editDueDate: { $gte: start, $lte: end } },
+          { startDate: { $gte: start, $lte: end } },
+          {
+            $and: [
+              { $or: [{ dueDate: null }, { dueDate: { $exists: false } }] },
+              { $or: [{ postingScheduleDate: null }, { postingScheduleDate: { $exists: false } }] },
+              { $or: [{ shootDate: null }, { shootDate: { $exists: false } }] },
+              { $or: [{ editDueDate: null }, { editDueDate: { $exists: false } }] },
+              { $or: [{ startDate: null }, { startDate: { $exists: false } }] },
+              { createdAt: { $gte: start, $lte: end } },
+            ],
+          },
+        ],
+      });
+    }
+
     if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } },
-        { taskType: { $regex: search, $options: 'i' } },
-        { clientName: { $regex: search, $options: 'i' } },
-        { assignedPersonName: { $regex: search, $options: 'i' } },
-        { scriptText: { $regex: search, $options: 'i' } },
-        { websiteRequirements: { $regex: search, $options: 'i' } },
-      ];
+      andConditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { tags: { $regex: search, $options: 'i' } },
+          { taskType: { $regex: search, $options: 'i' } },
+          { clientName: { $regex: search, $options: 'i' } },
+          { assignedPersonName: { $regex: search, $options: 'i' } },
+          { scriptText: { $regex: search, $options: 'i' } },
+          { websiteRequirements: { $regex: search, $options: 'i' } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      filter.$and = andConditions;
     }
 
     let sortOptions = { dueDate: 1, orderIndex: 1, createdAt: -1 };

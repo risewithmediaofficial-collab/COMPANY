@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { SelectDropdown } from './SelectDropdown';
 import { ProgressUpdateForm } from './ProgressUpdateForm';
 import { useAddCompletedFiles, useTask, useUpdateTaskStatus, useDeleteTask } from '../../hooks/useTasks';
 import { AddTaskModal } from '../modals/AddTaskModal';
@@ -170,6 +171,46 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
   const deleteTaskMutation = useDeleteTask();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const allowedStatusOptions = isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS;
+
+  const [equipmentChecklist, setEquipmentChecklist] = useState([]);
+  const [isEditingPendingReason, setIsEditingPendingReason] = useState(false);
+  const [pendingReasonText, setPendingReasonText] = useState('');
+
+  useEffect(() => {
+    if (task) {
+      if (Array.isArray(task.equipmentChecklist) && task.equipmentChecklist.length > 0) {
+        setEquipmentChecklist(task.equipmentChecklist);
+      } else if (Array.isArray(task.equipmentRequired) && task.equipmentRequired.length > 0) {
+        setEquipmentChecklist(task.equipmentRequired.map((name) => ({ name, checked: false })));
+      } else {
+        setEquipmentChecklist([]);
+      }
+      setPendingReasonText(task.pendingReason || '');
+    }
+  }, [task]);
+
+  const handleToggleEquipment = async (idx) => {
+    const updated = equipmentChecklist.map((item, i) =>
+      i === idx ? { ...item, checked: !item.checked } : item
+    );
+    setEquipmentChecklist(updated);
+    try {
+      await api.put(`/tasks/${taskId}`, { equipmentChecklist: updated });
+    } catch {
+      toast.error('Failed to update equipment checklist');
+    }
+  };
+
+  const handleSavePendingReason = async () => {
+    try {
+      await api.put(`/tasks/${taskId}`, { pendingReason: pendingReasonText.trim() });
+      setIsEditingPendingReason(false);
+      toast.success('Pending note saved');
+      refetch();
+    } catch {
+      toast.error('Failed to save pending note');
+    }
+  };
 
   const assigneesList = useMemo(() => {
     if (!task?.assignedTo) return [];
@@ -360,22 +401,18 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
               <div className="rounded-2xl bg-background p-3 sm:p-4 space-y-1">
                 {!isClient && (
                   <NotionPropertyRow icon={ShieldCheck} label="Status">
-                    <div className="relative inline-flex items-center">
-                      <select
+                    <div className="relative inline-flex items-center min-w-[140px]">
+                      <SelectDropdown
                         value={normalizedStatus}
-                        onChange={(e) => updateStatus.mutate({ id: task._id, status: e.target.value })}
-                        className={`appearance-none cursor-pointer pl-3 pr-8 py-1 rounded-lg text-xs font-bold transition-all outline-none focus:ring-2 focus:ring-primary/20 ${
+                        onChange={(val) => val && updateStatus.mutate({ id: task._id, status: val })}
+                        options={allowedStatusOptions.map((opt) => ({ value: opt, label: opt }))}
+                        allowCustom={false}
+                        allowDeselect={false}
+                        className="w-40 text-xs"
+                        buttonClassName={`h-8 py-1 px-3 text-xs font-bold rounded-lg border-none ${
                           STATUS_TONES[normalizedStatus] || STATUS_TONES['To Do']
                         }`}
-                        title="Change Task Status"
-                      >
-                        {allowedStatusOptions.map((opt) => (
-                          <option key={opt} value={opt} className="bg-card text-foreground font-semibold py-1">
-                            {opt}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown size={13} className="absolute right-2.5 pointer-events-none opacity-60 shrink-0" />
+                      />
                     </div>
                   </NotionPropertyRow>
                 )}
@@ -574,6 +611,59 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                       )}
                     </div>
                   </NotionPropertyRow>
+                )}
+              </div>
+
+              {/* ── Pending Reason / Delay Note ── */}
+              <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900 dark:text-amber-200 inline-flex items-center gap-1.5">
+                    <AlertCircle size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>Pending Reason / Delay Note</span>
+                  </span>
+                  {isEditingPendingReason ? (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingPendingReason(false)}
+                        className="px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSavePendingReason}
+                        className="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+                      >
+                        Save Note
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPendingReason(true)}
+                      className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline cursor-pointer"
+                    >
+                      {pendingReasonText ? 'Edit Reason' : '+ Add Delay Note'}
+                    </button>
+                  )}
+                </div>
+                {isEditingPendingReason ? (
+                  <textarea
+                    value={pendingReasonText}
+                    onChange={(e) => setPendingReasonText(e.target.value)}
+                    placeholder="Explain why this task is pending / waiting / delayed..."
+                    rows={2}
+                    className="w-full p-2.5 text-xs rounded-xl bg-background border border-amber-500/40 text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                ) : (
+                  <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                    {pendingReasonText || (
+                      <span className="italic text-muted-foreground">
+                        No pending note provided. Team members or managers can click &quot;+ Add Delay Note&quot; to explain reasons for hold or delay.
+                      </span>
+                    )}
+                  </p>
                 )}
               </div>
 
@@ -782,6 +872,22 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                             </div>
                           )}
                         </div>
+
+                        {/* Extra Shoot Crew / Assistants */}
+                        {((task.extraShootPersons && task.extraShootPersons.length > 0) || (task.extraShootPersonNames && task.extraShootPersonNames.length > 0)) && (
+                          <div className="p-2 rounded-lg bg-secondary/40 space-y-1">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground inline-flex items-center gap-1">
+                              <Users size={10} /> Shoot Crew / Assistants
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {(task.extraShootPersons || task.extraShootPersonNames || []).map((p, i) => (
+                                <Badge key={i} variant="secondary" className="text-[10px] font-semibold">
+                                  {typeof p === 'object' ? p.name : p}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         {(task.shootLocation || task.shootLocationLink) && (
                           <div className="p-2 rounded-lg bg-secondary/40 space-y-0.5">
@@ -1240,15 +1346,41 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                         )}
                       </div>
 
-                      {/* Equipment Required Pills */}
-                      {Array.isArray(task.equipmentRequired) && task.equipmentRequired.length > 0 && (
-                        <div className="p-2.5 rounded-xl bg-card space-y-1.5 text-xs">
-                          <span className="text-[10px] font-bold uppercase text-muted-foreground block">Equipment Required</span>
-                          <div className="flex flex-wrap gap-1">
-                            {task.equipmentRequired.map((eq, i) => (
-                              <Badge key={i} variant="secondary" className="text-[10px] font-semibold">
-                                {eq}
-                              </Badge>
+                      {/* Interactive Pre-Shoot Equipment Checklist */}
+                      {equipmentChecklist.length > 0 && (
+                        <div className="p-3.5 rounded-2xl bg-card space-y-2.5 text-xs border border-border/50">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-foreground inline-flex items-center gap-1.5">
+                              <Camera size={13} className="text-primary" />
+                              <span>Pre-Shoot Equipment Checklist</span>
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary tabular-nums">
+                              {equipmentChecklist.filter((c) => c.checked).length} / {equipmentChecklist.length} Packed
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Shoot crew: Check off gear before heading to the shoot location to ensure nothing is missed.
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            {equipmentChecklist.map((item, idx) => (
+                              <label
+                                key={idx}
+                                className={`flex items-center gap-2 p-2 rounded-xl border transition-colors cursor-pointer select-none ${
+                                  item.checked
+                                    ? 'bg-primary/10 border-primary/40 text-foreground font-semibold'
+                                    : 'bg-background border-border/50 text-foreground hover:bg-secondary/40'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={!!item.checked}
+                                  onChange={() => handleToggleEquipment(idx)}
+                                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+                                />
+                                <span className={item.checked ? 'line-through text-muted-foreground' : ''}>
+                                  {item.name}
+                                </span>
+                              </label>
                             ))}
                           </div>
                         </div>

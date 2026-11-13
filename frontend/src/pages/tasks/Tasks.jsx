@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useDeferredValue } from 'react';
+import React, { useEffect, useMemo, useState, useDeferredValue, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
@@ -38,6 +38,8 @@ import {
   ListChecks,
   Maximize2,
   Minimize2,
+  SlidersHorizontal,
+  Filter,
 } from '@/components/ui/muiIcons';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
@@ -294,6 +296,15 @@ const Tasks = () => {
   const deferredSearch = useDeferredValue(filters.search);
   const debouncedSearch = useDebounce(filters.search, 300);
 
+  const {
+    startDate: globalStartDate,
+    endDate: globalEndDate,
+    period: globalPeriod,
+    isDateInRange,
+    isFiltered: isGlobalDateFiltered,
+    resetDateFilter,
+  } = useDateFilter();
+
   const queryFilters = useMemo(
     () => ({
       client: filters.client,
@@ -304,7 +315,10 @@ const Tasks = () => {
       dueDate: filters.dueDate,
       sortBy: sortBy,
       search: debouncedSearch,
-      limit: 300,
+      startDate: globalStartDate || undefined,
+      endDate: globalEndDate || undefined,
+      period: (globalStartDate || globalEndDate) ? 'custom' : (globalPeriod || undefined),
+      limit: 500,
       parent: 'all',
     }),
     [
@@ -316,6 +330,9 @@ const Tasks = () => {
       filters.dueDate,
       sortBy,
       debouncedSearch,
+      globalStartDate,
+      globalEndDate,
+      globalPeriod,
     ]
   );
 
@@ -380,8 +397,6 @@ const Tasks = () => {
     setDepartmentFilter(filterType);
     setCategoryFilter('all');
   };
-
-  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange, isFiltered: isGlobalDateFiltered, resetDateFilter } = useDateFilter();
 
   const normalizedTasks = useMemo(
     () =>
@@ -460,20 +475,37 @@ const Tasks = () => {
     return due < new Date();
   };
 
+  const isTaskInDateRange = useCallback(
+    (task) => {
+      if (!task) return false;
+      if (!globalStartDate && !globalEndDate) return true;
+
+      // Operational schedule/deadline dates take precedence over createdAt
+      const operationalDates = [
+        task.dueDate,
+        task.postingScheduleDate,
+        task.shootDate,
+        task.editDueDate,
+        task.startDate,
+      ].filter(Boolean);
+
+      if (operationalDates.length > 0) {
+        return operationalDates.some((d) => isDateInRange(d));
+      }
+
+      // Only if no operational milestone exists at all, fall back to createdAt
+      return isDateInRange(task.createdAt);
+    },
+    [globalStartDate, globalEndDate, isDateInRange]
+  );
+
   const dateFilteredTasks = useMemo(() => {
     // Only filter by date if user has explicitly chosen an active date range
     if (globalStartDate || globalEndDate) {
-      return normalizedTasks.filter((task) =>
-        isDateInRange([
-          task.dueDate,
-          task.postingScheduleDate,
-          task.startDate,
-          task.createdAt,
-        ])
-      );
+      return normalizedTasks.filter(isTaskInDateRange);
     }
     return normalizedTasks;
-  }, [normalizedTasks, globalStartDate, globalEndDate, isDateInRange]);
+  }, [normalizedTasks, globalStartDate, globalEndDate, isTaskInDateRange]);
 
   // Department partition counts across the entire current date-filtered set
   const taskCountsByDepartment = useMemo(() => ({
@@ -547,6 +579,19 @@ const Tasks = () => {
       label: u.name,
     }));
   }, [users]);
+
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+
+  // Active secondary filters counter (filters inside the collapsible section)
+  const secondaryFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.client) count++;
+    if (filters.status) count++;
+    if (filters.priority) count++;
+    if (filters.assignedTo) count++;
+    if (sortBy && sortBy !== 'dueDate_asc') count++;
+    return count;
+  }, [filters, sortBy]);
 
   // Active filters counter
   const activeFiltersCount = useMemo(() => {
@@ -794,18 +839,20 @@ const Tasks = () => {
       key: 'status',
       label: 'Status',
       render: (row) => (
-        <select
-          value={row.status}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => updateStatusMutation.mutate({ id: row._id, status: e.target.value })}
-          className="rounded-xl bg-background px-2.5 py-1 text-xs font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/15 cursor-pointer"
-        >
-          {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div onClick={(e) => e.stopPropagation()} className="w-32">
+          <SelectDropdown
+            value={row.status}
+            onChange={(val) => val && updateStatusMutation.mutate({ id: row._id, status: val })}
+            options={(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((option) => ({
+              value: option,
+              label: option,
+            }))}
+            allowCustom={false}
+            allowDeselect={false}
+            className="w-32 text-xs"
+            buttonClassName="h-8 px-2.5 py-1 text-xs font-semibold rounded-xl bg-background border border-border/40"
+          />
+        </div>
       ),
     },
     {
@@ -1165,17 +1212,20 @@ const Tasks = () => {
 
                         {/* Footer with status selector & FULL VIEW button */}
                         <div className="pt-2 flex items-center justify-between gap-2">
-                          <select
-                            value={t.status}
-                            onChange={(e) => updateStatusMutation.mutate({ id: t._id, status: e.target.value })}
-                            className="rounded-lg bg-card px-2 py-0.5 text-[11px] font-bold text-foreground outline-none focus:ring-2 focus:ring-brand/40 transition-all max-w-[125px] truncate cursor-pointer"
-                          >
-                            {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="w-32">
+                            <SelectDropdown
+                              value={t.status}
+                              onChange={(val) => val && updateStatusMutation.mutate({ id: t._id, status: val })}
+                              options={(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => ({
+                                value: opt,
+                                label: opt,
+                              }))}
+                              allowCustom={false}
+                              allowDeselect={false}
+                              className="w-32 text-[11px]"
+                              buttonClassName="h-7 px-2 py-0.5 text-[11px] font-bold rounded-lg bg-card border border-border/40"
+                            />
+                          </div>
 
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
@@ -1286,6 +1336,7 @@ const Tasks = () => {
                 {/* Category Filter Dropdown (Adaptive to active department) */}
                 <SelectDropdown
                   className="w-full sm:w-44 text-xs"
+                  buttonClassName="h-9"
                   value={categoryFilter}
                   onChange={(val) => setCategoryFilter(val || 'all')}
                   options={currentCategoryPills.map((p) => ({ value: p.key, label: p.label }))}
@@ -1298,67 +1349,106 @@ const Tasks = () => {
                   }
                 />
 
-                {/* Client Filter */}
-                <SelectDropdown
-                  className="w-full sm:w-48 text-xs"
-                  value={filters.client}
-                  onChange={(val) => setFilters((prev) => ({ ...prev, client: val }))}
-                  options={clientOptions}
-                  placeholder="Filter by Client"
-                  allOptionLabel="All Clients"
-                />
-
-                {/* Status Filter */}
-                <SelectDropdown
-                  className="w-full sm:w-40 text-xs"
-                  value={filters.status}
-                  onChange={(val) => setFilters((prev) => ({ ...prev, status: val }))}
-                  options={isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS}
-                  allOptionLabel="All Statuses"
-                />
-
-                {/* Priority Filter */}
-                <SelectDropdown
-                  className="w-full sm:w-36 text-xs"
-                  value={filters.priority}
-                  onChange={(val) => setFilters((prev) => ({ ...prev, priority: val }))}
-                  options={['Critical', 'High', 'Medium', 'Low']}
-                  allOptionLabel="All Priorities"
-                />
-
-                {/* Assignee Filter */}
-                {!isEmployee && (
-                  <SelectDropdown
-                    className="w-full sm:w-44 text-xs"
-                    value={filters.assignedTo}
-                    onChange={(val) => setFilters((prev) => ({ ...prev, assignedTo: val }))}
-                    options={userOptions}
-                    placeholder="Filter by Assignee"
-                    allOptionLabel="All Assignees"
+                {/* More Filters Collapse Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowMoreFilters((prev) => !prev)}
+                  className={`h-9 px-3 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                    showMoreFilters || secondaryFiltersCount > 0
+                      ? 'bg-primary/10 text-primary border border-primary/30'
+                      : 'bg-card border border-border/50 text-foreground hover:bg-secondary/60'
+                  }`}
+                  title="Toggle additional dropdown filters"
+                >
+                  <SlidersHorizontal size={13} className="shrink-0" />
+                  <span>More Filters</span>
+                  {secondaryFiltersCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground tabular-nums">
+                      {secondaryFiltersCount}
+                    </span>
+                  )}
+                  <ChevronDown
+                    size={13}
+                    className={`text-muted-foreground transition-transform duration-200 ${showMoreFilters ? 'rotate-180' : ''}`}
                   />
-                )}
+                </button>
 
-                {/* Sorting Filter Dropdown */}
-                <SelectDropdown
-                  className="w-full sm:w-52 text-xs font-semibold"
-                  value={sortBy}
-                  onChange={(val) => setSortBy(val || 'dueDate_asc')}
-                  options={TASK_SORT_OPTIONS}
-                />
+                {/* Reset Button */}
+                {activeFiltersCount > 0 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={clearAllFilters}
+                    className="h-9 px-2.5 text-xs text-foreground bg-secondary hover:bg-secondary/80 inline-flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
+                    title="Clear all active filters"
+                  >
+                    <RotateCcw size={12} />
+                    <span>Reset ({activeFiltersCount})</span>
+                  </Button>
+                )}
               </div>
 
-              {/* Reset Button */}
-              {activeFiltersCount > 0 && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={clearAllFilters}
-                  className="h-8 px-2.5 text-xs text-foreground bg-secondary hover:bg-secondary/80 inline-flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
-                  title="Clear all active filters"
-                >
-                  <RotateCcw size={12} />
-                  <span>Reset ({activeFiltersCount})</span>
-                </Button>
+              {/* Collapsible Secondary Filters Row */}
+              {showMoreFilters && (
+                <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-2xl bg-secondary/30 border border-border/40 animate-in fade-in slide-in-from-top-1 duration-150 w-full">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground shrink-0 mr-1">
+                    <Filter size={13} />
+                    <span className="text-[11px] uppercase tracking-wider font-bold">Filters</span>
+                  </div>
+
+                  {/* Client Filter */}
+                  <SelectDropdown
+                    className="w-full sm:w-44 text-xs"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={filters.client}
+                    onChange={(val) => setFilters((prev) => ({ ...prev, client: val }))}
+                    options={clientOptions}
+                    placeholder="Filter by Client"
+                    allOptionLabel="All Clients"
+                  />
+
+                  {/* Status Filter */}
+                  <SelectDropdown
+                    className="w-full sm:w-36 text-xs"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={filters.status}
+                    onChange={(val) => setFilters((prev) => ({ ...prev, status: val }))}
+                    options={isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS}
+                    allOptionLabel="All Statuses"
+                  />
+
+                  {/* Priority Filter */}
+                  <SelectDropdown
+                    className="w-full sm:w-32 text-xs"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={filters.priority}
+                    onChange={(val) => setFilters((prev) => ({ ...prev, priority: val }))}
+                    options={['Critical', 'High', 'Medium', 'Low']}
+                    allOptionLabel="All Priorities"
+                  />
+
+                  {/* Assignee Filter */}
+                  {!isEmployee && (
+                    <SelectDropdown
+                      className="w-full sm:w-40 text-xs"
+                      buttonClassName="h-8.5 bg-background text-xs"
+                      value={filters.assignedTo}
+                      onChange={(val) => setFilters((prev) => ({ ...prev, assignedTo: val }))}
+                      options={userOptions}
+                      placeholder="Filter by Assignee"
+                      allOptionLabel="All Assignees"
+                    />
+                  )}
+
+                  {/* Sorting Filter Dropdown */}
+                  <SelectDropdown
+                    className="w-full sm:w-48 text-xs font-semibold"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={sortBy}
+                    onChange={(val) => setSortBy(val || 'dueDate_asc')}
+                    options={TASK_SORT_OPTIONS}
+                  />
+                </div>
               )}
             </div>
           }
@@ -1585,18 +1675,19 @@ const Tasks = () => {
 
                         {/* Status Select & Due Date */}
                         <div className="flex items-center justify-between pt-2 gap-2">
-                          <div onClick={(e) => e.stopPropagation()}>
-                            <select
+                          <div onClick={(e) => e.stopPropagation()} className="w-32">
+                            <SelectDropdown
                               value={task.status}
-                              onChange={(e) => updateStatusMutation.mutate({ id: task._id, status: e.target.value })}
-                              className="rounded-xl bg-background px-2.5 py-1 text-xs font-bold text-foreground outline-none focus:ring-2 focus:ring-brand/40 transition-all cursor-pointer"
-                            >
-                              {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
-                                <option key={opt} value={opt}>
-                                  {opt}
-                                </option>
-                              ))}
-                            </select>
+                              onChange={(val) => val && updateStatusMutation.mutate({ id: task._id, status: val })}
+                              options={(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => ({
+                                value: opt,
+                                label: opt,
+                              }))}
+                              allowCustom={false}
+                              allowDeselect={false}
+                              className="w-32 text-xs"
+                              buttonClassName="h-7.5 px-2.5 py-0.5 text-xs font-bold rounded-xl bg-background border border-border/40"
+                            />
                           </div>
 
                           <div className="flex items-center gap-2 flex-wrap tabular-nums">
@@ -1650,17 +1741,19 @@ const Tasks = () => {
       />
 
       {/* Dynamic Kanban Task Creator */}
-      <KanbanCreateTaskModal
-        isOpen={showKanbanCreateModal}
-        onClose={() => {
-          setShowKanbanCreateModal(false);
-          setPreSelectedEmployee(null);
-          setCreateTaskInitialValues(null);
-        }}
-        initialUser={preSelectedEmployee}
-        initialValues={createTaskInitialValues}
-        onTaskCreated={refetch}
-      />
+      {showKanbanCreateModal && (
+        <KanbanCreateTaskModal
+          isOpen={showKanbanCreateModal}
+          onClose={() => {
+            setShowKanbanCreateModal(false);
+            setPreSelectedEmployee(null);
+            setCreateTaskInitialValues(null);
+          }}
+          initialUser={preSelectedEmployee}
+          initialValues={createTaskInitialValues}
+          onTaskCreated={refetch}
+        />
+      )}
 
       {/* Interactive Workflow Drawer with live checklists and task notes */}
       <TaskWorkflowDrawer

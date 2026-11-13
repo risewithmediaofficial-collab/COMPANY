@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { smmApi } from '../../api/smm';
 import { useSocket } from '../../context/SocketContext';
-import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { ClientCompletionDashboard } from '../../components/smm/ClientCompletionDashboard';
 import { TrackerDayDeliverablesDrawer } from '../../components/smm/TrackerDayDeliverablesDrawer';
 import {
@@ -18,6 +17,7 @@ import {
   Trash2, AlertTriangle, ListTodo, Radio, Smartphone, CalendarDays
 } from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const MONTHS = [
@@ -505,9 +505,9 @@ const SMMOnePageTracker = () => {
   const [newClient, setNewClient] = useState({
     clientId: '',
     companyName: '',
-    reels: 8,
-    posts: 4,
-    stories: 30,
+    reels: '',
+    posts: '',
+    stories: '',
     team: 'RWM',
     isCustom: false,
   });
@@ -773,63 +773,49 @@ const SMMOnePageTracker = () => {
       isCustom: false,
     }));
 
-    // Auto-detect Content items for this client for the current month/year
+    // Auto-detect Deliverables and Task items for this client for the current month/year
     setLoadingContent(true);
     try {
-      const res = await smmApi.getContents({ limit: 1000 });
+      const res = await smmApi.getClientDeliverablesSummary({ clientId: selectedId, month, year });
       if (res.data?.success) {
-        const all = res.data.data || [];
-        const startOfMonth = new Date(year, month - 1, 1);
-        const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
-
-        const items = all.filter(c => {
-          const matchesId = c.client?._id === selectedId || c.client === selectedId;
-          const matchesName = (c.client?.companyName || c.client?.company || c.client?.name || '').trim().toLowerCase() === cName.trim().toLowerCase();
-          if (!matchesId && !matchesName) return false;
-          const d = new Date(c.scheduledDate || c.actualPostedDate || c.createdAt);
-          return d >= startOfMonth && d <= endOfMonth;
-        });
-
-        const rCount = items.filter(c => ['Reel', 'Video', 'Short', 'Reel / Story'].includes(c.contentType)).length;
-        const pCount = items.filter(c => c.contentType === 'Post').length;
-        const sCount = items.filter(c => ['Story', 'Reel / Story'].includes(c.contentType)).length;
-
-        if (items.length > 0) {
+        const { reels = 0, posts = 0, stories = 0, total = 0, items = [], hasDeliverables = false } = res.data;
+        if (reels > 0 || posts > 0 || stories > 0 || total > 0) {
           setDetectedContent({
-            reels: rCount,
-            posts: pCount,
-            stories: sCount,
-            total: items.length,
+            reels,
+            posts,
+            stories,
+            total,
             items,
+            hasDeliverables,
           });
           setNewClient(prev => ({
             ...prev,
-            reels: rCount > 0 ? rCount : prev.reels,
-            posts: pCount > 0 ? pCount : prev.posts,
-            stories: sCount > 0 ? sCount : prev.stories,
+            reels: reels > 0 ? reels : prev.reels,
+            posts: posts > 0 ? posts : prev.posts,
+            stories: stories > 0 ? stories : prev.stories,
           }));
         } else {
           setDetectedContent({ reels: 0, posts: 0, stories: 0, total: 0, items: [] });
         }
       }
     } catch (err) {
-      console.error('Error checking content:', err);
+      console.error('Error checking deliverables and tasks:', err);
     } finally {
       setLoadingContent(false);
     }
   };
 
-  const handleSyncFromContent = async () => {
+  const handleSyncFromTasks = async () => {
     setIsSyncing(true);
     try {
-      const res = await smmApi.syncContentTracker({ month, year });
+      const res = await smmApi.syncTasksTracker({ month, year });
       if (res.data?.success) {
-        toast.success(res.data.message || 'Tracker synced with Content module!');
+        toast.success(res.data.message || 'Tracker synced with Tasks & Project Deliverables!');
         fetchData();
       }
     } catch (err) {
       console.error('Sync failed:', err);
-      toast.error('Failed to sync with Content module');
+      toast.error('Failed to sync with Tasks');
     } finally {
       setIsSyncing(false);
     }
@@ -851,8 +837,8 @@ const SMMOnePageTracker = () => {
         targetClientId = createdClient._id;
       }
 
-      const plan = `${newClient.reels}R + ${newClient.posts}P`;
-      const storyPlan = `${newClient.stories} STORIES`;
+      const plan = `${Number(newClient.reels) || 0}R + ${Number(newClient.posts) || 0}P`;
+      const storyPlan = `${Number(newClient.stories) || 0} STORIES`;
 
       // Build days array, pre-populating with detected content if any
       const days = Array.from({ length: daysInMonth }, (_, i) => ({
@@ -908,7 +894,7 @@ const SMMOnePageTracker = () => {
 
       toast.success(`Client "${newClient.companyName}" added to tracker!`);
       setShowAddModal(false);
-      setNewClient({ clientId: '', companyName: '', reels: 8, posts: 4, stories: 30, team: 'RWM', isCustom: false });
+      setNewClient({ clientId: '', companyName: '', reels: '', posts: '', stories: '', team: 'RWM', isCustom: false });
       setDetectedContent(null);
       fetchData();
       fetchClients();
@@ -1172,12 +1158,12 @@ const SMMOnePageTracker = () => {
             <RefreshCw size={14} className={loading ? 'animate-spin text-foreground' : 'text-muted-foreground'}/>
           </button>
           <button
-            onClick={handleSyncFromContent}
+            onClick={handleSyncFromTasks}
             disabled={isSyncing || loading}
             className="h-10 inline-flex items-center gap-1.5 px-3 bg-card text-foreground text-xs font-semibold rounded-xl hover:bg-secondary transition-colors cursor-pointer"
           >
             <ArrowDownToLine size={14} className={isSyncing ? 'animate-bounce text-foreground' : ''} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync from Content'}</span>
+            <span>{isSyncing ? 'Syncing...' : 'Sync from Tasks'}</span>
           </button>
           <button
             onClick={() => {
@@ -1191,8 +1177,6 @@ const SMMOnePageTracker = () => {
           </button>
         </div>
       </div>
-
-      <SMMSubNav/>
 
       {/* ── Section Tabs & View Mode Switcher ── */}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
@@ -1790,7 +1774,7 @@ const SMMOnePageTracker = () => {
                   Add Client to Tracker
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                  Select from added clients or auto-sync content
+                  Select from added clients or auto-sync tasks and deliverables
                 </DialogDescription>
               </div>
             </div>
@@ -1810,19 +1794,21 @@ const SMMOnePageTracker = () => {
                 <label className="block text-sm font-semibold text-foreground mb-1.5">
                   Choose Client *
                 </label>
-                <select
+                <SelectDropdown
                   value={newClient.isCustom ? '__custom__' : newClient.clientId}
-                  onChange={(e) => handleClientSelect(e.target.value)}
-                  className="app-select w-full"
-                >
-                  <option value="">-- Select Client from Added Clients --</option>
-                  {availableClients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.companyName || c.company || c.name}
-                    </option>
-                  ))}
-                  <option value="__custom__">+ Add New Client Manually...</option>
-                </select>
+                  onChange={(val) => handleClientSelect(val || '')}
+                  options={[
+                    ...availableClients.map((c) => ({
+                      value: c._id,
+                      label: c.companyName || c.company || c.name,
+                    })),
+                    { value: '__custom__', label: '+ Add New Client Manually...' },
+                  ]}
+                  placeholder="-- Select Client from Added Clients --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               {/* Manual Name Input if Custom */}
@@ -1844,21 +1830,21 @@ const SMMOnePageTracker = () => {
               {loadingContent ? (
                 <div className="bg-muted/40 rounded-xl p-3 text-xs flex items-center gap-2 text-muted-foreground">
                   <RefreshCw size={14} className="animate-spin text-foreground" />
-                  <span>Checking Content module for scheduled Reels, Posts & Stories…</span>
+                  <span>Checking Project Deliverables & Tasks for scheduled Reels, Posts & Stories…</span>
                 </div>
-              ) : detectedContent?.total > 0 ? (
+              ) : detectedContent && (detectedContent.reels > 0 || detectedContent.posts > 0 || detectedContent.stories > 0 || detectedContent.total > 0) ? (
                 <div className="bg-secondary/60 rounded-xl p-3 text-xs text-foreground space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-foreground">
                     <Sparkles size={14} className="text-foreground" />
-                    Auto-detected from Content Module ({MONTHS[month-1]} {year})
+                    Auto-detected from Project Deliverables & Tasks ({MONTHS[month-1]} {year})
                   </div>
                   <p className="text-xs leading-relaxed text-muted-foreground">
-                    Found <strong className="text-foreground">{detectedContent.reels} Reels</strong>, <strong className="text-foreground">{detectedContent.posts} Posts</strong>, and <strong className="text-foreground">{detectedContent.stories} Stories</strong>. Quotas and day upload schedules have been automatically filled!
+                    Found target of <strong className="text-foreground">{detectedContent.reels} Reels</strong>, <strong className="text-foreground">{detectedContent.posts} Posts</strong>, and <strong className="text-foreground">{detectedContent.stories} Stories</strong>. Quotas and day upload schedules have been automatically filled!
                   </p>
                 </div>
               ) : newClient.clientId ? (
                 <div className="bg-muted/30 rounded-xl p-2.5 text-xs text-muted-foreground">
-                  No scheduled items in Content module yet for {MONTHS[month-1]} {year}. Using default targets below.
+                  No deliverables or tasks scheduled yet for {MONTHS[month-1]} {year}. You can enter custom targets below or sync from Tasks.
                 </div>
               ) : null}
 
@@ -1878,8 +1864,9 @@ const SMMOnePageTracker = () => {
                     type="number"
                     min={0}
                     max={31}
-                    value={newClient.stories}
-                    onChange={(e) => setNewClient({ ...newClient, stories: parseInt(e.target.value) || 0 })}
+                    placeholder="e.g. 30"
+                    value={newClient.stories ?? ''}
+                    onChange={(e) => setNewClient({ ...newClient, stories: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                     className="app-input w-full tabular-nums"
                   />
                 </div>
@@ -1892,8 +1879,9 @@ const SMMOnePageTracker = () => {
                     type="number"
                     min={0}
                     max={100}
-                    value={newClient.reels}
-                    onChange={(e) => setNewClient({ ...newClient, reels: parseInt(e.target.value) || 0 })}
+                    placeholder="e.g. 8"
+                    value={newClient.reels ?? ''}
+                    onChange={(e) => setNewClient({ ...newClient, reels: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                     className="app-input w-full tabular-nums"
                   />
                 </div>
@@ -1903,8 +1891,9 @@ const SMMOnePageTracker = () => {
                     type="number"
                     min={0}
                     max={100}
-                    value={newClient.posts}
-                    onChange={(e) => setNewClient({ ...newClient, posts: parseInt(e.target.value) || 0 })}
+                    placeholder="e.g. 4"
+                    value={newClient.posts ?? ''}
+                    onChange={(e) => setNewClient({ ...newClient, posts: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
                     className="app-input w-full tabular-nums"
                   />
                 </div>
@@ -1912,7 +1901,7 @@ const SMMOnePageTracker = () => {
 
               <div className="bg-muted/40 rounded-xl p-3 text-sm flex items-center justify-between text-muted-foreground">
                 <span>Computed Plan:</span>
-                <span className="font-bold text-foreground tabular-nums">{newClient.reels}R + {newClient.posts}P &bull; {newClient.stories} Stories</span>
+                <span className="font-bold text-foreground tabular-nums">{Number(newClient.reels) || 0}R + {Number(newClient.posts) || 0}P &bull; {Number(newClient.stories) || 0} Stories</span>
               </div>
             </div>
 

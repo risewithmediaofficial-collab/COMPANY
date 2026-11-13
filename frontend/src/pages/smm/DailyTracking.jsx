@@ -18,6 +18,7 @@ import {
   DialogClose,
 } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 export default function DailyTracking() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -297,15 +298,19 @@ export default function DailyTracking() {
         <div className="flex flex-wrap items-center gap-4">
           <div>
             <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Client</label>
-            <select
+            <SelectDropdown
               value={selectedClient}
-              onChange={(e) => setSelectedClient(e.target.value)}
-              className="h-10 px-3 bg-secondary/50 rounded-xl font-semibold text-xs outline-none focus:ring-2 focus:ring-brand/40 text-foreground cursor-pointer"
-            >
-              {clientsList.map((c) => (
-                <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedClient(val || '')}
+              options={clientsList.map((c) => ({
+                value: c._id,
+                label: c.company || c.companyName || c.name,
+              }))}
+              placeholder="Select Client"
+              allowCustom={false}
+              allowDeselect={false}
+              className="w-48 sm:w-56"
+              buttonClassName="h-10 px-3 bg-secondary/50 rounded-xl font-semibold text-xs border border-border/50 text-foreground"
+            />
           </div>
 
           <div>
@@ -516,15 +521,20 @@ export default function DailyTracking() {
 
                 {/* Add Note Input */}
                 <form onSubmit={handleAddNote} className="flex flex-wrap sm:flex-nowrap gap-2">
-                  <select
+                  <SelectDropdown
                     value={newNoteTag}
-                    onChange={(e) => setNewNoteTag(e.target.value)}
-                    className="h-11 px-4 bg-secondary/75 rounded-xl text-sm font-normal outline-none focus:bg-background focus:ring-2 focus:ring-brand/40 text-foreground cursor-pointer shrink-0"
-                  >
-                    <option value="success">Success</option>
-                    <option value="warning">Warning</option>
-                    <option value="info">Note</option>
-                  </select>
+                    onChange={(val) => setNewNoteTag(val || 'info')}
+                    options={[
+                      { value: 'success', label: 'Success' },
+                      { value: 'warning', label: 'Warning' },
+                      { value: 'info', label: 'Note' },
+                    ]}
+                    placeholder="Tag"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-32 shrink-0"
+                    buttonClassName="h-11 px-4 bg-secondary/75 rounded-xl text-sm font-normal border border-border/50 text-foreground"
+                  />
                   <input
                     type="text"
                     placeholder="e.g. Reel #42 performed strongly with 7.9% engagement..."
@@ -704,43 +714,47 @@ export default function DailyTracking() {
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Campaign *</label>
-                <select
-                  required
+                <SelectDropdown
                   value={spendForm.campaign}
-                  onChange={(e) => setSpendForm({ ...spendForm, campaign: e.target.value, sourceContentId: '' })}
-                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="">-- Choose Campaign --</option>
-                  {campaignsList.map((c) => {
+                  onChange={(val) => setSpendForm({ ...spendForm, campaign: val || '', sourceContentId: '' })}
+                  options={campaignsList.map((c) => {
                     const comp = c.client?.company || c.client?.companyName || '';
                     const name = c.client?.name || '';
                     const clientLabel = comp && name && comp.toLowerCase() !== name.toLowerCase()
                       ? `${comp} - ${name}`
                       : (comp || name);
-                    return (
-                      <option key={c._id} value={c._id}>
-                        {c.name} {clientLabel ? `(${clientLabel})` : ''} ({c.platform})
-                      </option>
-                    );
+                    return {
+                      value: c._id,
+                      label: `${c.name} (${c.platform})`,
+                      subLabel: clientLabel || undefined,
+                    };
                   })}
-                </select>
+                  placeholder="-- Choose Campaign --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               {spendForm.campaign && (
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Video in Campaign (Optional)</label>
-                  <select
+                  <SelectDropdown
                     value={spendForm.sourceContentId}
-                    onChange={(e) => setSpendForm({ ...spendForm, sourceContentId: e.target.value })}
-                    className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                  >
-                    <option value="">-- Entire Campaign Level --</option>
-                    {(campaignsList.find(c => String(c._id) === String(spendForm.campaign))?.sourceContentIds || []).map((v) => (
-                      <option key={v._id || v} value={v._id || v}>
-                        {v.name || 'Video'} ({v.contentType || 'Video'})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSpendForm({ ...spendForm, sourceContentId: val || '' })}
+                    options={[
+                      { value: '', label: '-- Entire Campaign Level --' },
+                      ...((campaignsList.find(c => String(c._id) === String(spendForm.campaign))?.sourceContentIds || []).map((v) => ({
+                        value: v._id || v,
+                        label: v.name || 'Video',
+                        subLabel: v.contentType || 'Video',
+                      }))),
+                    ]}
+                    placeholder="-- Entire Campaign Level --"
+                    allowCustom={false}
+                    className="w-full"
+                    buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                  />
                 </div>
               )}
 

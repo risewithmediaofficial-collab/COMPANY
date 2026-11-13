@@ -25,6 +25,9 @@ import {
   UserX,
   Maximize2,
   Minimize2,
+  ChevronDown,
+  SlidersHorizontal,
+  Filter,
 } from '@/components/ui/muiIcons';
 import { useClients, useDeleteClient, useUpdateClient } from '../../hooks/useClients';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -36,7 +39,6 @@ import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
-import { useDateFilter } from '../../context/DateFilterContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -172,7 +174,15 @@ const Clients = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
   const [sortBy, setSortBy] = useState('name_asc');
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
+
+  const secondaryFiltersCount = useMemo(() => {
+    let count = 0;
+    if (serviceFilter) count++;
+    if (sortBy && sortBy !== 'name_asc') count++;
+    return count;
+  }, [serviceFilter, sortBy]);
   const [draggingClientId, setDraggingClientId] = useState(null);
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const [dragOverClientIndex, setDragOverClientIndex] = useState(null);
@@ -186,7 +196,6 @@ const Clients = () => {
 
   // Smooth side auto-scroll while dragging clients
   useAutoScrollOnDrag(clientsBoardRef, Boolean(draggingClientId));
-  const { isDateInRange, isFiltered: isGlobalDateFiltered, resetDateFilter } = useDateFilter();
 
   const filters = {
     search: searchTerm,
@@ -195,26 +204,21 @@ const Clients = () => {
   };
 
   const { data: rawClients = [], isLoading } = useClients(filters);
-  const clients = useMemo(
-    () => rawClients.filter((c) => isDateInRange([c.startDate, c.createdAt, c.onboardingDate, c.updatedAt])),
-    [rawClients, isDateInRange]
-  );
+  const clients = rawClients;
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (statusFilter) count++;
     if (serviceFilter) count++;
     if (searchTerm) count++;
-    if (isGlobalDateFiltered) count++;
     return count;
-  }, [statusFilter, serviceFilter, searchTerm, isGlobalDateFiltered]);
+  }, [statusFilter, serviceFilter, searchTerm]);
 
   const clearAllFilters = () => {
     setStatusFilter('');
     setServiceFilter('');
     setSearchTerm('');
     setSortBy('name_asc');
-    if (isGlobalDateFiltered) resetDateFilter();
   };
 
   const displayedClients = useMemo(() => {
@@ -473,44 +477,85 @@ const Clients = () => {
           onSearchChange={setSearchTerm}
           totalCount={displayedClients.length}
           filters={
-            <div className="flex items-center justify-between gap-3 w-full flex-wrap">
-              {/* Dropdown Filters Group */}
-              <div className="flex items-center gap-2 flex-wrap min-w-0 w-full sm:w-auto">
-                <SelectDropdown
-                  className="w-full sm:w-40 text-xs"
-                  value={statusFilter}
-                  onChange={(val) => setStatusFilter(val)}
-                  options={['Active', 'Prospect', 'Renew', 'Inactive', 'Churned']}
-                  allOptionLabel="All Statuses"
-                />
-                <SelectDropdown
-                  className="w-full sm:w-48 text-xs"
-                  value={serviceFilter}
-                  onChange={(val) => setServiceFilter(val)}
-                  options={SERVICE_FILTER_OPTIONS}
-                  allOptionLabel="All Services"
-                />
-                {/* Sorting Filter Dropdown */}
-                <SelectDropdown
-                  className="w-full sm:w-52 text-xs font-semibold"
-                  value={sortBy}
-                  onChange={(val) => setSortBy(val || 'name_asc')}
-                  options={CLIENT_SORT_OPTIONS}
-                />
+            <div className="flex flex-col gap-3 w-full">
+              <div className="flex items-center justify-between gap-3 w-full flex-wrap">
+                {/* Primary Filters Group */}
+                <div className="flex items-center gap-2 flex-wrap min-w-0 w-full sm:w-auto">
+                  <SelectDropdown
+                    className="w-full sm:w-40 text-xs"
+                    buttonClassName="h-9"
+                    value={statusFilter}
+                    onChange={(val) => setStatusFilter(val)}
+                    options={['Active', 'Prospect', 'Renew', 'Inactive', 'Churned']}
+                    allOptionLabel="All Statuses"
+                  />
+
+                  {/* More Filters Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreFilters((prev) => !prev)}
+                    className={`h-9 px-3 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                      showMoreFilters || secondaryFiltersCount > 0
+                        ? 'bg-primary/10 text-primary border border-primary/30'
+                        : 'bg-card border border-border/50 text-foreground hover:bg-secondary/60'
+                    }`}
+                    title="Toggle additional dropdown filters"
+                  >
+                    <SlidersHorizontal size={13} className="shrink-0" />
+                    <span>More Filters</span>
+                    {secondaryFiltersCount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground tabular-nums">
+                        {secondaryFiltersCount}
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={13}
+                      className={`text-muted-foreground transition-transform duration-200 ${showMoreFilters ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  {/* Reset Button */}
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={clearAllFilters}
+                      className="h-9 px-2.5 text-xs text-foreground bg-secondary hover:bg-muted flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
+                      title="Clear all active filters"
+                    >
+                      <RotateCcw size={12} />
+                      <span>Reset ({activeFiltersCount})</span>
+                    </Button>
+                  )}
+                </div>
               </div>
 
-              {/* Reset Button */}
-              {activeFiltersCount > 0 && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={clearAllFilters}
-                  className="h-8 px-2.5 text-xs text-foreground bg-secondary hover:bg-muted flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
-                  title="Clear all active filters"
-                >
-                  <RotateCcw size={12} />
-                  <span>Reset ({activeFiltersCount})</span>
-                </Button>
+              {/* Collapsible Secondary Filters Row */}
+              {showMoreFilters && (
+                <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-2xl bg-secondary/30 border border-border/40 animate-in fade-in slide-in-from-top-1 duration-150 w-full">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground shrink-0 mr-1">
+                    <Filter size={13} />
+                    <span className="text-[11px] uppercase tracking-wider font-bold">Filters</span>
+                  </div>
+
+                  <SelectDropdown
+                    className="w-full sm:w-48 text-xs"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={serviceFilter}
+                    onChange={(val) => setServiceFilter(val)}
+                    options={SERVICE_FILTER_OPTIONS}
+                    allOptionLabel="All Services"
+                  />
+
+                  {/* Sorting Filter Dropdown */}
+                  <SelectDropdown
+                    className="w-full sm:w-52 text-xs font-semibold"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={sortBy}
+                    onChange={(val) => setSortBy(val || 'name_asc')}
+                    options={CLIENT_SORT_OPTIONS}
+                  />
+                </div>
               )}
             </div>
           }

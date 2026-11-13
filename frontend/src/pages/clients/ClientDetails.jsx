@@ -20,6 +20,7 @@ import {
 import { formatINR } from '../../utils/currency';
 import { getProjectCategoryMeta } from '../../utils/projectCategories';
 import { useCredential } from '../../hooks/useClientCredentials';
+import { useClientProposals } from '../../hooks/useProposals';
 
 const PLATFORM_MAP = {
   instagram: { label: 'Instagram', code: 'IG' },
@@ -266,9 +267,12 @@ const ClientDetails = () => {
 
   const isFinanceVisible = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager' || !!user?.permissions?.canManageFinance;
 
+  const { data: clientProposals = [] } = useClientProposals(id);
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: TrendingUp },
     { id: 'projects', label: `Projects (${projects.length})`, icon: Briefcase },
+    { id: 'proposals', label: `Proposals (${clientProposals.length})`, icon: FileText },
     { id: 'vault', label: `Client Vault (${credentials.length})`, icon: LockKeyhole },
     ...(isFinanceVisible ? [
       { id: 'invoices', label: `Invoices (${invoices.length})`, icon: FileText },
@@ -588,6 +592,79 @@ const ClientDetails = () => {
                   <span>Create First Project</span>
                 </button>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'proposals' && (
+        <div className="space-y-5">
+          <div className="bg-card rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 rounded-2xl bg-secondary text-foreground flex items-center justify-center shrink-0">
+                <FileText size={20} />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg text-foreground">Proposals Sent</h2>
+                <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
+                  {clientProposals.length} {clientProposals.length === 1 ? 'proposal' : 'proposals'} sent to this client
+                </p>
+              </div>
+            </div>
+            {user?.role !== 'client' && (
+              <Link
+                to="/proposals"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Create Proposal</span>
+              </Link>
+            )}
+          </div>
+
+          {clientProposals.length === 0 ? (
+            <div className="rounded-3xl bg-card p-12 text-center space-y-3">
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground">
+                <FileText size={24} />
+              </div>
+              <h3 className="font-bold text-base text-foreground">No Proposals Found</h3>
+              <p className="text-xs text-muted-foreground">
+                No formal proposals have been generated or sent to this client yet.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {clientProposals.map((prop) => (
+                <div
+                  key={prop._id}
+                  className="rounded-3xl bg-card p-5 space-y-3 border border-border/50 hover:bg-secondary/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-sm text-foreground truncate">{prop.title}</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-primary/10 text-primary">
+                      {prop.status || 'Sent'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground tabular-nums">
+                    <span>{prop.proposalNumber || 'Proposal'}</span>
+                    <span className="font-bold text-foreground text-sm">
+                      {prop.totalAmount ? formatINR(prop.totalAmount) : '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-border/30 text-xs">
+                    <span className="text-muted-foreground">
+                      {prop.createdAt ? new Date(prop.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                    </span>
+                    <Link
+                      to={`/proposals/${prop._id}`}
+                      className="font-bold text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>View Proposal</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

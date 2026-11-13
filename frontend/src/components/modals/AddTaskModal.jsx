@@ -32,6 +32,7 @@ import { useCreateTask, useUpdateTask } from '../../hooks/useTasks';
 import { useProjects } from '../../hooks/useProjects';
 import { useUsers } from '../../hooks/useUsers';
 import { useClients } from '../../hooks/useClients';
+import { ProjectTaskTargetsBanner } from '../projects/ProjectTaskTargetsBanner';
 import {
   BRANDING_AVAILABILITY_OPTIONS,
   CONTENT_AVAILABILITY_OPTIONS,
@@ -191,8 +192,8 @@ const taskFormSchema = z.object({
   publishingTime: z.string().optional(),
   priority: z.enum(PRIORITY_OPTIONS).default('Medium'),
   dueDate: z.string().optional(),
-  allocatedHours: z.coerce.number().optional().default(2),
-  allocatedMinutes: z.coerce.number().optional().default(0),
+  allocatedHours: z.preprocess((val) => (val === '' || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).default(0)),
+  allocatedMinutes: z.preprocess((val) => (val === '' || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).default(0)),
   dueTime: z.string().optional(),
   status: z.enum(TASK_STATUS_OPTIONS).default('To Do'),
   description: z.string().optional(),
@@ -252,8 +253,8 @@ const buildDefaultValues = (initialValues = {}) => ({
   publishingTime: '',
   priority: 'Medium',
   dueDate: '',
-  allocatedHours: 2,
-  allocatedMinutes: 0,
+  allocatedHours: initialValues?.allocatedHours !== undefined ? initialValues.allocatedHours : '',
+  allocatedMinutes: initialValues?.allocatedMinutes !== undefined ? initialValues.allocatedMinutes : '',
   dueTime: '',
   status: 'To Do',
   description: '',
@@ -405,8 +406,8 @@ export const AddTaskModal = ({
         publishingTime: task.publishingTime || '',
         priority: task.priority || 'Medium',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
-        allocatedHours: task.allocatedHours !== undefined ? Number(task.allocatedHours) : 2,
-        allocatedMinutes: task.allocatedMinutes !== undefined ? Number(task.allocatedMinutes) : 0,
+        allocatedHours: task.allocatedHours !== undefined ? Number(task.allocatedHours) : '',
+        allocatedMinutes: task.allocatedMinutes !== undefined ? Number(task.allocatedMinutes) : '',
         dueTime: task.dueTime || '',
         status: normalizeTaskStatusLabel(task.status),
         description: task.description || '',
@@ -850,7 +851,8 @@ export const AddTaskModal = ({
                             placeholder="0"
                             className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background pr-10"
                             {...field}
-                            onChange={(e) => field.onChange(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                            value={field.value ?? ''}
+                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10)))}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">hrs</span>
                         </div>
@@ -877,7 +879,8 @@ export const AddTaskModal = ({
                             placeholder="0"
                             className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background pr-12"
                             {...field}
-                            onChange={(e) => field.onChange(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
+                            value={field.value ?? ''}
+                            onChange={(e) => field.onChange(e.target.value === '' ? '' : Math.max(0, Math.min(59, parseInt(e.target.value, 10))))}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">mins</span>
                         </div>
@@ -1014,6 +1017,39 @@ export const AddTaskModal = ({
               )}
             />
           </div>
+
+          {/* Project Monthly Deliverables Targets Overview */}
+          {selectedProjectId && selectedProjectId !== '_none' && (
+            <div className="pt-1">
+              <ProjectTaskTargetsBanner
+                projectId={selectedProjectId}
+                month={taskMonth}
+                year={taskYear}
+                activeDeliverableType={matchedDeliverableTarget?.contentType || taskType || contentType}
+                onSelectDeliverable={(item) => {
+                  const norm = (item.contentType || '').toLowerCase().trim();
+                  form.setValue('taskCategory', 'content');
+                  if (norm.includes('reel') || norm.includes('short')) {
+                    form.setValue('taskType', 'reel');
+                    form.setValue('contentType', 'videos');
+                    form.setValue('videoType', 'reels');
+                  } else if (norm.includes('video') || norm.includes('youtube')) {
+                    form.setValue('taskType', 'video_content');
+                    form.setValue('contentType', 'videos');
+                    form.setValue('videoType', 'youtube');
+                  } else if (norm.includes('story')) {
+                    form.setValue('taskType', 'story');
+                  } else if (norm.includes('carousel')) {
+                    form.setValue('taskType', 'carousel_post');
+                    form.setValue('contentType', 'posts');
+                  } else {
+                    form.setValue('taskType', 'poster');
+                    form.setValue('contentType', 'posts');
+                  }
+                }}
+              />
+            </div>
+          )}
 
           {/* Department & Assigned Manager (Optional secondary row) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">

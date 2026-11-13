@@ -217,35 +217,37 @@ export default function CallHistoryDashboard() {
   // Filter Call Logs
   const filteredCalls = useMemo(() => {
     const calls = callHistoryQuery.data || [];
-    return calls.filter((call) => {
-      if (!isDateInRange(call.calledAt || call.callDate || call.createdAt)) return false;
-      // Type filter
-      if (filterType === 'client' && !call.clientId) return false;
-      if (filterType === 'lead' && !call.leadId) return false;
-      if (filterType === 'unregistered' && !call.unregisteredClientName) return false;
+    return calls
+      .filter((call) => {
+        if (!isDateInRange(call.calledAt || call.callDate || call.createdAt)) return false;
+        // Type filter
+        if (filterType === 'client' && !call.clientId) return false;
+        if (filterType === 'lead' && !call.leadId) return false;
+        if (filterType === 'unregistered' && !call.unregisteredClientName) return false;
 
-      // Search filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const clientName = call.clientId?.name || call.clientId?.company || '';
-        const leadName = call.leadId?.name || call.leadId?.company || '';
-        const unregisteredName = call.unregisteredClientName || '';
-        const summary = call.callSummary || '';
-        const spoken = call.spokenWith || '';
-        const purpose = call.callPurpose || '';
+        // Search filter
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          const clientName = call.clientId?.name || call.clientId?.company || '';
+          const leadName = call.leadId?.name || call.leadId?.company || '';
+          const unregisteredName = call.unregisteredClientName || '';
+          const summary = call.callSummary || '';
+          const spoken = call.spokenWith || '';
+          const purpose = call.callPurpose || '';
 
-        return (
-          clientName.toLowerCase().includes(query) ||
-          leadName.toLowerCase().includes(query) ||
-          unregisteredName.toLowerCase().includes(query) ||
-          summary.toLowerCase().includes(query) ||
-          spoken.toLowerCase().includes(query) ||
-          purpose.toLowerCase().includes(query)
-        );
-      }
+          return (
+            clientName.toLowerCase().includes(query) ||
+            leadName.toLowerCase().includes(query) ||
+            unregisteredName.toLowerCase().includes(query) ||
+            summary.toLowerCase().includes(query) ||
+            spoken.toLowerCase().includes(query) ||
+            purpose.toLowerCase().includes(query)
+          );
+        }
 
-      return true;
-    });
+        return true;
+      })
+      .sort((a, b) => new Date(b.calledAt || b.callDate || b.createdAt || 0) - new Date(a.calledAt || a.callDate || a.createdAt || 0));
   }, [callHistoryQuery.data, filterType, searchQuery, isDateInRange]);
 
   return (

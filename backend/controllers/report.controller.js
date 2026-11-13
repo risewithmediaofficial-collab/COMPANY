@@ -108,6 +108,24 @@ export const getAdminDashboard = async (req, res) => {
       priorPeriodEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
     }
 
+    const isBoundedPeriod = Boolean(periodStart && periodEnd && period !== 'allTime');
+    const taskPeriodFilter = { parent: null };
+    if (isBoundedPeriod) {
+      taskPeriodFilter.$or = [
+        { dueDate: { $gte: periodStart, $lte: periodEnd } },
+        { postingScheduleDate: { $gte: periodStart, $lte: periodEnd } },
+        { shootDate: { $gte: periodStart, $lte: periodEnd } },
+        {
+          $and: [
+            { $or: [{ dueDate: null }, { dueDate: { $exists: false } }] },
+            { $or: [{ postingScheduleDate: null }, { postingScheduleDate: { $exists: false } }] },
+            { $or: [{ shootDate: null }, { shootDate: { $exists: false } }] },
+            { createdAt: { $gte: periodStart, $lte: periodEnd } },
+          ],
+        },
+      ];
+    }
+
     // 1. Core KPIs & Counts
     const [
       totalLeads, newLeadsThisMonth, wonLeads,
@@ -134,7 +152,7 @@ export const getAdminDashboard = async (req, res) => {
       Client.countDocuments({ status: { $in: ['active', 'Active'] } }),
       Project.countDocuments(),
       Project.countDocuments({ status: { $in: ['active', 'In Progress'] } }),
-      Task.countDocuments({ parent: null }),
+      Task.countDocuments(taskPeriodFilter),
       Task.countDocuments({ dueDate: { $lt: now }, status: { $nin: ['done', 'approved', 'Completed', 'Approved'] } }),
       Invoice.aggregate([{ $match: { status: 'paid', paidDate: { $gte: periodStart, $lte: periodEnd } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
       Invoice.aggregate([{ $match: { status: 'paid', paidDate: { $gte: priorPeriodStart, $lte: priorPeriodEnd } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
@@ -172,7 +190,7 @@ export const getAdminDashboard = async (req, res) => {
         },
       ]),
       Project.find({}, 'name status priority startDate dueDate endDate progress budget client').populate('client', 'name company').lean(),
-      Task.find({ parent: null }, 'title taskTitle status priority dueDate taskCategory postingPlatforms shootStatus editingStatus reviewStatus postingStatus assignedTo').populate('assignedTo', 'name email avatar role department').lean(),
+      Task.find(taskPeriodFilter, 'title taskTitle status priority dueDate taskCategory postingPlatforms shootStatus editingStatus reviewStatus postingStatus assignedTo').populate('assignedTo', 'name email avatar role department').lean(),
       Client.find({}, 'name company status monthlyRetainer service createdAt').lean(),
       User.find({ isActive: true }, 'name email role department avatar position').lean(),
       Lead.find({}, 'name company stage value createdAt source').lean(),

@@ -31,7 +31,9 @@ import {
 } from '@/components/ui/dialog';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
-import { useDateFilter } from '../../context/DateFilterContext';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
+import { useProjects } from '../../hooks/useProjects';
+import { useUsers } from '../../hooks/useUsers';
 
 const statusTone = {
   submitted: 'bg-secondary text-muted-foreground ',
@@ -43,13 +45,20 @@ const statusTone = {
 
 const ReferralDashboard = () => {
   const { user } = useSelector((state) => state.auth);
-  const { isDateInRange } = useDateFilter();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [search, setSearch] = useState('');
+
+  const { data: projectsData = [] } = useProjects();
+  const { data: usersData = [] } = useUsers();
+  const projects = Array.isArray(projectsData) ? projectsData : projectsData.projects || [];
+  const employees = (Array.isArray(usersData) ? usersData : usersData.users || []).filter(
+    (u) => ['employee', 'manager', 'accountManager'].includes(u.role)
+  );
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -57,6 +66,12 @@ const ReferralDashboard = () => {
     company: '',
     dealValue: '',
     notes: '',
+    projectId: '',
+    payoutType: 'one_time',
+    referrerType: 'outside',
+    outsideReferrerName: '',
+    outsideReferrerContact: '',
+    referrerEmployeeId: '',
   });
 
   const fetchReferrals = async () => {
@@ -91,7 +106,20 @@ const ReferralDashboard = () => {
       await api.post('/referrals/submit-lead', formData);
       toast.success('Lead referred successfully!');
       setShowLeadForm(false);
-      setFormData({ name: '', email: '', phone: '', company: '', dealValue: '', notes: '' });
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        dealValue: '',
+        notes: '',
+        projectId: '',
+        payoutType: 'one_time',
+        referrerType: 'outside',
+        outsideReferrerName: '',
+        outsideReferrerContact: '',
+        referrerEmployeeId: '',
+      });
       fetchReferrals();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to submit lead');
@@ -100,10 +128,7 @@ const ReferralDashboard = () => {
     }
   };
 
-  const referrals = useMemo(
-    () => (data?.referrals || []).filter((r) => isDateInRange([r.createdAt, r.updatedAt])),
-    [data?.referrals, isDateInRange]
-  );
+  const referrals = useMemo(() => data?.referrals || [], [data?.referrals]);
   const filteredReferrals = useMemo(() => {
     if (!search.trim()) return referrals;
     const q = search.toLowerCase();
@@ -152,6 +177,40 @@ const ReferralDashboard = () => {
       render: (r) => (
         <span className="font-bold text-xs text-foreground tabular-nums">
           {r.dealValue ? formatINR(r.dealValue) : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'project',
+      label: 'Project',
+      render: (r) => (
+        <span className="text-xs font-semibold text-foreground">
+          {r.projectId?.name || r.projectName || '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'referrer',
+      label: 'Referrer',
+      render: (r) => (
+        <div className="text-xs space-y-0.5">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground">
+            {r.referrerType || 'outside'}
+          </span>
+          <p className="font-semibold text-foreground truncate max-w-[140px]">
+            {r.referrerType === 'outside'
+              ? (r.outsideReferrerName || 'Outside Partner')
+              : (r.referrer?.name || 'Internal Team')}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: 'payoutType',
+      label: 'Payout',
+      render: (r) => (
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-primary/10 text-primary">
+          {r.payoutType === 'monthly' ? 'Monthly' : 'One-Time'}
         </span>
       ),
     },
@@ -345,6 +404,120 @@ const ReferralDashboard = () => {
                   className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
                 />
               </div>
+
+              {/* Project Selection */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Project (Optional)</label>
+                <SelectDropdown
+                  value={formData.projectId}
+                  onChange={(val) => setFormData({ ...formData, projectId: val || '' })}
+                  options={projects.map((p) => ({ value: p._id, label: p.name }))}
+                  placeholder="Select Project (Optional)"
+                  allOptionLabel="General / No Specific Project"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm font-normal rounded-xl border border-border/50"
+                />
+              </div>
+
+              {/* Referral Payout Frequency: One-Time or Monthly */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Referral Payout Frequency</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'one_time', label: 'One-Time Payout', desc: 'Single lump sum commission' },
+                    { id: 'monthly', label: 'Monthly Recurring', desc: 'Recurring monthly cut' },
+                  ].map((pType) => (
+                    <button
+                      key={pType.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, payoutType: pType.id })}
+                      className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
+                        formData.payoutType === pType.id
+                          ? 'border-primary bg-primary/10 text-foreground font-semibold'
+                          : 'border-border/60 bg-background text-muted-foreground hover:bg-secondary/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-foreground">{pType.label}</span>
+                        {formData.payoutType === pType.id && <Check size={14} className="text-primary" />}
+                      </div>
+                      <span className="text-[11px] text-muted-foreground block mt-0.5">{pType.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* To Whom (Referrer Type): Employee, Partner, or Outside */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Referrer (To Whom Commission is Paid)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'outside', label: 'Outside / External' },
+                    { id: 'employee', label: 'Employee' },
+                    { id: 'partner', label: 'Partner' },
+                  ].map((refChoice) => (
+                    <button
+                      key={refChoice.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, referrerType: refChoice.id })}
+                      className={`py-2 px-3 rounded-xl border text-center transition-colors text-xs font-bold cursor-pointer ${
+                        formData.referrerType === refChoice.id
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border/60 bg-background text-muted-foreground hover:bg-secondary/40'
+                      }`}
+                    >
+                      {refChoice.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* If Outside: enter name & contact */}
+              {formData.referrerType === 'outside' && (
+                <div className="space-y-4 p-4 rounded-2xl bg-secondary/30 border border-border/40">
+                  <div>
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">Outside Referrer Person Name *</label>
+                    <input
+                      required
+                      value={formData.outsideReferrerName}
+                      onChange={(e) => setFormData({ ...formData, outsideReferrerName: e.target.value })}
+                      placeholder="e.g. Vignesh (Marketing Agency / Friend)"
+                      className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">Outside Referrer Phone / UPI / Contact</label>
+                    <input
+                      value={formData.outsideReferrerContact}
+                      onChange={(e) => setFormData({ ...formData, outsideReferrerContact: e.target.value })}
+                      placeholder="+91 98765 00000 or upi@okhdfcbank"
+                      className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* If Employee: select employee */}
+              {formData.referrerType === 'employee' && (
+                <div className="p-4 rounded-2xl bg-secondary/30 border border-border/40">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Employee *</label>
+                  <SelectDropdown
+                    value={formData.referrerEmployeeId}
+                    onChange={(val) => setFormData({ ...formData, referrerEmployeeId: val || '' })}
+                    options={employees.map((u) => ({
+                      value: u._id,
+                      label: u.name,
+                      subLabel: u.position || u.role,
+                    }))}
+                    placeholder="Choose referring employee"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="h-11 bg-background text-sm font-normal rounded-xl border border-border/50"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Requirements / Notes</label>

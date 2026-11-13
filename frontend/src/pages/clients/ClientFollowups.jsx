@@ -37,6 +37,7 @@ import {
 } from '../../hooks/useClientFollowups';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +47,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useDateFilter } from '../../context/DateFilterContext';
 
 const emptyForm = {
   client: '',
@@ -324,77 +324,94 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
           <div className="space-y-5 p-4 sm:p-6 md:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Client *</label>
-              <select
+              <SelectDropdown
                 value={form.client}
-                onChange={(e) => updateField('client', e.target.value)}
-                required
-                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-              >
-                <option value="">Select client</option>
-                {clients.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.company || c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => updateField('client', val || '')}
+                options={clients.map((c) => ({
+                  value: c._id,
+                  label: c.company || c.name,
+                }))}
+                placeholder="Select client"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
 
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Related Project (Optional)</label>
-              <select
+              <SelectDropdown
                 value={form.project}
-                onChange={(e) => updateField('project', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-              >
-                <option value="">None / General</option>
-                {clientProjects.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => updateField('project', val || '')}
+                options={[
+                  { value: '', label: 'None / General' },
+                  ...clientProjects.map((p) => ({
+                    value: p._id,
+                    label: p.name,
+                  })),
+                ]}
+                placeholder="None / General"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
 
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Touchpoint Channel</label>
-              <select
-                value={form.type}
-                onChange={(e) => updateField('type', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-              >
-                <option value="call">Phone Call</option>
-                <option value="meeting">Video / In-Person Meeting</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="email">Email</option>
-              </select>
+              <SelectDropdown
+                value={form.type || 'call'}
+                onChange={(val) => updateField('type', val || 'call')}
+                options={[
+                  { value: 'call', label: 'Phone Call' },
+                  { value: 'meeting', label: 'Video / In-Person Meeting' },
+                  { value: 'whatsapp', label: 'WhatsApp' },
+                  { value: 'email', label: 'Email' },
+                ]}
+                placeholder="Channel"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
 
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Status</label>
-              <select
-                value={form.status}
-                onChange={(e) => updateField('status', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-              >
-                <option value="open">Open</option>
-                <option value="waiting">Waiting for Client</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+              <SelectDropdown
+                value={form.status || 'open'}
+                onChange={(val) => updateField('status', val || 'open')}
+                options={[
+                  { value: 'open', label: 'Open' },
+                  { value: 'waiting', label: 'Waiting for Client' },
+                  { value: 'completed', label: 'Completed' },
+                  { value: 'cancelled', label: 'Cancelled' },
+                ]}
+                placeholder="Status"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
 
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Priority</label>
-              <select
-                value={form.priority}
-                onChange={(e) => updateField('priority', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
+              <SelectDropdown
+                value={form.priority || 'medium'}
+                onChange={(val) => updateField('priority', val || 'medium')}
+                options={[
+                  { value: 'low', label: 'Low' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'high', label: 'High' },
+                  { value: 'urgent', label: 'Urgent' },
+                ]}
+                placeholder="Priority"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
 
             <div>
@@ -524,8 +541,6 @@ export default function ClientFollowups() {
   const [viewFollowup, setViewFollowup] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  const { isDateInRange, filterByDateRange } = useDateFilter();
-
   const { data: clients = [] } = useClients();
   const { data: projects = [] } = useProjects();
   const { data: followups = [], isLoading } = useClientFollowups();
@@ -549,12 +564,9 @@ export default function ClientFollowups() {
       const summary = (item.summary || '').toLowerCase();
       const matchesSearch = !q || clientName.includes(q) || subject.includes(q) || summary.includes(q);
       const matchesChannel = channelFilter === 'all' || item.type === channelFilter;
-      // Date filter: check meetingDate or createdAt
-      const dateToCheck = item.meetingDate || item.nextFollowUpDate || item.createdAt;
-      const matchesDate = isDateInRange(dateToCheck);
-      return matchesSearch && matchesChannel && matchesDate;
+      return matchesSearch && matchesChannel;
     });
-  }, [followups, search, channelFilter, isDateInRange]);
+  }, [followups, search, channelFilter]);
 
   // Statistics
   const total = followups.length;

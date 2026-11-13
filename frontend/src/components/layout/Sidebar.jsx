@@ -160,7 +160,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
       ];
       if (p.canAccessSmm) {
-        employeeDelivery.unshift({ name: 'Content OS', icon: Share2, path: '/smm' });
+        employeeDelivery.unshift({ name: 'Social Tracker', icon: Share2, path: '/smm' });
       }
 
       return [
@@ -225,7 +225,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         items: [
           { name: 'CRM & Leads', icon: TrendingUp, path: '/crm/leads' },
           { name: 'Proposals', icon: FileText, path: '/proposals' },
-          { name: 'Social & Ads OS', icon: Share2, path: '/smm' },
+          { name: 'Social Media & Ads', icon: Share2, path: '/smm' },
           { name: 'Referral Hub', icon: Award, path: '/referral' },
         ],
       },
@@ -269,7 +269,9 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         title: 'TEAM & WORKLOAD',
         items: [
           { name: 'Attendance & EOD', icon: Clock, path: '/attendance' },
-          { name: 'My EOD Reports', icon: FileText, path: '/my-eod-reports' },
+          ...(!['superAdmin', 'organizationOwner', 'admin'].includes(role) ? [
+            { name: 'My EOD Reports', icon: FileText, path: '/my-eod-reports' },
+          ] : []),
           { name: 'HR & Hiring', icon: Users2, path: '/hr' },
           ...(role === 'superAdmin' || role === 'admin' ? [
             { name: 'User Directory', icon: UserCheck, path: '/admin/users' },

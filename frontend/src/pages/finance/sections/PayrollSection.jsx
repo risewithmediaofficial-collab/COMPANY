@@ -40,6 +40,7 @@ import {
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -354,27 +355,31 @@ export default function PayrollSection() {
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-1.5 bg-secondary/60 rounded-lg p-1">
               <Calendar className="h-3.5 w-3.5 text-muted-foreground ml-1.5 shrink-0" />
-              <select
+              <SelectDropdown
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent border-0 py-1 pl-1 pr-6 font-semibold text-xs text-foreground focus:ring-0 cursor-pointer"
-              >
-                {MONTHS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedMonth(val || 'January')}
+                options={MONTHS.map((m) => ({ value: m, label: m }))}
+                placeholder="Month"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-28"
+                buttonClassName="bg-transparent border-0 h-7 px-1 font-semibold text-xs text-foreground"
+              />
 
-              <select
+              <SelectDropdown
                 value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="bg-transparent border-0 py-1 pl-1 pr-6 font-semibold text-xs text-foreground tabular-nums focus:ring-0 cursor-pointer"
-              >
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-              </select>
+                onChange={(val) => setSelectedYear(val || '2026')}
+                options={[
+                  { value: '2025', label: '2025' },
+                  { value: '2026', label: '2026' },
+                  { value: '2027', label: '2027' },
+                ]}
+                placeholder="Year"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-24"
+                buttonClassName="bg-transparent border-0 h-7 px-1 font-semibold text-xs text-foreground tabular-nums"
+              />
             </div>
 
             {/* PRIMARY BUTTON: Manual Entry by Employee Selection */}
@@ -670,20 +675,19 @@ export default function PayrollSection() {
               {/* Employee Selection */}
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Employee *</label>
-                <select
+                <SelectDropdown
                   value={form.employee}
-                  onChange={(e) => handleEmployeeSelect(e.target.value)}
-                  disabled={Boolean(editingRecord)}
-                  required
-                  className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-ring/20 "
-                >
-                  <option value="">-- Choose Employee --</option>
-                  {employees.map((emp) => (
-                    <option key={emp._id} value={emp._id}>
-                      {emp.name} ({emp.department || emp.role || 'Staff'}) {emp.salary ? `— Base: ₹${emp.salary}` : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => handleEmployeeSelect(val || '')}
+                  options={employees.map((emp) => ({
+                    value: emp._id,
+                    label: emp.name,
+                    subLabel: `${emp.department || emp.role || 'Staff'}${emp.salary ? ` — Base: ₹${emp.salary}` : ''}`,
+                  }))}
+                  placeholder="-- Choose Employee --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background border border-border/50"
+                />
               </div>
 
               {/* Base Monthly Salary */}
@@ -703,15 +707,20 @@ export default function PayrollSection() {
               {/* Approval Status */}
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Approval Status</label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full h-11 rounded-xl px-4 text-sm font-semibold text-foreground bg-background focus:ring-2 focus:ring-ring/20 "
-                >
-                  <option value="pending">Pending Approval (Draft)</option>
-                  <option value="approved">Approved (Expense Recognized)</option>
-                  <option value="paid">Paid / Disbursed</option>
-                </select>
+                <SelectDropdown
+                  value={form.status || 'pending'}
+                  onChange={(val) => setForm({ ...form, status: val || 'pending' })}
+                  options={[
+                    { value: 'pending', label: 'Pending Approval (Draft)' },
+                    { value: 'approved', label: 'Approved (Expense Recognized)' },
+                    { value: 'paid', label: 'Paid / Disbursed' },
+                  ]}
+                  placeholder="Approval Status"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="w-full h-11 rounded-xl px-4 text-sm font-semibold text-foreground bg-background border border-border/50"
+                />
               </div>
 
               {/* Additions / Incentives */}
@@ -883,18 +892,22 @@ export default function PayrollSection() {
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Disbursement Account</label>
-                <select
+                <SelectDropdown
                   value={fundingAccount}
-                  onChange={(e) => setFundingAccount(e.target.value)}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                >
-                  <option value="">Select Account (Optional)</option>
-                  {accounts.map((acc) => (
-                    <option key={acc._id} value={acc._id}>
-                      {acc.accountName} ({acc.accountType}) - Balance: {formatINR(acc.currentBalance || 0)}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setFundingAccount(val || '')}
+                  options={[
+                    { value: '', label: 'Select Account (Optional)' },
+                    ...accounts.map((acc) => ({
+                      value: acc._id,
+                      label: `${acc.accountName} (${acc.accountType})`,
+                      subLabel: `Balance: ${formatINR(acc.currentBalance || 0)}`,
+                    })),
+                  ]}
+                  placeholder="Select Account (Optional)"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground border border-border/50"
+                />
               </div>
             </div>
 

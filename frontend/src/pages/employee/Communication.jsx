@@ -21,6 +21,7 @@ import {
   useUpdateCommunication,
 } from '../../hooks/useCommunications';
 import { getAssetUrl } from '../../utils/assetUrl';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 const statusStyles = {
   new: 'bg-secondary text-foreground ',
@@ -108,19 +109,24 @@ const Communication = () => {
             />
           </div>
           {!isClientView && (
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3 rounded-xl bg-card text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-            >
-              <option value="all">All Status</option>
-              <option value="new">New</option>
-              <option value="open">Open</option>
-              <option value="pending_client">Pending Client</option>
-              <option value="pending_internal">Pending Internal</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </select>
+            <SelectDropdown
+              value={statusFilter || 'all'}
+              onChange={(val) => setStatusFilter(val || 'all')}
+              options={[
+                { value: 'all', label: 'All Status' },
+                { value: 'new', label: 'New' },
+                { value: 'open', label: 'Open' },
+                { value: 'pending_client', label: 'Pending Client' },
+                { value: 'pending_internal', label: 'Pending Internal' },
+                { value: 'resolved', label: 'Resolved' },
+                { value: 'closed', label: 'Closed' },
+              ]}
+              placeholder="All Status"
+              allowCustom={false}
+              allowDeselect={false}
+              className="w-36 shrink-0"
+              buttonClassName="h-10 px-3 rounded-xl bg-card text-xs font-semibold text-foreground border border-border/50"
+            />
           )}
           <button
             onClick={() => {
@@ -214,18 +220,23 @@ const Communication = () => {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   {!isClientView && (
-                    <select
-                      value={active.status}
-                      onChange={(event) => updateStatus(event.target.value)}
-                      className="rounded-xl bg-background px-4 py-2 text-[10px] font-black uppercase tracking-widest text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer hover:bg-secondary transition-colors"
-                    >
-                      <option value="new">New</option>
-                      <option value="open">Open</option>
-                      <option value="pending_client">Pending Client</option>
-                      <option value="pending_internal">Pending Internal</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="closed">Closed</option>
-                    </select>
+                    <SelectDropdown
+                      value={active.status || 'open'}
+                      onChange={(val) => updateStatus(val || 'open')}
+                      options={[
+                        { value: 'new', label: 'NEW' },
+                        { value: 'open', label: 'OPEN' },
+                        { value: 'pending_client', label: 'PENDING CLIENT' },
+                        { value: 'pending_internal', label: 'PENDING INTERNAL' },
+                        { value: 'resolved', label: 'RESOLVED' },
+                        { value: 'closed', label: 'CLOSED' },
+                      ]}
+                      placeholder="Status"
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-40"
+                      buttonClassName="rounded-xl bg-background px-4 py-2 text-[10px] font-black uppercase tracking-widest text-foreground border border-border/50"
+                    />
                   )}
                   {isClientView && (
                     <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${statusStyles[active.status] || statusStyles.open}`}>

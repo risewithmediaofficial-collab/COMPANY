@@ -27,6 +27,7 @@ import {
   Volume2,
 } from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../components/ui/SelectDropdown';
 import { ProfileImageCropModal } from '../components/modals/ProfileImageCropModal';
 import { toggleDarkMode } from '../store/slices/uiSlice';
 import { updateCurrentUser } from '../store/slices/authSlice';
@@ -706,16 +707,18 @@ const Settings = () => {
                       ['timezone', 'Timezone', ['Asia/Calcutta', 'UTC', 'America/New_York', 'Europe/London']],
                       ['currency', 'Currency', ['INR']],
                     ].map(([key, label, options]) => (
-                      <label key={key} className="space-y-2">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
-                        <select
+                      <div key={key} className="space-y-2">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">{label}</span>
+                        <SelectDropdown
                           value={preferences.regional?.[key] || options[0]}
-                          onChange={(event) => setRegional(key, event.target.value)}
-                          className="w-full rounded-xl bg-background px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-                        >
-                          {options.map((option) => <option key={option}>{option}</option>)}
-                        </select>
-                      </label>
+                          onChange={(val) => setRegional(key, val || options[0])}
+                          options={options.map((option) => ({ value: option, label: option }))}
+                          allowCustom={false}
+                          allowDeselect={false}
+                          className="w-full text-sm"
+                          buttonClassName="h-11 px-3.5 rounded-xl bg-background border border-border/50 text-sm font-medium"
+                        />
+                      </div>
                     ))}
                   </div>
                   <button

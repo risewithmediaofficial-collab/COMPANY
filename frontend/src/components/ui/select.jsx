@@ -16,14 +16,14 @@ export const SelectTrigger = React.forwardRef(({ className, children, ...props }
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-11 w-full items-center justify-between rounded-xl bg-secondary/75 px-4 py-2 text-sm font-normal leading-normal text-left text-foreground outline-none transition-colors duration-150 hover:bg-secondary focus:bg-secondary/50 focus:ring-2 focus:ring-brand/40 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
+      'group flex h-11 w-full items-center justify-between rounded-xl bg-secondary/75 px-4 py-2 text-sm font-normal leading-normal text-left text-foreground outline-none transition-colors duration-150 hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-brand/40 data-[state=open]:ring-2 data-[state=open]:ring-brand/45 data-[state=open]:bg-secondary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
       className
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown size={16} className="opacity-60 shrink-0 ml-1 text-muted-foreground" />
+      <ChevronDown size={15} className="shrink-0 ml-1 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -133,29 +133,25 @@ export const SelectContent = React.forwardRef(
           )}
           {...props}
         >
-          {/* Hidden search bar that reveals as soon as user types on keyboard */}
-          {searchable && (isSearching || searchQuery) && (
+          {/* Search bar always visible inside dropdown popover */}
+          {searchable && (
             <div
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex items-center gap-2 px-3 py-2 mb-1.5 rounded-xl bg-secondary/75 transition-colors animate-in fade-in slide-in-from-top-1 duration-150"
+              className="relative p-1 mb-1 shrink-0"
             >
-              <Search size={14} className="text-primary shrink-0" />
+              <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <input
                 ref={inputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Type to filter..."
-                className="w-full bg-transparent text-xs sm:text-sm text-foreground placeholder:text-muted-foreground/60 outline-none border-none p-0 focus:ring-0"
+                placeholder="Type to search..."
+                className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl bg-secondary/75 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 font-medium"
                 onKeyDown={(e) => {
                   e.stopPropagation();
                   if (e.key === 'Escape') {
                     e.preventDefault();
                     setSearchQuery('');
-                    setIsSearching(false);
-                  } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    inputRef.current?.blur();
                   }
                 }}
               />
@@ -167,15 +163,12 @@ export const SelectContent = React.forwardRef(
                     setSearchQuery('');
                     inputRef.current?.focus();
                   }}
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors cursor-pointer"
-                  title="Clear filter"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded cursor-pointer"
+                  title="Clear search"
                 >
-                  <X size={13} />
+                  <X size={12} />
                 </button>
               )}
-              <span className="text-[10px] font-mono font-medium text-muted-foreground/90 px-1.5 py-0.5 rounded-md bg-background/90 shrink-0 select-none">
-                {matchCount}
-              </span>
             </div>
           )}
 
@@ -220,17 +213,17 @@ export const SelectItem = React.forwardRef(({ className, children, ...props }, r
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-pointer select-none items-center rounded-xl px-8 py-2.5 text-sm font-medium text-slate-700 dark:text-foreground outline-none transition-all hover:bg-slate-100 dark:hover:bg-secondary/70 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex cursor-pointer select-none items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-foreground/90 outline-none transition-all hover:bg-secondary/70 data-[highlighted]:bg-secondary data-[highlighted]:text-foreground data-[state=checked]:bg-primary/10 data-[state=checked]:font-bold data-[state=checked]:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center text-primary">
+    <SelectPrimitive.ItemText className="truncate min-w-0 pr-1">{children}</SelectPrimitive.ItemText>
+    <span className="ml-2 flex h-3.5 w-3.5 items-center justify-center text-primary shrink-0">
       <SelectPrimitive.ItemIndicator>
-        <Check size={16} />
+        <Check size={14} className="text-primary stroke-[2.5]" />
       </SelectPrimitive.ItemIndicator>
     </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ));
 SelectItem.displayName = 'SelectItem';

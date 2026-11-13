@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/muiIcons';
 import api from '../../api';
 import { getAssetUrl } from '../../utils/assetUrl';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { EODReportModal } from '../../components/modals/EODReportModal';
 import { EODDetailModal } from '../../components/modals/EODDetailModal';
 import { AttendanceWidget } from '../../components/attendance/AttendanceWidget';
@@ -43,7 +44,6 @@ import {
 import { useEodReports } from '../../hooks/useEodReports';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
-import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Dialog,
   DialogContent,
@@ -70,11 +70,10 @@ const getInitials = (name, email) => {
 
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
-  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange } = useDateFilter();
   const isAdmin =
     ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(user?.role) ||
     Boolean(user?.permissions?.canManageHR || user?.permissions?.canManageEmployees);
-  const isSuperAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
+  const isSuperAdmin = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'organizationOwner';
 
   const currentDate = new Date();
   const approveAttendanceMutation = useApproveAttendanceRequest();
@@ -197,9 +196,18 @@ const Attendance = () => {
   const { data, isLoading } = useAttendance(attendanceFilters);
   const { data: teamTodayRecords = [] } = useTeamTodayAttendance({ enabled: isAdmin });
   const { data: users = [] } = useUsers({ enabled: isAdmin });
+
+  const attendanceMonthRange = useMemo(() => {
+    const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+    return {
+      startDate: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`,
+      endDate: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`,
+    };
+  }, [selectedYear, selectedMonth]);
+
   const { data: eodData, isLoading: isEodLoading } = useEodReports(
-    globalStartDate || globalEndDate ? 'all' : 30,
-    { startDate: globalStartDate || undefined, endDate: globalEndDate || undefined },
+    'all',
+    { startDate: attendanceMonthRange.startDate, endDate: attendanceMonthRange.endDate },
     { enabled: isAdmin }
   );
 
@@ -210,7 +218,7 @@ const Attendance = () => {
   const assignableUsers = useMemo(
     () =>
       users.filter((u) =>
-        ['employee', 'manager', 'admin', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role)
+        ['employee', 'manager', 'accountManager'].includes(u.role)
       ),
     [users]
   );
@@ -277,7 +285,11 @@ const Attendance = () => {
     work_from_home: 'bg-secondary text-foreground',
   };
 
-  const rawRecords = data?.records || [];
+  const rawRecords = useMemo(() => {
+    return (data?.records || []).filter(
+      (r) => !['superAdmin', 'organizationOwner', 'admin'].includes(r.user?.role)
+    );
+  }, [data?.records]);
 
   const records = useMemo(() => {
     if (!searchQuery.trim()) return rawRecords;
@@ -475,7 +487,9 @@ const Attendance = () => {
 
   const filteredEodReports = useMemo(() => {
     return (eodData?.records || []).filter((r) => {
-      if (!isDateInRange(r.date)) return false;
+      if (!r.date) return false;
+      const d = new Date(r.date);
+      if (d.getFullYear() !== selectedYear || d.getMonth() + 1 !== selectedMonth) return false;
       if (selectedUser !== 'all' && (r.user?._id || r.user) !== selectedUser) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -496,7 +510,7 @@ const Attendance = () => {
         tasksMatch
       );
     });
-  }, [eodData?.records, isDateInRange, selectedUser, searchQuery]);
+  }, [eodData?.records, selectedYear, selectedMonth, selectedUser, searchQuery]);
 
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
@@ -517,7 +531,7 @@ const Attendance = () => {
   };
 
   const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' });
-  const showEmployeeColumn = viewTab === 'team' || (isAdmin && selectedUser === 'all');
+  const showEmployeeColumn = selectedUser === 'all';
 
   const handleExportCSV = () => {
     if (!records || records.length === 0) {
@@ -691,6 +705,39 @@ const Attendance = () => {
     toast.success(`Exported Monthly Summary & Logs for ${monthName} ${selectedYear}`);
   };
 
+  const statusCounts = useMemo(() => {
+    const counts = {
+      all: rawRecords.length,
+      pending: pendingApprovals.length,
+      present: 0,
+      holiday: 0,
+      leave: 0,
+      work_from_home: 0,
+      absent: 0,
+    };
+    rawRecords.forEach((r) => {
+      if (r.status === 'present') counts.present += 1;
+      else if (r.status === 'holiday') counts.holiday += 1;
+      else if (r.status === 'leave') counts.leave += 1;
+      else if (r.status === 'work_from_home') counts.work_from_home += 1;
+      else if (r.status === 'absent') counts.absent += 1;
+    });
+    return counts;
+  }, [rawRecords, pendingApprovals.length]);
+
+  const statusFilters = useMemo(
+    () => [
+      { value: 'all', label: 'All', count: statusCounts.all },
+      { value: 'pending', label: 'Pending', count: statusCounts.pending },
+      { value: 'present', label: 'Present', count: statusCounts.present },
+      { value: 'holiday', label: 'Holidays', count: statusCounts.holiday },
+      { value: 'leave', label: 'Leave', count: statusCounts.leave },
+      { value: 'work_from_home', label: 'WFH', count: statusCounts.work_from_home },
+      { value: 'absent', label: 'Absent', count: statusCounts.absent },
+    ],
+    [statusCounts]
+  );
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
@@ -704,16 +751,6 @@ const Attendance = () => {
       </div>
     );
   }
-
-  const statusFilters = [
-    { value: 'all', label: 'All' },
-    { value: 'pending', label: 'Pending', count: pendingApprovals.length },
-    { value: 'present', label: 'Present' },
-    { value: 'holiday', label: 'Holidays' },
-    { value: 'leave', label: 'Leave' },
-    { value: 'work_from_home', label: 'WFH' },
-    { value: 'absent', label: 'Absent' },
-  ];
 
   const getRosterStatusBadge = (status) => {
     switch (status) {
@@ -928,20 +965,22 @@ const Attendance = () => {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                hasUserChangedTab.current = true;
-                setViewTab('personal');
-                setSelectedUser(user?._id);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 cursor-pointer ${
-                viewTab === 'personal' ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <User size={16} className="shrink-0" />
-              My Attendance
-            </button>
+            {!isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  hasUserChangedTab.current = true;
+                  setViewTab('personal');
+                  setSelectedUser(user?._id);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 cursor-pointer ${
+                  viewTab === 'personal' ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <User size={16} className="shrink-0" />
+                My Attendance
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -1307,67 +1346,44 @@ const Attendance = () => {
           <div className="bg-card rounded-3xl overflow-hidden">
             {/* Toolbar */}
             <div className="p-5 sm:p-6 space-y-4">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              {/* Header: Title and Month Stepper */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
                 <div className="flex items-center gap-2.5">
                   <History size={18} className="text-muted-foreground shrink-0" />
                   <h2 className="font-bold text-base text-foreground">Attendance Logs</h2>
-                  <span className="px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground text-xs font-semibold tabular-nums">
+                  <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground text-xs font-semibold tabular-nums">
                     {records.length}
                   </span>
                 </div>
 
-                {/* Controls: Employee Select, Search, Month Navigation */}
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <select
-                    value={selectedUser}
-                    onChange={(e) => setSelectedUser(e.target.value)}
-                    className="app-select h-10 px-3.5 rounded-xl bg-background text-sm font-medium text-foreground min-w-[180px]"
+                {/* Month Navigation Stepper */}
+                <div className="flex items-center gap-1 bg-background px-2 h-10 rounded-xl border border-border/50 shrink-0 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={handlePrevMonth}
+                    className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-foreground cursor-pointer"
+                    title="Previous Month"
                   >
-                    <option value="all">All Employees ({assignableUsers.length})</option>
-                    {assignableUsers.map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name || u.email} {u.department ? `(${u.department})` : `(${u.role})`}
-                      </option>
-                    ))}
-                  </select>
-
-                  <div className="relative flex-1 min-w-[200px] sm:w-56">
-                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Search name, email, notes..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-10 w-full pl-9 pr-3.5 rounded-xl bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-1 bg-background px-2 h-10 rounded-xl shrink-0">
-                    <button
-                      type="button"
-                      onClick={handlePrevMonth}
-                      className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-foreground cursor-pointer"
-                      title="Previous Month"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <span className="text-xs font-bold min-w-[115px] text-center tabular-nums">
-                      {monthName} {selectedYear}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleNextMonth}
-                      className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-foreground cursor-pointer"
-                      title="Next Month"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-bold min-w-[125px] text-center tabular-nums uppercase tracking-wide">
+                    {monthName} {selectedYear}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleNextMonth}
+                    className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-foreground cursor-pointer"
+                    title="Next Month"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
               </div>
 
-              {/* Single Status Filter Pills Row */}
-              <div className="flex flex-wrap items-center gap-1.5">
+              {/* Controls Row: Status Filter Pills on left, Search & Employee Select on right */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                {/* Single Status Filter Pills Row */}
+                <div className="flex flex-wrap items-center gap-1.5">
                 {statusFilters.map(({ value, label, count }) => {
                   const active = selectedStatus === value;
                   return (
@@ -1395,7 +1411,40 @@ const Attendance = () => {
                   );
                 })}
               </div>
+
+              {/* Search & Employee Select */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
+                <SelectDropdown
+                  value={selectedUser}
+                  onChange={(val) => setSelectedUser(val || 'all')}
+                  options={[
+                    { value: 'all', label: `All Employees (${assignableUsers.length})` },
+                    ...assignableUsers.map((u) => ({
+                      value: u._id,
+                      label: u.name || u.email,
+                      subLabel: u.department ? `${u.department} · ${u.role}` : u.role,
+                    })),
+                  ]}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  placeholder="All Employees"
+                  className="w-full sm:w-56"
+                  buttonClassName="h-10 bg-background border border-border/50 text-xs sm:text-sm font-medium rounded-xl hover:bg-secondary/40"
+                />
+
+                <div className="relative w-full sm:w-56">
+                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search name, email, notes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-10 w-full pl-9 pr-3.5 rounded-xl bg-background border border-border/50 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
             </div>
+          </div>
 
             {/* Table */}
             <div className="responsive-table-container overflow-y-auto max-h-[calc(100vh-300px)]">
@@ -1594,18 +1643,23 @@ const Attendance = () => {
         <div className="space-y-6">
           <div className="bg-card p-5 rounded-3xl flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[260px]">
-              <select
+              <SelectDropdown
                 value={selectedUser}
-                onChange={(e) => setSelectedUser(e.target.value)}
-                className="app-select h-10 px-3.5 rounded-xl bg-background text-sm font-medium text-foreground min-w-[190px]"
-              >
-                <option value="all">All Team Members ({assignableUsers.length})</option>
-                {assignableUsers.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.name || u.email} {u.department ? `(${u.department})` : `(${u.role})`}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedUser(val || 'all')}
+                options={[
+                  { value: 'all', label: `All Team Members (${assignableUsers.length})` },
+                  ...assignableUsers.map((u) => ({
+                    value: u._id,
+                    label: u.name || u.email,
+                    subLabel: u.department ? `${u.department} · ${u.role}` : u.role,
+                  })),
+                ]}
+                allowCustom={false}
+                allowDeselect={false}
+                placeholder="All Team Members"
+                className="w-full sm:w-60"
+                buttonClassName="h-10 bg-background border border-border/50 text-xs sm:text-sm font-medium rounded-xl hover:bg-secondary/40"
+              />
 
               <div className="relative flex-1 min-w-[200px] max-w-sm">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -2158,18 +2212,21 @@ const Attendance = () => {
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Employee
                   </label>
-                  <select
+                  <SelectDropdown
                     value={leaveForm.userId}
-                    onChange={(e) => setLeaveForm((prev) => ({ ...prev, userId: e.target.value }))}
-                    className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                  >
-                    <option value="">Myself ({user?.name || user?.email})</option>
-                    {assignableUsers.map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name || u.email} ({u.role})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setLeaveForm((prev) => ({ ...prev, userId: val }))}
+                    options={[
+                      { value: '', label: `Myself (${user?.name || user?.email})` },
+                      ...assignableUsers.map((u) => ({
+                        value: u._id,
+                        label: u.name || u.email,
+                        subLabel: u.department ? `${u.department} · ${u.role}` : u.role,
+                      })),
+                    ]}
+                    allowCustom={false}
+                    allowDeselect={false}
+                    placeholder="Select Employee"
+                  />
                 </div>
               )}
 

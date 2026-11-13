@@ -5,6 +5,7 @@ import {
   objectiveSupportsSocial
 } from '../../utils/smmDestinations';
 import { MessageCircle, PhoneCall, Instagram, Facebook, Smartphone, FileSpreadsheet, Check, Sparkles, Target } from '@/components/ui/muiIcons';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 export const SMMDestinationSelector = ({
   objective = 'Awareness',
@@ -78,19 +79,18 @@ export const SMMDestinationSelector = ({
       </div>
 
       {/* Main Dropdown */}
-      <select
+      <SelectDropdown
         value={value}
-        onChange={(e) => handleSelectPrimary(e.target.value)}
-        className="app-select"
-        required
-      >
-        <option value="">-- Select Destination --</option>
-        {destinations.map((d) => (
-          <option key={d.value} value={d.value}>
-            {d.label}
-          </option>
-        ))}
-      </select>
+        onChange={(val) => handleSelectPrimary(val || '')}
+        options={destinations.map((d) => ({
+          value: d.value,
+          label: d.label,
+        }))}
+        placeholder="-- Select Destination --"
+        allowCustom={false}
+        className="w-full"
+        buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+      />
 
       {/* Social Multi-Select Pills (Only active when objective supports Instagram / Facebook) */}
       {supportsSocial && (

@@ -28,6 +28,7 @@ import {
 } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { useUsers } from '../../hooks/useUsers';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const DAYS_OF_WEEK = [
   'Weekly Target',
@@ -189,20 +190,25 @@ export function WeeklyTodoModal({
                     </span>
                     <span className="text-xs text-muted-foreground font-normal">Who executes this todo</span>
                   </label>
-                  <select
-                    value={assignedTo}
-                    onChange={(e) => setAssignedTo(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                  >
-                    <option value={currentUser?._id}>Myself ({currentUser?.name || 'Me'})</option>
-                    {assignableUsers
-                      .filter((u) => u._id !== currentUser?._id)
-                      .map((u) => (
-                        <option key={u._id} value={u._id}>
-                          {u.name} — [{u.role?.toUpperCase() || 'EMPLOYEE'}] {u.department ? `(${u.department})` : ''}
-                        </option>
-                      ))}
-                  </select>
+                  <SelectDropdown
+                    value={assignedTo || currentUser?._id}
+                    onChange={(val) => setAssignedTo(val || currentUser?._id)}
+                    options={[
+                      { value: currentUser?._id, label: `Myself (${currentUser?.name || 'Me'})` },
+                      ...assignableUsers
+                        .filter((u) => u._id !== currentUser?._id)
+                        .map((u) => ({
+                          value: u._id,
+                          label: u.name,
+                          subLabel: `[${u.role?.toUpperCase() || 'EMPLOYEE'}]${u.department ? ` (${u.department})` : ''}`,
+                        })),
+                    ]}
+                    placeholder="Assign To Team Member"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm font-medium text-foreground border border-border/50"
+                  />
                 </div>
               ) : (
                 <div className="p-3.5 rounded-xl bg-secondary/40 flex items-center gap-2.5 text-xs text-muted-foreground">
@@ -219,17 +225,19 @@ export function WeeklyTodoModal({
                   <Calendar size={15} className="text-primary shrink-0" />
                   <span>Day of Week / Execution Target</span>
                 </label>
-                <select
+                <SelectDropdown
                   value={dayOfWeek}
-                  onChange={(e) => setDayOfWeek(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                >
-                  {DAYS_OF_WEEK.map((day) => (
-                    <option key={day} value={day}>
-                      {day === 'Weekly Target' ? 'Whole Week Target' : day}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setDayOfWeek(val || 'Weekly Target')}
+                  options={DAYS_OF_WEEK.map((day) => ({
+                    value: day,
+                    label: day === 'Weekly Target' ? 'Whole Week Target' : day,
+                  }))}
+                  placeholder="Day of Week"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               {/* Priority */}
@@ -238,17 +246,19 @@ export function WeeklyTodoModal({
                   <Flag size={15} className="text-primary" />
                   <span>Priority</span>
                 </label>
-                <select
+                <SelectDropdown
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
-                >
-                  {PRIORITIES.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label} Priority
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setPriority(val || 'medium')}
+                  options={PRIORITIES.map((p) => ({
+                    value: p.value,
+                    label: `${p.label} Priority`,
+                  }))}
+                  placeholder="Priority"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               {/* Category Selector */}

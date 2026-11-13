@@ -9,6 +9,7 @@ import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
 import { getDestinationsForObjective, normalizeObjective } from '../../utils/smmDestinations';
 
@@ -48,7 +49,7 @@ export default function AdSets() {
       audienceSize: 'Broad',
     },
     placements: ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels'],
-    budget: 1000,
+    budget: '',
     bidStrategy: 'Lowest Cost',
   });
 
@@ -106,7 +107,7 @@ export default function AdSets() {
           audienceSize: 'Broad',
         },
         placements: ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels'],
-        budget: camp.dailyBudget || 1000,
+        budget: camp.dailyBudget || '',
         bidStrategy: 'Lowest Cost',
       });
       setIsDrawerOpen(true);
@@ -138,7 +139,7 @@ export default function AdSets() {
         ...prev,
         campaign: camp._id,
         name: prev.name || `${camp.name} - Ad Set`,
-        budget: camp.dailyBudget || prev.budget || 1000,
+        budget: camp.dailyBudget || prev.budget || '',
         formType: nextDest,
         destinationPlatforms: camp.destinationPlatforms || [],
         sourceContentIds: vIds,
@@ -153,13 +154,17 @@ export default function AdSets() {
       return;
     }
     try {
+      const payload = {
+        ...formData,
+        budget: Number(formData.budget) || 0,
+      };
       if (editingAdSet) {
-        await smmApi.updateAdSet(editingAdSet._id, formData);
+        await smmApi.updateAdSet(editingAdSet._id, payload);
         toast.success('Ad Set updated');
         setIsDrawerOpen(false);
         fetchData();
       } else {
-        const res = await smmApi.createAdSet(formData);
+        const res = await smmApi.createAdSet(payload);
         toast.success('Ad Set created successfully');
         setIsDrawerOpen(false);
         fetchData();
@@ -196,7 +201,7 @@ export default function AdSets() {
         audienceSize: 'Broad',
       },
       placements: ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels'],
-      budget: firstCamp?.dailyBudget || 1000,
+      budget: firstCamp?.dailyBudget || '',
       bidStrategy: 'Lowest Cost',
     });
     setIsDrawerOpen(true);
@@ -318,12 +323,20 @@ export default function AdSets() {
           <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Ad Sets..." />
         </div>
         <div className="w-full sm:w-48">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="app-select w-full">
-            <option value="">All Statuses</option>
-            <option value="Draft">Draft</option>
-            <option value="Active">Active</option>
-            <option value="Paused">Paused</option>
-          </select>
+          <SelectDropdown
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val || '')}
+            options={[
+              { value: '', label: 'All Statuses' },
+              { value: 'Draft', label: 'Draft' },
+              { value: 'Active', label: 'Active' },
+              { value: 'Paused', label: 'Paused' },
+            ]}
+            placeholder="All Statuses"
+            allowCustom={false}
+            className="w-full"
+            buttonClassName="h-10 text-xs font-semibold rounded-xl bg-background border border-border/50"
+          />
         </div>
       </div>
 
@@ -351,19 +364,19 @@ export default function AdSets() {
           {/* Campaign Selection & Auto-details */}
           <div>
             <label className="text-sm font-semibold text-foreground mb-1.5 block">Parent Campaign *</label>
-            <select
-              required
+            <SelectDropdown
               value={formData.campaign}
-              onChange={e => handleCampaignChange(e.target.value)}
-              className="app-select"
-            >
-              <option value="">Select Campaign</option>
-              {campaigns.map(c => (
-                <option key={c._id} value={c._id}>
-                  {c.name} ({c.client?.company || c.client?.name || 'Client'}) • ₹{(c.lifetimeBudget || c.dailyBudget || 0).toLocaleString()}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => handleCampaignChange(val || '')}
+              options={campaigns.map((c) => ({
+                value: c._id,
+                label: c.name,
+                subLabel: `${c.client?.company || c.client?.name || 'Client'} • ₹${(c.lifetimeBudget || c.dailyBudget || 0).toLocaleString()}`,
+              }))}
+              placeholder="Select Campaign"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+            />
           </div>
 
           {/* Auto-inherited Campaign Information Banner */}
@@ -451,15 +464,20 @@ export default function AdSets() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-sm font-semibold text-foreground block mb-1.5">Gender</label>
-                <select
-                  value={formData.audience?.gender}
-                  onChange={e => setFormData({...formData, audience: {...formData.audience, gender: e.target.value}})}
-                  className="app-select"
-                >
-                  <option value="All">All</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
+                <SelectDropdown
+                  value={formData.audience?.gender || 'All'}
+                  onChange={(val) => setFormData({ ...formData, audience: { ...formData.audience, gender: val || 'All' } })}
+                  options={[
+                    { value: 'All', label: 'All' },
+                    { value: 'Male', label: 'Male' },
+                    { value: 'Female', label: 'Female' },
+                  ]}
+                  placeholder="Select Gender"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
               <div>
                 <label className="text-sm font-semibold text-foreground block mb-1.5">Age Min</label>
@@ -501,22 +519,28 @@ export default function AdSets() {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Ad Set Daily Budget (₹)</label>
               <input
                 type="number"
-                value={formData.budget}
-                onChange={e => setFormData({...formData, budget: Number(e.target.value)})}
+                placeholder="e.g. 1000"
+                value={formData.budget ?? ''}
+                onChange={e => setFormData({ ...formData, budget: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input tabular-nums"
               />
             </div>
             <div>
               <label className="text-sm font-semibold text-foreground mb-1.5 block">Bid Strategy</label>
-              <select
-                value={formData.bidStrategy}
-                onChange={e => setFormData({...formData, bidStrategy: e.target.value})}
-                className="app-select"
-              >
-                <option value="Lowest Cost">Lowest Cost</option>
-                <option value="Cost Cap">Cost Cap</option>
-                <option value="Bid Cap">Bid Cap</option>
-              </select>
+              <SelectDropdown
+                value={formData.bidStrategy || 'Lowest Cost'}
+                onChange={(val) => setFormData({ ...formData, bidStrategy: val || 'Lowest Cost' })}
+                options={[
+                  { value: 'Lowest Cost', label: 'Lowest Cost' },
+                  { value: 'Cost Cap', label: 'Cost Cap' },
+                  { value: 'Bid Cap', label: 'Bid Cap' },
+                ]}
+                placeholder="Select Bid Strategy"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
           </div>
 

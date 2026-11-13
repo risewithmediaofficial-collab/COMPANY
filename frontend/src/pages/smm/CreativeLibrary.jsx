@@ -5,11 +5,10 @@ import { PageHeader, SearchField } from '../../components/ui/page';
 import { PlatformBadge } from '../../components/smm/PlatformBadge';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
-import { useDateFilter } from '../../context/DateFilterContext';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { toast } from 'sonner';
 
 export default function CreativeLibrary() {
-  const { startDate, endDate, isDateInRange } = useDateFilter();
   const [rawCreatives, setCreatives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -39,8 +38,8 @@ export default function CreativeLibrary() {
   }, [search, typeFilter, startDate, endDate]);
 
   const creatives = useMemo(
-    () => rawCreatives.filter((c) => isDateInRange([c.createdAt, c.updatedAt])),
-    [rawCreatives, isDateInRange]
+    () => rawCreatives,
+    [rawCreatives]
   );
 
   const handleSave = async (e) => {
@@ -97,15 +96,23 @@ export default function CreativeLibrary() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-4 rounded-2xl ">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
           <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tags, headlines, captions..." />
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="app-select w-full sm:w-40">
-            <option value="">All Asset Types</option>
-            <option value="Image">Image</option>
-            <option value="Video">Video</option>
-            <option value="Carousel">Carousel</option>
-            <option value="PSD">PSD</option>
-            <option value="AI File">AI File</option>
-            <option value="Canva Link">Canva Link</option>
-          </select>
+          <SelectDropdown
+            value={typeFilter}
+            onChange={(val) => setTypeFilter(val || '')}
+            options={[
+              { value: 'Image', label: 'Image' },
+              { value: 'Video', label: 'Video' },
+              { value: 'Carousel', label: 'Carousel' },
+              { value: 'PSD', label: 'PSD' },
+              { value: 'AI File', label: 'AI File' },
+              { value: 'Canva Link', label: 'Canva Link' },
+            ]}
+            placeholder="All Asset Types"
+            allOptionLabel="All Asset Types"
+            allowCustom={false}
+            className="w-full sm:w-44"
+            buttonClassName="h-10 text-xs sm:text-sm font-medium bg-background border border-border/50 rounded-xl"
+          />
         </div>
 
         <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl ">
@@ -205,14 +212,22 @@ export default function CreativeLibrary() {
         <form onSubmit={handleSave} className="space-y-5 text-left">
           <div>
             <label className="block text-sm font-semibold text-foreground mb-1.5">Asset Type *</label>
-            <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="app-select">
-              <option value="Image">Image</option>
-              <option value="Video">Video</option>
-              <option value="Carousel">Carousel</option>
-              <option value="PSD">PSD Master File</option>
-              <option value="AI File">AI Vector File</option>
-              <option value="Canva Link">Canva Template Link</option>
-            </select>
+            <SelectDropdown
+              value={formData.type}
+              onChange={(val) => setFormData({ ...formData, type: val || 'Image' })}
+              options={[
+                { value: 'Image', label: 'Image' },
+                { value: 'Video', label: 'Video' },
+                { value: 'Carousel', label: 'Carousel' },
+                { value: 'PSD', label: 'PSD Master File' },
+                { value: 'AI File', label: 'AI Vector File' },
+                { value: 'Canva Link', label: 'Canva Template Link' },
+              ]}
+              allowCustom={false}
+              allowDeselect={false}
+              className="w-full"
+              buttonClassName="h-11 text-sm font-medium bg-background border border-border/50 rounded-xl"
+            />
           </div>
 
           <div>

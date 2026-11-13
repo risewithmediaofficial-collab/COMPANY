@@ -43,6 +43,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
 
@@ -184,18 +185,19 @@ const Users = () => {
       key: 'role',
       label: 'System Role',
       render: (u) => (
-        <select
+        <SelectDropdown
           value={u.role}
-          onChange={(e) => handleRoleChange(u._id, e.target.value)}
-          disabled={!['superAdmin', 'admin'].includes(currentUser?.role) && u.role === 'superAdmin'}
-          className="h-8 px-2.5 rounded-lg bg-background text-xs font-semibold"
-        >
-          {roles.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => handleRoleChange(u._id, val || u.role)}
+          options={roles.map((r) => ({
+            value: r.value,
+            label: r.label,
+          }))}
+          placeholder="Role"
+          allowCustom={false}
+          allowDeselect={false}
+          className="w-36"
+          buttonClassName="h-8 px-2.5 rounded-lg bg-background text-xs font-semibold border border-border/50"
+        />
       ),
     },
     {

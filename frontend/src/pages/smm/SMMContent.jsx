@@ -20,6 +20,7 @@ import {
   DialogClose,
 } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 const NOT_POSTED_REASONS = [
   'Waiting for Client',
@@ -571,33 +572,34 @@ export const SMMContent = () => {
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Client *</label>
-                <select
-                  required
+                <SelectDropdown
                   value={formData.client}
-                  onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '' })}
-                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="">-- Choose Client --</option>
-                  {clientsList.map((c) => (
-                    <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, client: val || '', project: '' })}
+                  options={clientsList.map((c) => ({
+                    value: c._id,
+                    label: c.company || c.companyName || c.name,
+                  }))}
+                  placeholder="-- Choose Client --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Project *</label>
-                <select
-                  required
-                  disabled={!formData.client || loadingProjects}
+                <SelectDropdown
                   value={formData.project}
-                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 cursor-pointer"
-                >
-                  <option value="">-- Choose Project --</option>
-                  {projectsList.map((p) => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, project: val || '' })}
+                  options={projectsList.map((p) => ({
+                    value: p._id,
+                    label: p.name,
+                  }))}
+                  placeholder={!formData.client ? 'Select Client First' : '-- Choose Project --'}
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
@@ -614,48 +616,58 @@ export const SMMContent = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Content Type</label>
-                <select
-                  value={formData.contentType}
-                  onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
-                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="Reel">Reel (Short Video)</option>
-                  <option value="Story">Story</option>
-                  <option value="Reel / Story">Reel / Story (Dual Format)</option>
-                  <option value="Video">Long-form Video</option>
-                  <option value="Short">YouTube Short</option>
-                  <option value="Post">Static Post / Carousel</option>
-                </select>
+                <SelectDropdown
+                  value={formData.contentType || 'Reel'}
+                  onChange={(val) => setFormData({ ...formData, contentType: val || 'Reel' })}
+                  options={[
+                    { value: 'Reel', label: 'Reel (Short Video)' },
+                    { value: 'Story', label: 'Story' },
+                    { value: 'Reel / Story', label: 'Reel / Story (Dual Format)' },
+                    { value: 'Video', label: 'Long-form Video' },
+                    { value: 'Short', label: 'YouTube Short' },
+                    { value: 'Post', label: 'Static Post / Carousel' },
+                  ]}
+                  placeholder="Content Type"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Publishing Status</label>
-                <select
-                  value={formData.postingStatus}
-                  onChange={(e) => setFormData({ ...formData, postingStatus: e.target.value })}
-                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="Draft">Draft</option>
-                  <option value="Ready">Ready</option>
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="Pending Approval">Pending Approval</option>
-                  <option value="Revision Required">Revision Required</option>
-                  <option value="Published">Published</option>
-                </select>
+                <SelectDropdown
+                  value={formData.postingStatus || 'Draft'}
+                  onChange={(val) => setFormData({ ...formData, postingStatus: val || 'Draft' })}
+                  options={[
+                    { value: 'Draft', label: 'Draft' },
+                    { value: 'Ready', label: 'Ready' },
+                    { value: 'Scheduled', label: 'Scheduled' },
+                    { value: 'Pending Approval', label: 'Pending Approval' },
+                    { value: 'Revision Required', label: 'Revision Required' },
+                    { value: 'Published', label: 'Published' },
+                  ]}
+                  placeholder="Publishing Status"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               {formData.postingStatus !== 'Published' ? (
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Not Posted Reason</label>
-                  <select
+                  <SelectDropdown
                     value={formData.notPostedReason}
-                    onChange={(e) => setFormData({ ...formData, notPostedReason: e.target.value })}
-                    className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                  >
-                    {NOT_POSTED_REASONS.map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, notPostedReason: val || '' })}
+                    options={NOT_POSTED_REASONS.map((r) => ({ value: r, label: r }))}
+                    placeholder="Select Reason"
+                    allowCustom={false}
+                    className="w-full"
+                    buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                  />
                 </div>
               ) : (
                 <div>

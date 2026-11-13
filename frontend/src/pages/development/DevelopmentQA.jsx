@@ -64,7 +64,7 @@ export default function DevelopmentQA() {
   }, [fetchQATasks]);
 
   const tasks = useMemo(
-    () => rawTasks.filter((t) => isDateInRange([t.dueDate, t.updatedAt, t.createdAt])),
+    () => rawTasks.filter((t) => isDateInRange(t.dueDate || t.createdAt)),
     [rawTasks, isDateInRange]
   );
 

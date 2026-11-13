@@ -35,7 +35,9 @@ router.get('/', protect, async (req, res) => {
     if (isAdmin(user)) {
       // all proposals
     } else if (user.role === 'manager') {
-      query.createdBy = user._id;
+      if (!client && !lead) {
+        query.createdBy = user._id;
+      }
     } else if (user.role === 'client') {
       const clientRecord = await getClientRecordForUser(user);
       if (!clientRecord) {

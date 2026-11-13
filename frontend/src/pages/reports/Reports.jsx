@@ -12,6 +12,7 @@ import { useAdminReport, useMonthlyEmployeeReport } from '../../hooks/useReports
 import { toast } from 'sonner';
 import { formatINR } from '../../utils/currency';
 import { useDateFilter } from '../../context/DateFilterContext';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import {
   Dialog,
   DialogContent,
@@ -385,24 +386,26 @@ const Reports = () => {
         <div className="flex flex-wrap items-center gap-2">
           {activeTab === 'employees' && (
             <div className="flex items-center gap-2 bg-card rounded-xl p-1">
-              <select
+              <SelectDropdown
                 value={reportMonth}
-                onChange={(e) => setReportMonth(parseInt(e.target.value, 10))}
-                className="app-select !py-1.5 !px-2.5 !text-xs font-bold w-32 bg-transparent"
-              >
-                {MONTHS.map(m => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-              <select
+                onChange={(val) => setReportMonth(parseInt(val, 10))}
+                options={MONTHS.map((m) => ({ value: m.value, label: m.label }))}
+                placeholder="Month"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-32"
+                buttonClassName="h-8 px-2.5 rounded-lg bg-transparent text-xs font-bold border-0"
+              />
+              <SelectDropdown
                 value={reportYear}
-                onChange={(e) => setReportYear(parseInt(e.target.value, 10))}
-                className="app-select !py-1.5 !px-2.5 !text-xs font-bold w-24 bg-transparent tabular-nums"
-              >
-                {YEARS.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+                onChange={(val) => setReportYear(parseInt(val, 10))}
+                options={YEARS.map((y) => ({ value: y, label: String(y) }))}
+                placeholder="Year"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-24"
+                buttonClassName="h-8 px-2.5 rounded-lg bg-transparent text-xs font-bold border-0 tabular-nums"
+              />
             </div>
           )}
           <button

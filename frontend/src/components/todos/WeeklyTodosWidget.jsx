@@ -45,6 +45,7 @@ import {
 import { useUsers } from '../../hooks/useUsers';
 import { WeeklyTodoModal } from '../modals/WeeklyTodoModal';
 import { AppTooltip } from '../ui/tooltip';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const DAYS = [
   'All Days',
@@ -406,21 +407,26 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
           {isManagerOrAdmin && (
             <div className="flex items-center gap-1.5 text-xs">
               <span className="text-muted-foreground text-[11px] font-semibold">Assignee:</span>
-              <select
-                value={assigneeFilter}
-                onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl bg-background text-foreground text-xs font-semibold focus:outline-hidden focus:ring-1 focus:ring-primary"
-              >
-                <option value="all">All Team Members</option>
-                <option value="mine">My Own Todos</option>
-                {teamUsers
-                  .filter((u) => u.employmentStatus !== 'terminated')
-                  .map((u) => (
-                    <option key={u._id} value={u._id}>
-                      {u.name} ({u.role})
-                    </option>
-                  ))}
-              </select>
+              <SelectDropdown
+                value={assigneeFilter || 'all'}
+                onChange={(val) => setAssigneeFilter(val || 'all')}
+                options={[
+                  { value: 'all', label: 'All Team Members' },
+                  { value: 'mine', label: 'My Own Todos' },
+                  ...teamUsers
+                    .filter((u) => u.employmentStatus !== 'terminated')
+                    .map((u) => ({
+                      value: u._id,
+                      label: u.name,
+                      subLabel: u.role,
+                    })),
+                ]}
+                placeholder="Assignee"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-44"
+                buttonClassName="h-8 px-2.5 rounded-xl bg-background text-foreground text-xs font-semibold border border-border/50"
+              />
             </div>
           )}
         </div>

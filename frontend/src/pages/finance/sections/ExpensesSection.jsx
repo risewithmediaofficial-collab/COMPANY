@@ -53,6 +53,7 @@ import {
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { useDateFilter } from '../../../context/DateFilterContext';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
 const PaymentRemindersTab = lazy(() => import('./PaymentRemindersTab'));
 
@@ -871,34 +872,44 @@ export default function ExpensesSection({ onQuickAdd }) {
                 />
               </div>
 
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full sm:w-auto rounded-lg px-3 py-2 sm:py-1.5 text-xs bg-background text-foreground min-h-[36px]"
-              >
-                <option value="all">All Categories</option>
-                <option value="production_shoot">Production / Shoot</option>
-                <option value="rj">RJ (Radio Jockey)</option>
-                <option value="vj">VJ (Video Jockey)</option>
-                <option value="travel">Travel</option>
-                <option value="freelancers">Freelancers</option>
-                <option value="software_subscriptions">Software / Subscriptions</option>
-                <option value="rent">Rent</option>
-                <option value="internet">Internet & Utilities</option>
-                <option value="marketing">Marketing</option>
-                <option value="office">Office Expenses</option>
-              </select>
+              <SelectDropdown
+                value={categoryFilter || 'all'}
+                onChange={(val) => setCategoryFilter(val || 'all')}
+                options={[
+                  { value: 'all', label: 'All Categories' },
+                  { value: 'production_shoot', label: 'Production / Shoot' },
+                  { value: 'rj', label: 'RJ (Radio Jockey)' },
+                  { value: 'vj', label: 'VJ (Video Jockey)' },
+                  { value: 'travel', label: 'Travel' },
+                  { value: 'freelancers', label: 'Freelancers' },
+                  { value: 'software_subscriptions', label: 'Software / Subscriptions' },
+                  { value: 'rent', label: 'Rent' },
+                  { value: 'internet', label: 'Internet & Utilities' },
+                  { value: 'marketing', label: 'Marketing' },
+                  { value: 'office', label: 'Office Expenses' },
+                ]}
+                placeholder="All Categories"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full sm:w-44"
+                buttonClassName="h-9 px-3 rounded-lg text-xs bg-background text-foreground border border-border/50"
+              />
 
-              <select
-                value={paymentStatusFilter}
-                onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                className="w-full sm:w-auto rounded-lg px-3 py-2 sm:py-1.5 text-xs bg-background text-foreground min-h-[36px]"
-              >
-                <option value="all">All Payment Statuses</option>
-                <option value="paid">Fully Paid Expenses</option>
-                <option value="partially_paid">Partially Paid Bills</option>
-                <option value="unpaid">Unpaid Vendor Bills</option>
-              </select>
+              <SelectDropdown
+                value={paymentStatusFilter || 'all'}
+                onChange={(val) => setPaymentStatusFilter(val || 'all')}
+                options={[
+                  { value: 'all', label: 'All Payment Statuses' },
+                  { value: 'paid', label: 'Fully Paid Expenses' },
+                  { value: 'partially_paid', label: 'Partially Paid Bills' },
+                  { value: 'unpaid', label: 'Unpaid Vendor Bills' },
+                ]}
+                placeholder="All Payment Statuses"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full sm:w-48"
+                buttonClassName="h-9 px-3 rounded-lg text-xs bg-background text-foreground border border-border/50"
+              />
             </div>
 
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
@@ -1700,15 +1711,20 @@ export default function ExpensesSection({ onQuickAdd }) {
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Frequency</label>
-                <select
-                  value={subscriptionForm.frequency}
-                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, frequency: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="annual">Annual</option>
-                  <option value="quarterly">Quarterly</option>
-                </select>
+                <SelectDropdown
+                  value={subscriptionForm.frequency || 'monthly'}
+                  onChange={(val) => setSubscriptionForm({ ...subscriptionForm, frequency: val || 'monthly' })}
+                  options={[
+                    { value: 'monthly', label: 'Monthly' },
+                    { value: 'annual', label: 'Annual' },
+                    { value: 'quarterly', label: 'Quarterly' },
+                  ]}
+                  placeholder="Frequency"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
 
               <div>
@@ -1725,16 +1741,21 @@ export default function ExpensesSection({ onQuickAdd }) {
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Classification</label>
-                <select
-                  value={subscriptionForm.costClassification}
-                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, costClassification: e.target.value })}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="software">Software / SaaS</option>
-                  <option value="tools">Tools & Utilities</option>
-                  <option value="hosting">Hosting / Cloud</option>
-                  <option value="other">Other</option>
-                </select>
+                <SelectDropdown
+                  value={subscriptionForm.costClassification || 'software'}
+                  onChange={(val) => setSubscriptionForm({ ...subscriptionForm, costClassification: val || 'software' })}
+                  options={[
+                    { value: 'software', label: 'Software / SaaS' },
+                    { value: 'tools', label: 'Tools & Utilities' },
+                    { value: 'hosting', label: 'Hosting / Cloud' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                  placeholder="Classification"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
               </div>
             </form>
 
@@ -1937,23 +1958,24 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Expense Category
                     </label>
-                    <select
+                    <SelectDropdown
                       value={expenseForm.category}
-                      onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                    >
-                      <option value="production_shoot">Production / Shoot</option>
-                      <option value="rj">RJ (Radio Jockey / Voice Talent)</option>
-                      <option value="vj">VJ (Video Jockey / Presenter / Anchor)</option>
-                      <option value="travel">Travel Allowance</option>
-                      <option value="freelancers">Freelancers & Crew</option>
-                      <option value="software_subscriptions">Software & Subscriptions</option>
-                      <option value="rent">Office Rent</option>
-                      <option value="internet">Internet & Utilities</option>
-                      <option value="marketing">Marketing & Promotion</option>
-                      <option value="office">Office Supplies & Expenses</option>
-                      <option value="other">Other Operations</option>
-                    </select>
+                      onChange={(val) => setExpenseForm({ ...expenseForm, category: val })}
+                      options={[
+                        { value: 'production_shoot', label: 'Production / Shoot' },
+                        { value: 'rj', label: 'RJ (Radio Jockey / Voice Talent)' },
+                        { value: 'vj', label: 'VJ (Video Jockey / Presenter / Anchor)' },
+                        { value: 'travel', label: 'Travel Allowance' },
+                        { value: 'freelancers', label: 'Freelancers & Crew' },
+                        { value: 'software_subscriptions', label: 'Software & Subscriptions' },
+                        { value: 'rent', label: 'Office Rent' },
+                        { value: 'internet', label: 'Internet & Utilities' },
+                        { value: 'marketing', label: 'Marketing & Promotion' },
+                        { value: 'office', label: 'Office Supplies & Expenses' },
+                        { value: 'other', label: 'Other Operations' },
+                      ]}
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground"
+                    />
                   </div>
 
                   {/* Cost Allocation Type */}
@@ -2330,36 +2352,37 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <label className="block text-sm font-semibold text-foreground mb-1.5">
                           Payment Mode *
                         </label>
-                        <select
+                        <SelectDropdown
                           value={paymentFormData.paymentMode}
-                          onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMode: e.target.value })}
-                          className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                        >
-                          <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                          <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
-                          <option value="Cash">Cash</option>
-                          <option value="Card">Debit / Credit Card</option>
-                          <option value="Cheque">Cheque</option>
-                          <option value="Other">Other</option>
-                        </select>
+                          onChange={(val) => setPaymentFormData({ ...paymentFormData, paymentMode: val })}
+                          options={[
+                            { value: 'UPI', label: 'UPI (GPay / PhonePe / Paytm)' },
+                            { value: 'Bank', label: 'Bank Transfer (NEFT/IMPS/RTGS)' },
+                            { value: 'Cash', label: 'Cash' },
+                            { value: 'Card', label: 'Debit / Credit Card' },
+                            { value: 'Cheque', label: 'Cheque' },
+                            { value: 'Other', label: 'Other' },
+                          ]}
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground"
+                        />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-foreground mb-1.5">
                           Paid From Account
                         </label>
-                        <select
+                        <SelectDropdown
                           value={paymentFormData.fundingAccount}
-                          onChange={(e) => setPaymentFormData({ ...paymentFormData, fundingAccount: e.target.value })}
-                          className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                        >
-                          <option value="">Default / Not specified</option>
-                          {accounts.map((acc) => (
-                            <option key={acc._id} value={acc._id}>
-                              {acc.accountName} ({acc.accountType})
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => setPaymentFormData({ ...paymentFormData, fundingAccount: val })}
+                          options={[
+                            { value: '', label: 'Default / Not specified' },
+                            ...accounts.map((acc) => ({
+                              value: acc._id,
+                              label: `${acc.accountName} (${acc.accountType})`,
+                            })),
+                          ]}
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground"
+                        />
                       </div>
 
                       <div>
@@ -2778,18 +2801,19 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <label className="block text-sm font-semibold text-foreground mb-1.5">
                         Payment Mode <span className="text-foreground">*</span>
                       </label>
-                      <select
+                      <SelectDropdown
                         value={overallPayFormData.paymentMode}
-                        onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentMode: e.target.value })}
-                        className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                      >
-                        <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                        <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Card">Debit / Credit Card</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="Other">Other</option>
-                      </select>
+                        onChange={(val) => setOverallPayFormData({ ...overallPayFormData, paymentMode: val })}
+                        options={[
+                          { value: 'UPI', label: 'UPI (GPay / PhonePe / Paytm)' },
+                          { value: 'Bank', label: 'Bank Transfer (NEFT/IMPS/RTGS)' },
+                          { value: 'Cash', label: 'Cash' },
+                          { value: 'Card', label: 'Debit / Credit Card' },
+                          { value: 'Cheque', label: 'Cheque' },
+                          { value: 'Other', label: 'Other' },
+                        ]}
+                        className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground"
+                      />
                     </div>
 
                     {/* Paid From Account */}
@@ -2797,18 +2821,18 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <label className="block text-sm font-semibold text-foreground mb-1.5">
                         Paid From Account
                       </label>
-                      <select
+                      <SelectDropdown
                         value={overallPayFormData.fundingAccount}
-                        onChange={(e) => setOverallPayFormData({ ...overallPayFormData, fundingAccount: e.target.value })}
-                        className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                      >
-                        <option value="">Default / Not specified</option>
-                        {accounts.map((acc) => (
-                          <option key={acc._id} value={acc._id}>
-                            {acc.accountName} ({acc.accountType})
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setOverallPayFormData({ ...overallPayFormData, fundingAccount: val })}
+                        options={[
+                          { value: '', label: 'Default / Not specified' },
+                          ...accounts.map((acc) => ({
+                            value: acc._id,
+                            label: `${acc.accountName} (${acc.accountType})`,
+                          })),
+                        ]}
+                        className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground"
+                      />
                     </div>
 
                     {/* Reference / UTR */}

@@ -9,6 +9,7 @@ import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { PlatformBadge } from '../../components/smm/PlatformBadge';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -65,14 +66,14 @@ export default function Campaigns() {
 
   const [dailyLogForm, setDailyLogForm] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
-    amountAdded: 0,
-    spend: 0,
-    leads: 0,
-    messages: 0,
-    calls: 0,
-    revenue: 0,
-    clicks: 0,
-    impressions: 0,
+    amountAdded: '',
+    spend: '',
+    leads: '',
+    messages: '',
+    calls: '',
+    revenue: '',
+    clicks: '',
+    impressions: '',
     notes: '',
   });
 
@@ -386,14 +387,14 @@ export default function Campaigns() {
     setDailyLogForm({
       date: format(new Date(), 'yyyy-MM-dd'),
       sourceContentId: camp.sourceContentId?._id || camp.sourceContentId || '',
-      amountAdded: 0,
-      spend: 0,
-      leads: 0,
-      messages: 0,
-      calls: 0,
-      revenue: 0,
-      clicks: 0,
-      impressions: 0,
+      amountAdded: '',
+      spend: '',
+      leads: '',
+      messages: '',
+      calls: '',
+      revenue: '',
+      clicks: '',
+      impressions: '',
       notes: '',
     });
     setIsDailyLogDrawerOpen(true);
@@ -402,21 +403,32 @@ export default function Campaigns() {
   const handleAddDailyLog = async (e) => {
     e.preventDefault();
     try {
-      const res = await smmApi.addDailyLog(activeCampaignForLog._id, dailyLogForm);
+      const payload = {
+        ...dailyLogForm,
+        amountAdded: Number(dailyLogForm.amountAdded) || 0,
+        spend: Number(dailyLogForm.spend) || 0,
+        leads: Number(dailyLogForm.leads) || 0,
+        messages: Number(dailyLogForm.messages) || 0,
+        calls: Number(dailyLogForm.calls) || 0,
+        revenue: Number(dailyLogForm.revenue) || 0,
+        clicks: Number(dailyLogForm.clicks) || 0,
+        impressions: Number(dailyLogForm.impressions) || 0,
+      };
+      const res = await smmApi.addDailyLog(activeCampaignForLog._id, payload);
       if (res.data?.success) {
         toast.success('Daily lead & spend log saved! Campaign money balance updated.');
         setActiveCampaignForLog(res.data.data);
         setDailyLogForm({
           date: format(new Date(), 'yyyy-MM-dd'),
           sourceContentId: '',
-          amountAdded: 0,
-          spend: 0,
-          leads: 0,
-          messages: 0,
-          calls: 0,
-          revenue: 0,
-          clicks: 0,
-          impressions: 0,
+          amountAdded: '',
+          spend: '',
+          leads: '',
+          messages: '',
+          calls: '',
+          revenue: '',
+          clicks: '',
+          impressions: '',
           notes: '',
         });
         fetchData();
@@ -709,21 +721,37 @@ export default function Campaigns() {
             <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search campaigns..." />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)} className="app-select flex-1 sm:w-36">
-              <option value="">All Networks</option>
-              <option value="Meta">Meta</option>
-              <option value="Google">Google</option>
-              <option value="LinkedIn">LinkedIn</option>
-              <option value="YouTube">YouTube</option>
-              <option value="TikTok">TikTok</option>
-            </select>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="app-select flex-1 sm:w-36">
-              <option value="">All Statuses</option>
-              <option value="Draft">Draft</option>
-              <option value="Active">Active</option>
-              <option value="Paused">Paused</option>
-              <option value="Completed">Completed</option>
-            </select>
+            <SelectDropdown
+              value={platformFilter}
+              onChange={(val) => setPlatformFilter(val || '')}
+              options={[
+                { value: 'Meta', label: 'Meta' },
+                { value: 'Google', label: 'Google' },
+                { value: 'LinkedIn', label: 'LinkedIn' },
+                { value: 'YouTube', label: 'YouTube' },
+                { value: 'TikTok', label: 'TikTok' },
+              ]}
+              placeholder="All Networks"
+              allOptionLabel="All Networks"
+              allowCustom={false}
+              className="flex-1 sm:w-36"
+              buttonClassName="h-10 text-xs sm:text-sm font-medium bg-background border border-border/50 rounded-xl"
+            />
+            <SelectDropdown
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val || '')}
+              options={[
+                { value: 'Draft', label: 'Draft' },
+                { value: 'Active', label: 'Active' },
+                { value: 'Paused', label: 'Paused' },
+                { value: 'Completed', label: 'Completed' },
+              ]}
+              placeholder="All Statuses"
+              allOptionLabel="All Statuses"
+              allowCustom={false}
+              className="flex-1 sm:w-36"
+              buttonClassName="h-10 text-xs sm:text-sm font-medium bg-background border border-border/50 rounded-xl"
+            />
           </div>
         </div>
 
@@ -770,23 +798,28 @@ export default function Campaigns() {
           {activeCampaignForLog && (
             <div>
               <label className="text-sm font-semibold text-foreground block mb-1.5">Select Video in Campaign (Optional)</label>
-              <select
+              <SelectDropdown
                 value={dailyLogForm.sourceContentId || ''}
-                onChange={e => setDailyLogForm({ ...dailyLogForm, sourceContentId: e.target.value })}
-                className="app-select w-full"
-              >
-                <option value="">-- All Videos / Entire Campaign Level --</option>
-                {(activeCampaignForLog.sourceContentIds || []).map(v => (
-                  <option key={v._id || v} value={v._id || v}>
-                    {v.name || 'Video'} ({v.contentType || 'Video'})
-                  </option>
-                ))}
-                {activeCampaignForLog.sourceContentId && !activeCampaignForLog.sourceContentIds?.length && (
-                  <option value={activeCampaignForLog.sourceContentId._id || activeCampaignForLog.sourceContentId}>
-                    {activeCampaignForLog.sourceContentId.name || 'Campaign Video'}
-                  </option>
-                )}
-              </select>
+                onChange={(val) => setDailyLogForm({ ...dailyLogForm, sourceContentId: val || '' })}
+                options={[
+                  { value: '', label: '-- All Videos / Entire Campaign Level --' },
+                  ...(activeCampaignForLog.sourceContentIds || []).map((v) => ({
+                    value: v._id || v,
+                    label: v.name || 'Video',
+                    subLabel: v.contentType || 'Video',
+                  })),
+                  ...(activeCampaignForLog.sourceContentId && !activeCampaignForLog.sourceContentIds?.length
+                    ? [{
+                        value: activeCampaignForLog.sourceContentId._id || activeCampaignForLog.sourceContentId,
+                        label: activeCampaignForLog.sourceContentId.name || 'Campaign Video',
+                      }]
+                    : []),
+                ]}
+                placeholder="-- All Videos / Entire Campaign Level --"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
           )}
 
@@ -807,8 +840,8 @@ export default function Campaigns() {
               <input
                 type="number"
                 placeholder="0"
-                value={dailyLogForm.amountAdded}
-                onChange={e => setDailyLogForm({...dailyLogForm, amountAdded: Number(e.target.value)})}
+                value={dailyLogForm.amountAdded ?? ''}
+                onChange={e => setDailyLogForm({ ...dailyLogForm, amountAdded: e.target.value === '' ? '' : Number(e.target.value) })}
                 onWheel={e => e.currentTarget.blur()}
                 className="app-input w-full tabular-nums"
               />
@@ -821,8 +854,9 @@ export default function Campaigns() {
               <input
                 type="number"
                 required
-                value={dailyLogForm.spend}
-                onChange={e => setDailyLogForm({...dailyLogForm, spend: Number(e.target.value)})}
+                placeholder="0"
+                value={dailyLogForm.spend ?? ''}
+                onChange={e => setDailyLogForm({ ...dailyLogForm, spend: e.target.value === '' ? '' : Number(e.target.value) })}
                 onWheel={e => e.currentTarget.blur()}
                 className="app-input w-full tabular-nums"
               />
@@ -831,8 +865,9 @@ export default function Campaigns() {
               <label className="text-sm font-semibold text-foreground block mb-1.5">Leads Generated</label>
               <input
                 type="number"
-                value={dailyLogForm.leads}
-                onChange={e => setDailyLogForm({...dailyLogForm, leads: Number(e.target.value)})}
+                placeholder="0"
+                value={dailyLogForm.leads ?? ''}
+                onChange={e => setDailyLogForm({ ...dailyLogForm, leads: e.target.value === '' ? '' : Number(e.target.value) })}
                 onWheel={e => e.currentTarget.blur()}
                 className="app-input w-full tabular-nums"
               />
@@ -868,41 +903,36 @@ export default function Campaigns() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-semibold text-foreground block mb-1.5">Client *</label>
-              <select
-                required
+              <SelectDropdown
                 value={formData.client}
-                onChange={e => setFormData({ ...formData, client: e.target.value, project: '', sourceContentIds: [] })}
-                className="app-select"
-              >
-                <option value="">Select Client</option>
-                {crmClients.map(c => {
+                onChange={(val) => setFormData({ ...formData, client: val || '', project: '', sourceContentIds: [] })}
+                options={crmClients.map((c) => {
                   const comp = c.company || c.companyName || '';
                   const name = c.name || '';
                   const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
                     ? `${comp} - ${name}`
                     : (comp || name || 'Client');
-                  return (
-                    <option key={c._id} value={c._id}>
-                      {display}
-                    </option>
-                  );
+                  return { value: c._id, label: display };
                 })}
-              </select>
+                placeholder="Select Client"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm font-medium rounded-xl"
+              />
             </div>
             <div>
               <label className="text-sm font-semibold text-foreground block mb-1.5">
                 Project * {loadingProjects && <span className="text-xs text-muted-foreground font-normal">(Loading...)</span>}
               </label>
-              <select
-                required
+              <SelectDropdown
                 value={formData.project}
-                onChange={e => setFormData({ ...formData, project: e.target.value })}
-                className="app-select"
-                disabled={loadingProjects}
-              >
-                <option value="">{projectsList.length > 0 ? 'Select Project' : '-- No Projects Found --'}</option>
-                {projectsList.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
-              </select>
+                onChange={(val) => setFormData({ ...formData, project: val || '' })}
+                options={projectsList.map((p) => ({ value: p._id, label: p.name }))}
+                placeholder={projectsList.length > 0 ? 'Select Project' : '-- No Projects Found --'}
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm font-medium rounded-xl"
+              />
             </div>
           </div>
 
@@ -923,24 +953,28 @@ export default function Campaigns() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-semibold text-foreground block mb-1.5">Platform *</label>
-              <select
+              <SelectDropdown
                 value={formData.platform}
-                onChange={e => setFormData({ ...formData, platform: e.target.value })}
-                className="app-select"
-              >
-                <option value="Meta">Meta Ads (IG & FB)</option>
-                <option value="Google">Google Ads</option>
-                <option value="LinkedIn">LinkedIn Ads</option>
-                <option value="YouTube">YouTube Ads</option>
-                <option value="TikTok">TikTok Ads</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, platform: val || 'Meta' })}
+                options={[
+                  { value: 'Meta', label: 'Meta Ads (IG & FB)' },
+                  { value: 'Google', label: 'Google Ads' },
+                  { value: 'LinkedIn', label: 'LinkedIn Ads' },
+                  { value: 'YouTube', label: 'YouTube Ads' },
+                  { value: 'TikTok', label: 'TikTok Ads' },
+                ]}
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm font-medium rounded-xl"
+              />
             </div>
             <div>
               <label className="text-sm font-semibold text-foreground block mb-1.5">Objective *</label>
-              <select
+              <SelectDropdown
                 value={formData.objective}
-                onChange={e => {
-                  const newObj = e.target.value;
+                onChange={(val) => {
+                  const newObj = val || SMM_OBJECTIVES[0];
                   const dests = getDestinationsForObjective(newObj);
                   const firstDest = dests[0]?.value || 'Message Destination';
                   const platforms = (firstDest === 'Instagram' || firstDest === 'Facebook')
@@ -953,12 +987,12 @@ export default function Campaigns() {
                     destinationPlatforms: platforms,
                   }));
                 }}
-                className="app-select"
-              >
-                {SMM_OBJECTIVES.map(obj => (
-                  <option key={obj} value={obj}>{obj}</option>
-                ))}
-              </select>
+                options={SMM_OBJECTIVES.map((obj) => ({ value: obj, label: obj }))}
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm font-medium rounded-xl"
+              />
             </div>
           </div>
 

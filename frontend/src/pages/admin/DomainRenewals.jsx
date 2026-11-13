@@ -32,9 +32,9 @@ import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
-import { useDateFilter } from '../../context/DateFilterContext';
 import { formatINR } from '../../utils/currency';
 import {
   AlertDialog,
@@ -176,34 +176,29 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Asset Type <span className="text-foreground">*</span>
                 </label>
-                <select
+                <SelectDropdown
                   value={form.itemType}
-                  onChange={(e) => updateField('itemType', e.target.value)}
-                  required
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm focus:ring-2 focus:ring-primary/20 "
-                >
-                  {renewalTypeOptions.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => updateField('itemType', val)}
+                  options={renewalTypeOptions}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  placeholder="Select asset type"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Linked Client</label>
-                <select
+                <SelectDropdown
                   value={form.clientId}
-                  onChange={(e) => updateField('clientId', e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm focus:ring-2 focus:ring-primary/20 "
-                >
-                  <option value="all">None / Internal</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.company || c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => updateField('clientId', val)}
+                  options={[
+                    { value: 'all', label: 'None / Internal' },
+                    ...clients.map((c) => ({ value: c._id, label: c.company || c.name })),
+                  ]}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  placeholder="Select linked client"
+                />
               </div>
 
               <div>
@@ -242,17 +237,14 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Status</label>
-                <select
+                <SelectDropdown
                   value={form.status}
-                  onChange={(e) => updateField('status', e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm focus:ring-2 focus:ring-primary/20 "
-                >
-                  {renewalStatusOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => updateField('status', val)}
+                  options={renewalStatusOptions}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  placeholder="Select status"
+                />
               </div>
 
               <div>
@@ -303,7 +295,6 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 };
 
 export default function DomainRenewals() {
-  const { isDateInRange } = useDateFilter();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -327,13 +318,12 @@ export default function DomainRenewals() {
   };
 
   const renewalsList = useMemo(() => {
-    const raw = Array.isArray(renewals)
+    return Array.isArray(renewals)
       ? renewals
       : Array.isArray(renewals?.records)
       ? renewals.records
       : [];
-    return raw.filter((item) => isDateInRange([item.expiryDate, item.purchaseDate, item.createdAt]));
-  }, [renewals, isDateInRange]);
+  }, [renewals]);
 
   const filteredRenewals = useMemo(() => {
     return renewalsList.filter((item) => {

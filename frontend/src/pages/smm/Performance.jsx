@@ -10,6 +10,7 @@ import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid
 } from 'recharts';
@@ -110,16 +111,21 @@ export default function Performance() {
           </h1>
         </div>
 
-        <select
+        <SelectDropdown
           value={selectedClient}
-          onChange={(e) => setSelectedClient(e.target.value)}
-          className="h-10 px-3.5 bg-card rounded-xl font-semibold text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-        >
-          <option value="">All Clients</option>
-          {clientsList.map((c) => (
-            <option key={c._id} value={c._id}>{c.company || c.name}</option>
-          ))}
-        </select>
+          onChange={(val) => setSelectedClient(val || '')}
+          options={[
+            { value: '', label: 'All Clients' },
+            ...clientsList.map((c) => ({
+              value: c._id,
+              label: c.company || c.name,
+            })),
+          ]}
+          placeholder="All Clients"
+          allowCustom={false}
+          className="w-48 sm:w-56"
+          buttonClassName="h-10 px-3.5 bg-card rounded-xl font-semibold text-xs text-foreground border border-border/50"
+        />
       </div>
 
       <SMMSubNav />
@@ -244,15 +250,20 @@ export default function Performance() {
                 <h3 className="text-base font-bold text-foreground">Video Ad Recommendations</h3>
               </div>
 
-              <select
+              <SelectDropdown
                 value={evaluatorVideoId}
-                onChange={(e) => setEvaluatorVideoId(e.target.value)}
-                className="h-10 px-3.5 bg-background rounded-xl font-semibold text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-              >
-                {videos.map((v) => (
-                  <option key={v._id} value={v._id}>{v.name} ({v.contentType})</option>
-                ))}
-              </select>
+                onChange={(val) => setEvaluatorVideoId(val || '')}
+                options={videos.map((v) => ({
+                  value: v._id,
+                  label: v.name,
+                  subLabel: v.contentType,
+                }))}
+                placeholder="Select Video"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-56 sm:w-64"
+                buttonClassName="h-10 px-3.5 bg-background rounded-xl font-semibold text-xs text-foreground border border-border/50"
+              />
             </div>
 
             {evaluatorVideo ? (

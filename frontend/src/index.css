@@ -220,7 +220,7 @@
   }
 
   .app-select {
-    @apply h-11 w-full rounded-xl bg-secondary/75 px-4 py-2.5 text-sm font-normal leading-normal text-left text-foreground outline-none transition-colors duration-150 hover:bg-secondary focus:bg-background focus:ring-2 focus:ring-brand/40 appearance-none pr-10 cursor-pointer;
+    @apply h-11 w-full rounded-xl bg-secondary/75 px-4 py-2.5 text-sm font-normal leading-normal text-left text-foreground outline-none transition-all duration-150 hover:bg-secondary focus:bg-background focus:ring-2 focus:ring-brand/40 appearance-none pr-10 cursor-pointer border border-transparent focus:border-primary/30;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 0.75rem center;
     background-repeat: no-repeat;

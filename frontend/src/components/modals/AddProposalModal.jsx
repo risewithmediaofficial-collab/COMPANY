@@ -16,6 +16,7 @@ import { useCreateProposal, useUpdateProposal } from '../../hooks/useProposals';
 import LinksEditor from '../ui/LinksEditor';
 import { Building2, UserCheck, FileText, X } from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const SERVICE_CATEGORIES = [
   { value: 'social_media', label: 'Social Media' },
@@ -43,7 +44,7 @@ const emptyForm = {
   endDate: '',
   amount: '',
   paymentTerms: '',
-  revisionLimit: 3,
+  revisionLimit: '',
   termsAndConditions: '',
   notes: '',
   links: [],
@@ -87,7 +88,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
         endDate: proposal.endDate ? String(proposal.endDate).split('T')[0] : '',
         amount: proposal.amount ?? '',
         paymentTerms: proposal.paymentTerms || '',
-        revisionLimit: proposal.revisionLimit ?? 3,
+        revisionLimit: proposal.revisionLimit ?? '',
         termsAndConditions: proposal.termsAndConditions || '',
         notes: proposal.notes || '',
         links: proposal.links || [],
@@ -125,7 +126,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
       client: form.recipientType === 'client' ? form.client : null,
       lead: form.recipientType === 'lead' ? form.lead : null,
       amount: Number(form.amount),
-      revisionLimit: Number(form.revisionLimit) || 3,
+      revisionLimit: form.revisionLimit !== '' ? Number(form.revisionLimit) : 3,
     };
 
     if (isEditing) {
@@ -216,46 +217,51 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
               {/* Dynamic Dropdown: Clients or Leads */}
               {form.recipientType === 'client' ? (
                 <Field label="Select Client" required>
-                  <select
-                    className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
+                  <SelectDropdown
                     value={form.client}
-                    onChange={(e) => set('client', e.target.value)}
-                  >
-                    <option value="">Select client</option>
-                    {clients.map((client) => (
-                      <option key={client._id} value={client._id}>
-                        {client.company || client.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => set('client', val || '')}
+                    options={clients.map((client) => ({
+                      value: client._id,
+                      label: client.company || client.name,
+                    }))}
+                    placeholder="Select client"
+                    allowCustom={false}
+                    className="w-full"
+                    buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground border border-border/50"
+                  />
                 </Field>
               ) : (
                 <Field label="Select Lead / Prospect" required>
-                  <select
-                    className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
+                  <SelectDropdown
                     value={form.lead}
-                    onChange={(e) => set('lead', e.target.value)}
-                  >
-                    <option value="">Select lead</option>
-                    {leads.map((lead) => (
-                      <option key={lead._id} value={lead._id}>
-                        {lead.name} {lead.company ? `(${lead.company})` : ''} {lead.email ? `- ${lead.email}` : ''}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => set('lead', val || '')}
+                    options={leads.map((lead) => ({
+                      value: lead._id,
+                      label: `${lead.name} ${lead.company ? `(${lead.company})` : ''}`,
+                      subLabel: lead.email || undefined,
+                    }))}
+                    placeholder="Select lead"
+                    allowCustom={false}
+                    className="w-full"
+                    buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground border border-border/50"
+                  />
                 </Field>
               )}
 
               <Field label="Service Category" required>
-                <select
-                  className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
+                <SelectDropdown
                   value={form.serviceCategory}
-                  onChange={(e) => set('serviceCategory', e.target.value)}
-                >
-                  {SERVICE_CATEGORIES.map((item) => (
-                    <option key={item.value} value={item.value}>{item.label}</option>
-                  ))}
-                </select>
+                  onChange={(val) => set('serviceCategory', val || 'social_media')}
+                  options={SERVICE_CATEGORIES.map((item) => ({
+                    value: item.value,
+                    label: item.label,
+                  }))}
+                  placeholder="Service Category"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground border border-border/50"
+                />
               </Field>
 
               <Field label="Proposal Type">
@@ -279,15 +285,19 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
               </Field>
 
               <Field label="Proposal Status">
-                <select
-                  className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
-                  value={form.status}
-                  onChange={(e) => set('status', e.target.value)}
-                >
-                  {['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired'].map((status) => (
-                    <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
-                  ))}
-                </select>
+                <SelectDropdown
+                  value={form.status || 'draft'}
+                  onChange={(val) => set('status', val || 'draft')}
+                  options={['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired'].map((status) => ({
+                    value: status,
+                    label: status.charAt(0).toUpperCase() + status.slice(1),
+                  }))}
+                  placeholder="Proposal Status"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground border border-border/50"
+                />
               </Field>
 
               <Field label="Contract / Work Start Date">
@@ -321,7 +331,8 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                 <Input
                   type="number"
                   min="0"
-                  value={form.revisionLimit}
+                  placeholder="e.g. 3"
+                  value={form.revisionLimit ?? ''}
                   onChange={(e) => set('revisionLimit', e.target.value)}
                   className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />

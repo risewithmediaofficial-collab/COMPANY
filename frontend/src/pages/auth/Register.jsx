@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Loader2, AlertCircle, Briefcase, Eye, EyeOff } from '@/components/ui/muiIcons';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -124,24 +125,22 @@ const Register = () => {
           <label className="text-sm font-medium text-foreground ml-1" htmlFor="role">
             Join as
           </label>
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-              <Briefcase size={18} />
-            </div>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2.5 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 transition-colors text-sm appearance-none cursor-pointer"
-            >
-              <option value="employee">Employee</option>
-              <option value="manager">Manager</option>
-              <option value="intern">Intern</option>
-              <option value="client">Client</option>
-              <option value="referral">Referral Partner</option>
-            </select>
-          </div>
+          <SelectDropdown
+            value={formData.role || 'employee'}
+            onChange={(val) => setFormData({ ...formData, role: val || 'employee' })}
+            options={[
+              { value: 'employee', label: 'Employee' },
+              { value: 'manager', label: 'Manager' },
+              { value: 'intern', label: 'Intern' },
+              { value: 'client', label: 'Client' },
+              { value: 'referral', label: 'Referral Partner' },
+            ]}
+            placeholder="Select Role"
+            allowCustom={false}
+            allowDeselect={false}
+            className="w-full"
+            buttonClassName="min-h-[44px] px-3 py-2.5 rounded-xl bg-background text-foreground text-sm border border-border/50"
+          />
         </div>
 
         <button

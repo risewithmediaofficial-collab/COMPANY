@@ -66,7 +66,7 @@ export default function DevelopmentReviews() {
   }, [fetchReviewTasks]);
 
   const tasks = useMemo(
-    () => rawTasks.filter((t) => isDateInRange([t.dueDate, t.updatedAt, t.createdAt])),
+    () => rawTasks.filter((t) => isDateInRange(t.dueDate || t.createdAt)),
     [rawTasks, isDateInRange]
   );
 

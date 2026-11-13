@@ -42,6 +42,10 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   const { user: authUser } = useSelector((state) => state.auth || {});
   const user = propUser || authUser;
 
+  if (['superAdmin', 'organizationOwner', 'admin'].includes(user?.role)) {
+    return null;
+  }
+
   const [time, setTime] = useState(new Date());
   const [presentSelected, setPresentSelected] = useState(false);
   const [showAbsentModal, setShowAbsentModal] = useState(false);

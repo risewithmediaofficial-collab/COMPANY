@@ -7,6 +7,7 @@ import Project from '../models/project.model.js';
 import Task from '../models/task.model.js';
 import Client from '../models/client.model.js';
 import ActivityLog from '../models/activityLog.model.js';
+import Proposal from '../models/proposal.model.js';
 import { createNotification } from '../utils/notification.js';
 import { createActivityLog } from '../utils/activity.js';
 import { moveToRecycleBin } from '../utils/recycleBin.js';
@@ -254,6 +255,8 @@ export const getProjects = async (req, res) => {
       isInternal,
       search,
       period,
+      startDate,
+      endDate,
       sortBy,
       sortOrder,
       startDateFrom,
@@ -305,46 +308,74 @@ export const getProjects = async (req, res) => {
 
     const andConditions = [];
 
-    if (period) {
+    // Date range & period handling (This Month, Previous Month, Yearly, Custom)
+    let pRangeStart = null;
+    let pRangeEnd = null;
+
+    if (startDate || endDate) {
+      if (startDate) {
+        const [y, m, d] = String(startDate).split('-').map(Number);
+        pRangeStart = !Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(d)
+          ? new Date(y, m - 1, d, 0, 0, 0, 0)
+          : new Date(startDate);
+      }
+      if (endDate) {
+        const [y, m, d] = String(endDate).split('-').map(Number);
+        pRangeEnd = !Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(d)
+          ? new Date(y, m - 1, d, 23, 59, 59, 999)
+          : new Date(endDate);
+      }
+    } else if (period) {
       const now = new Date();
       if (period === 'today') {
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-        andConditions.push({
-          $or: [
-            { dueDate: { $gte: start, $lte: end } },
-            { startDate: { $gte: start, $lte: end } },
-            { createdAt: { $gte: start, $lte: end } },
-          ],
-        });
+        pRangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        pRangeEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
       } else if (period === 'weekly' || period === 'this_week') {
         const day = now.getDay();
         const diffToMonday = day === 0 ? -6 : 1 - day;
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
-        const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 999);
-        andConditions.push({
-          $or: [
-            { dueDate: { $gte: start, $lte: end } },
-            { startDate: { $gte: start, $lte: end } },
-            { createdAt: { $gte: start, $lte: end } },
-          ],
-        });
-      } else if (period === 'this_month') {
-        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        andConditions.push({
-          $or: [
-            { dueDate: { $gte: start, $lte: end } },
-            { startDate: { $gte: start, $lte: end } },
-            { createdAt: { $gte: start, $lte: end } },
-          ],
-        });
+        pRangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
+        pRangeEnd = new Date(pRangeStart.getFullYear(), pRangeStart.getMonth(), pRangeStart.getDate() + 6, 23, 59, 59, 999);
+      } else if (period === 'this_month' || period === 'monthly') {
+        pRangeStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        pRangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      } else if (period === 'previous_month' || period === 'lastMonth') {
+        pRangeStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        pRangeEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      } else if (period === 'yearly' || period === 'this_year') {
+        pRangeStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+        pRangeEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
       } else if (period === 'overdue') {
         andConditions.push({
           dueDate: { $lt: now },
           status: { $nin: ['completed', 'Completed', 'cancelled', 'Cancelled'] },
         });
       }
+    }
+
+    if (pRangeStart || pRangeEnd) {
+      const start = pRangeStart || new Date(0);
+      const end = pRangeEnd || new Date(8640000000000000);
+      andConditions.push({
+        $or: [
+          { dueDate: { $gte: start, $lte: end } },
+          { endDate: { $gte: start, $lte: end } },
+          { startDate: { $gte: start, $lte: end } },
+          {
+            $and: [
+              { startDate: { $lte: end } },
+              { $or: [{ endDate: { $gte: start } }, { dueDate: { $gte: start } }] },
+            ],
+          },
+          {
+            $and: [
+              { $or: [{ startDate: null }, { startDate: { $exists: false } }] },
+              { $or: [{ dueDate: null }, { dueDate: { $exists: false } }] },
+              { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
+              { createdAt: { $gte: start, $lte: end } },
+            ],
+          },
+        ],
+      });
     }
 
     if (search) {
@@ -595,6 +626,12 @@ export const createProject = async (req, res) => {
       });
     }
 
+    if (project.acceptedProposalId) {
+      await Proposal.findByIdAndUpdate(project.acceptedProposalId, {
+        linkedProjectId: project._id,
+      }).catch((e) => console.warn('Failed to link proposal to project:', e.message));
+    }
+
     await createActivityLog({
       actor: req.user,
       action: 'project.created',
@@ -660,6 +697,12 @@ export const updateProject = async (req, res) => {
         message: `${req.user.name} changed status of "${project.name}" to ${project.status}.`,
         link: `/projects/${project._id}`,
       }, io))).catch((e) => console.warn('Project status notification error:', e.message));
+    }
+
+    if (project.acceptedProposalId) {
+      await Proposal.findByIdAndUpdate(project.acceptedProposalId, {
+        linkedProjectId: project._id,
+      }).catch((e) => console.warn('Failed to link proposal to project:', e.message));
     }
 
     const serialized = serializeProject(project);

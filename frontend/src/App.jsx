@@ -53,21 +53,7 @@ const PortalTasks = lazy(() => import('./pages/portal/sections/PortalTasks'));
 const PortalAdBudget = lazy(() => import('./pages/portal/sections/PortalAdBudget'));
 const PortalSMMTracker = lazy(() => import('./pages/portal/sections/PortalSMMTracker'));
 
-// Social Media Manager Module Pages
-const SMMDashboard = lazy(() => import('./pages/smm/SMMDashboard'));
-const SMMContent = lazy(() => import('./pages/smm/SMMContent'));
-const SMMLeads = lazy(() => import('./pages/smm/SMMLeads'));
-const Campaigns = lazy(() => import('./pages/smm/Campaigns'));
-const AdSets = lazy(() => import('./pages/smm/AdSets'));
-const Ads = lazy(() => import('./pages/smm/Ads'));
-const CreativeLibrary = lazy(() => import('./pages/smm/CreativeLibrary'));
-const SMMContentCalendar = lazy(() => import('./pages/smm/ContentCalendar'));
-const SMMPerformance = lazy(() => import('./pages/smm/Performance'));
-const SMMReports = lazy(() => import('./pages/smm/Reports'));
-const SMMDailyTracking = lazy(() => import('./pages/smm/DailyTracking'));
-const SMMCallLogs = lazy(() => import('./pages/smm/SMMCallLogs'));
-const SMMTeam = lazy(() => import('./pages/smm/Team'));
-const AdBudgetDashboard = lazy(() => import('./pages/smm/AdBudgetDashboard'));
+// Social Media Manager Module Pages - One-Page Tracker Only
 const SMMOnePageTracker = lazy(() => import('./pages/smm/SMMOnePageTracker'));
 
 // Development Module Pages
@@ -399,87 +385,14 @@ const App = () => {
           {/* Settings — any authenticated user */}
           <Route path="/settings" element={<Settings />} />
 
-          {/* Social Media Manager Routes */}
+          {/* Social Media & Ads - One-Page Tracker Only */}
           <Route path="/smm" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/content" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMContent />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/campaigns" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <Campaigns />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/leads" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMLeads />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/adsets" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <AdSets />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/ads" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <Ads />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/budget" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <AdBudgetDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/tracker" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <SMMOnePageTracker />
             </ProtectedRoute>
           } />
-          <Route path="/smm/creatives" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <CreativeLibrary />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/calendar" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMContentCalendar />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/analytics" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMPerformance />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/performance" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMPerformance />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/reports" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMReports />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/daily-tracking" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMDailyTracking />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/call-logs" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee', 'adsManager']}>
-              <SMMCallLogs />
-            </ProtectedRoute>
-          } />
-          <Route path="/smm/team" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <SMMTeam />
-            </ProtectedRoute>
-          } />
+          <Route path="/smm/tracker" element={<Navigate to="/smm" replace />} />
+          <Route path="/smm/*" element={<Navigate to="/smm" replace />} />
 
           {/* Development Module Routes */}
           <Route path="/development" element={

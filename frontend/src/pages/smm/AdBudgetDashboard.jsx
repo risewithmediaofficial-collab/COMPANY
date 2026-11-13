@@ -7,6 +7,7 @@ import { PageHeader } from '../../components/ui/page';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import {
   DollarSign, PlusCircle, Download,
   Trash2, Edit3, Calendar, Filter, RefreshCcw,
@@ -564,19 +565,21 @@ export default function AdBudgetDashboard() {
             <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
               Client
             </label>
-            <select
-              id="filter-client"
+            <SelectDropdown
               value={filterClient}
-              onChange={e => setFilterClient(e.target.value)}
-              className="app-select w-full"
-            >
-              <option value="">All Clients</option>
-              {clientsList.map(c => (
-                <option key={c._id} value={c._id}>
-                  {getClientDisplay(c)}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFilterClient(val || '')}
+              options={[
+                { value: '', label: 'All Clients' },
+                ...clientsList.map((c) => ({
+                  value: c._id,
+                  label: getClientDisplay(c),
+                })),
+              ]}
+              placeholder="All Clients"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-10 text-xs font-semibold rounded-xl bg-background border border-border/50"
+            />
           </div>
 
           {/* Search */}
@@ -825,20 +828,18 @@ export default function AdBudgetDashboard() {
             <label className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
               <Building2 size={14} className="text-foreground shrink-0" /> Client *
             </label>
-            <select
-              id="log-client-select"
-              required
+            <SelectDropdown
               value={form.client}
-              onChange={e => setForm({ ...form, client: e.target.value })}
-              className="app-select w-full"
-            >
-              <option value="">Select Client (Company Name - Client Name) *</option>
-              {clientsList.map(c => (
-                <option key={c._id} value={c._id}>
-                  {getClientDisplay(c)}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setForm({ ...form, client: val || '' })}
+              options={clientsList.map((c) => ({
+                value: c._id,
+                label: getClientDisplay(c),
+              }))}
+              placeholder="Select Client (Company Name - Client Name) *"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+            />
           </div>
 
           {/* ── Step 2: Monthly Budget Period & Amount ─────────────────── */}

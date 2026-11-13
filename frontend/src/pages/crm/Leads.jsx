@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef, useState, useMemo } from 'react';
+import React, { Fragment, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus,
@@ -27,6 +27,7 @@ import { TableSkeleton } from '../../components/ui/Skeleton';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import {
   Dialog,
@@ -220,20 +221,23 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Activity Type
               </label>
-              <select
+              <SelectDropdown
                 value={form.type}
-                onChange={(event) => updateField('type', event.target.value)}
-                className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-              >
-                <option value="follow_up">Follow-up</option>
-                <option value="call">Call</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="email">Email</option>
-                <option value="meeting">Meeting</option>
-                <option value="proposal">Proposal</option>
-                <option value="refollow">Refollow</option>
-                <option value="note">Note</option>
-              </select>
+                onChange={(val) => updateField('type', val)}
+                options={[
+                  { value: 'follow_up', label: 'Follow-up' },
+                  { value: 'call', label: 'Call' },
+                  { value: 'whatsapp', label: 'WhatsApp' },
+                  { value: 'email', label: 'Email' },
+                  { value: 'meeting', label: 'Meeting' },
+                  { value: 'proposal', label: 'Proposal' },
+                  { value: 'refollow', label: 'Refollow' },
+                  { value: 'note', label: 'Note' },
+                ]}
+                allowCustom={false}
+                allowDeselect={false}
+                placeholder="Select activity type"
+              />
             </div>
 
             <div>
@@ -278,16 +282,20 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
               <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Move Stage
               </label>
-              <select
+              <SelectDropdown
                 value={form.stage}
-                onChange={(event) => updateField('stage', event.target.value)}
-                className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
-              >
-                <option value="">Keep current stage</option>
-                {PIPELINE_STAGES.map((stage) => (
-                  <option key={stage} value={stage}>{STAGE_META[stage]?.label || stage}</option>
-                ))}
-              </select>
+                onChange={(val) => updateField('stage', val)}
+                options={[
+                  { value: '', label: 'Keep current stage' },
+                  ...PIPELINE_STAGES.map((stage) => ({
+                    value: stage,
+                    label: STAGE_META[stage]?.label || stage,
+                  })),
+                ]}
+                allowCustom={false}
+                allowDeselect={false}
+                placeholder="Select stage"
+              />
             </div>
 
             <div>
@@ -443,35 +451,47 @@ const Leads = () => {
 
   const { isDateInRange } = useDateFilter();
 
+  const isLeadInDate = useCallback(
+    (lead) => {
+      if (!lead) return false;
+      if (isDateInRange(lead.createdAt)) return true;
+      if (lead.followUpDate && isDateInRange(lead.followUpDate)) return true;
+      return false;
+    },
+    [isDateInRange]
+  );
+
   const filteredListLeads = useMemo(() => {
-    return leads.filter((lead) => {
-      if (!isDateInRange(lead.createdAt || lead.followUpDate || lead.updatedAt)) return false;
-      if (selectedFollowUpDate) {
-        if (!lead.followUpDate) return false;
-        const d = new Date(lead.followUpDate).toISOString().split('T')[0];
-        return d === selectedFollowUpDate;
-      }
-      if (selectedTodayFollowedOnly) {
-        const hasActivityToday = lead.activities?.some((act) => {
-          const d = new Date(act.createdAt || act.date);
-          return d >= todayStart && d <= todayEnd;
-        });
-        const hasCallLogToday = lead.callLogs?.some((log) => {
-          const d = new Date(log.calledAt);
-          return d >= todayStart && d <= todayEnd;
-        });
-        const isLastContactToday = lead.lastContactDate && (new Date(lead.lastContactDate) >= todayStart && new Date(lead.lastContactDate) <= todayEnd);
-        return hasActivityToday || hasCallLogToday || isLastContactToday;
-      }
-      return true;
-    });
-  }, [leads, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd, isDateInRange]);
+    return leads
+      .filter((lead) => {
+        if (!isLeadInDate(lead)) return false;
+        if (selectedFollowUpDate) {
+          if (!lead.followUpDate) return false;
+          const d = new Date(lead.followUpDate).toISOString().split('T')[0];
+          return d === selectedFollowUpDate;
+        }
+        if (selectedTodayFollowedOnly) {
+          const hasActivityToday = lead.activities?.some((act) => {
+            const d = new Date(act.createdAt || act.date);
+            return d >= todayStart && d <= todayEnd;
+          });
+          const hasCallLogToday = lead.callLogs?.some((log) => {
+            const d = new Date(log.calledAt);
+            return d >= todayStart && d <= todayEnd;
+          });
+          const isLastContactToday = lead.lastContactDate && (new Date(lead.lastContactDate) >= todayStart && new Date(lead.lastContactDate) <= todayEnd);
+          return hasActivityToday || hasCallLogToday || isLastContactToday;
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }, [leads, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd, isLeadInDate]);
 
   const filteredKanbanData = useMemo(() => {
     const filtered = {};
     PIPELINE_STAGES.forEach((stage) => {
       filtered[stage] = (kanbanData[stage] || []).filter((lead) => {
-        if (!isDateInRange(lead.createdAt || lead.followUpDate || lead.updatedAt)) return false;
+        if (!isLeadInDate(lead)) return false;
         if (selectedFollowUpDate) {
           if (!lead.followUpDate) return false;
           const d = new Date(lead.followUpDate).toISOString().split('T')[0];
@@ -493,7 +513,7 @@ const Leads = () => {
       });
     });
     return filtered;
-  }, [kanbanData, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd, isDateInRange]);
+  }, [kanbanData, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd, isLeadInDate]);
 
   const handleDeleteLead = async () => {
     if (deleteLeadId) {

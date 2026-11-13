@@ -8,8 +8,10 @@ import {
   Plus,
   ChevronDown,
   Search,
+  Check,
 } from '@/components/ui/muiIcons';
 import { getAssetUrl } from '../../utils/assetUrl';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const DEPARTMENT_OPTIONS = [
   { id: 'all', label: 'All Departments', shortLabel: 'All', icon: Users },
@@ -135,7 +137,7 @@ export const TeamQuickAssignRoster = ({
   );
 
   return (
-    <div className="rounded-2xl bg-card px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div className="rounded-2xl bg-card px-4 py-3 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
       {/* Compact Title */}
       <div className="flex items-center gap-2.5 shrink-0">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -145,30 +147,31 @@ export const TeamQuickAssignRoster = ({
       </div>
 
       {/* Simple Department + Team Dropdown + Direct (+) Button */}
-      <div className="flex flex-wrap items-center gap-2 flex-1 sm:justify-end min-w-0">
+      <div className="flex items-center gap-2.5 shrink-0 ml-auto">
         {/* Department Dropdown */}
-        <select
+        <SelectDropdown
           value={selectedDept}
-          onChange={(e) => {
-            setSelectedDept(e.target.value);
+          onChange={(val) => {
+            setSelectedDept(val || 'all');
             setSelectedUserId('');
           }}
-          aria-label="Filter team by department"
-          className="h-9 rounded-xl bg-background px-3 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-        >
-          {DEPARTMENT_OPTIONS.map((dept) => (
-            <option key={dept.id} value={dept.id}>
-              {dept.label}
-            </option>
-          ))}
-        </select>
+          options={DEPARTMENT_OPTIONS.map((dept) => ({
+            value: dept.id,
+            label: dept.label,
+          }))}
+          allowCustom={false}
+          allowDeselect={false}
+          placeholder="All Departments"
+          className="w-44 shrink-0"
+          buttonClassName="h-9 bg-background border border-border/50 text-xs font-semibold rounded-xl w-44"
+        />
 
         {/* Team Member Dropdown with inline (+) Assign beside each name */}
-        <div ref={dropdownRef} className="relative min-w-[230px] flex-1 sm:flex-initial">
+        <div ref={dropdownRef} className="relative w-48 sm:w-56 shrink-0">
           <button
             type="button"
             onClick={() => setIsOpen((prev) => !prev)}
-            className="h-9 w-full sm:w-64 rounded-xl bg-background px-3 text-xs font-semibold text-foreground flex items-center justify-between gap-2 hover:bg-secondary/70 transition-colors cursor-pointer"
+            className="h-9 w-full rounded-xl bg-background border border-border/50 px-3 text-xs font-semibold text-foreground flex items-center justify-between gap-2 hover:bg-secondary/70 transition-colors cursor-pointer"
           >
             <span className="truncate">
               {selectedMember
@@ -179,7 +182,7 @@ export const TeamQuickAssignRoster = ({
           </button>
 
           {isOpen && (
-            <div className="absolute right-0 mt-1.5 w-full sm:w-80 rounded-2xl bg-card shadow-xl ring-1 ring-foreground/10 z-40 overflow-hidden">
+            <div className="absolute right-0 mt-1.5 w-72 sm:w-80 rounded-2xl bg-card shadow-xl ring-1 ring-foreground/10 z-40 overflow-hidden">
               {/* Quick search inside dropdown */}
               <div className="p-2 bg-secondary/30">
                 <div className="relative">
@@ -215,6 +218,7 @@ export const TeamQuickAssignRoster = ({
                       .slice(0, 2)
                       .toUpperCase();
                     const avatarSrc = member.avatar ? getAssetUrl(member.avatar) : null;
+                    const isSelected = String(selectedUserId) === String(member._id);
 
                     return (
                       <div
@@ -224,9 +228,9 @@ export const TeamQuickAssignRoster = ({
                           setIsOpen(false);
                         }}
                         className={`flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 transition-colors cursor-pointer ${
-                          String(selectedUserId) === String(member._id)
-                            ? 'bg-secondary'
-                            : 'hover:bg-secondary/60'
+                          isSelected
+                            ? 'bg-primary/10 font-bold text-primary'
+                            : 'hover:bg-secondary/60 text-foreground'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -244,7 +248,7 @@ export const TeamQuickAssignRoster = ({
                           )}
 
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-semibold text-foreground">
+                            <p className="truncate text-xs font-semibold">
                               {member.name}
                             </p>
                             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground truncate">
@@ -255,21 +259,26 @@ export const TeamQuickAssignRoster = ({
                           </div>
                         </div>
 
-                        {canCreate && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedUserId(member._id);
-                              setIsOpen(false);
-                              onQuickAssign && onQuickAssign(member);
-                            }}
-                            title={`Add task for ${member.name}`}
-                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer"
-                          >
-                            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-                          </button>
-                        )}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {isSelected && (
+                            <Check className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+                          )}
+                          {canCreate && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedUserId(member._id);
+                                setIsOpen(false);
+                                onQuickAssign && onQuickAssign(member);
+                              }}
+                              title={`Add task for ${member.name}`}
+                              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })

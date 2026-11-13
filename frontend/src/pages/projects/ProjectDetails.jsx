@@ -33,6 +33,7 @@ import api from '../../api';
 import { toast } from 'sonner';
 import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { Button } from '../../components/ui/button';
 import ProjectMonthlyDeliverablesCard from '../../components/projects/ProjectMonthlyDeliverablesCard';
@@ -991,14 +992,23 @@ const ProjectDetails = () => {
               <span className="text-xs font-semibold text-muted-foreground">Amount Received</span>
               <input type="number" className="app-input w-full tabular-nums" value={budgetForm.amountReceived ?? ''} onChange={(e) => setBudgetForm((c) => ({ ...c, amountReceived: e.target.value }))} />
             </label>
-            <label className="space-y-1">
+            <div className="space-y-1">
               <span className="text-xs font-semibold text-muted-foreground">Payment Status</span>
-              <select className="app-input w-full" value={budgetForm.paymentStatus} onChange={(e) => setBudgetForm((c) => ({ ...c, paymentStatus: e.target.value }))}>
-                <option value="pending">Pending</option>
-                <option value="partial">Partial</option>
-                <option value="paid">Paid</option>
-              </select>
-            </label>
+              <SelectDropdown
+                value={budgetForm.paymentStatus || 'pending'}
+                onChange={(val) => setBudgetForm((c) => ({ ...c, paymentStatus: val || 'pending' }))}
+                options={[
+                  { value: 'pending', label: 'Pending' },
+                  { value: 'partial', label: 'Partial' },
+                  { value: 'paid', label: 'Paid' },
+                ]}
+                placeholder="Payment Status"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-10 bg-background text-sm rounded-xl border border-border/50"
+              />
+            </div>
           </div>
           <textarea
             className="app-input w-full min-h-24"

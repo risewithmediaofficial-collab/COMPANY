@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useDateFilter } from '../../context/DateFilterContext';
 import {
   addDays,
   addMonths,
@@ -92,58 +91,58 @@ const VIEW_OPTIONS = [
 export const TASK_STATUS_COLORS = {
   'To Do': {
     label: 'To Do / Scheduled',
-    dot: 'bg-muted-foreground',
-    border: '',
-    bg: 'bg-secondary/50 hover:bg-secondary/80 text-foreground',
-    badge: 'bg-secondary/70 text-muted-foreground ',
+    dot: 'bg-amber-500',
+    border: 'border border-amber-500/30',
+    bg: 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200',
+    badge: 'bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold',
     sign: 'To Do',
   },
   'On Process': {
     label: 'In Process / Active',
-    dot: 'bg-foreground',
-    border: '',
-    bg: 'bg-secondary/70 hover:bg-secondary text-foreground',
-    badge: 'bg-secondary text-foreground ',
+    dot: 'bg-sky-500',
+    border: 'border border-sky-500/30',
+    bg: 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-900 dark:text-sky-200',
+    badge: 'bg-sky-500/20 text-sky-800 dark:text-sky-300 font-bold',
     sign: 'In Process',
   },
   'Waiting for Client': {
-    label: 'Waiting for Client',
-    dot: 'bg-foreground/70',
-    border: '',
-    bg: 'bg-secondary/60 hover:bg-secondary/90 text-foreground',
-    badge: 'bg-secondary/80 text-foreground ',
-    sign: 'Waiting Client',
+    label: 'Waiting for Client (Pending)',
+    dot: 'bg-orange-500',
+    border: 'border border-orange-500/30',
+    bg: 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-900 dark:text-orange-200',
+    badge: 'bg-orange-500/20 text-orange-800 dark:text-orange-300 font-bold',
+    sign: 'Pending',
   },
   'Review Required': {
     label: 'Review Required',
-    dot: 'bg-foreground',
-    border: '',
-    bg: 'bg-secondary/75 hover:bg-secondary text-foreground',
-    badge: 'bg-secondary text-foreground ',
+    dot: 'bg-indigo-500',
+    border: 'border border-indigo-500/30',
+    bg: 'bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-900 dark:text-indigo-200',
+    badge: 'bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 font-bold',
     sign: 'Review Needed',
   },
   'Rework': {
     label: 'Rework Required',
-    dot: 'bg-primary',
-    border: '',
-    bg: 'bg-primary/[0.06] hover:bg-primary/10 text-foreground',
-    badge: 'bg-secondary text-foreground ',
+    dot: 'bg-rose-500',
+    border: 'border border-rose-500/30',
+    bg: 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-900 dark:text-rose-200',
+    badge: 'bg-rose-500/20 text-rose-800 dark:text-rose-300 font-bold',
     sign: 'Rework',
   },
   'Completed': {
     label: 'Completed / Approved',
-    dot: 'bg-primary-foreground',
-    border: '',
-    bg: 'bg-secondary hover:bg-secondary/80 text-foreground',
-    badge: 'bg-primary text-primary-foreground ',
+    dot: 'bg-emerald-500',
+    border: 'border border-emerald-500/30',
+    bg: 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-900 dark:text-emerald-200',
+    badge: 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold',
     sign: 'Completed',
   },
   'Approved': {
     label: 'Approved',
-    dot: 'bg-primary-foreground',
-    border: '',
-    bg: 'bg-secondary hover:bg-secondary/80 text-foreground',
-    badge: 'bg-primary text-primary-foreground ',
+    dot: 'bg-emerald-500',
+    border: 'border border-emerald-500/30',
+    bg: 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-900 dark:text-emerald-200',
+    badge: 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold',
     sign: 'Approved',
   },
 };
@@ -184,7 +183,8 @@ export const TASK_PRIORITY_COLORS = {
 };
 
 const statusTone = {
-  'To Do': 'neutral',
+  'To Do': 'warning',
+  Pending: 'warning',
   'On Process': 'info',
   'Waiting for Client': 'warning',
   Completed: 'success',
@@ -711,27 +711,15 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   const canLogDailyUpdates = EMPLOYEE_ROLES.includes(user?.role);
   const canDownloadWeeklyReport = canLogDailyUpdates || canManageCalendar;
 
-  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange } = useDateFilter();
-
-  // Auto-sync calendar view date when global navbar date changes
-  useEffect(() => {
-    if (globalStartDate) {
-      const parsed = new Date(globalStartDate);
-      if (!Number.isNaN(parsed.getTime())) {
-        setCurrentDate(parsed);
-      }
-    }
-  }, [globalStartDate]);
-
   const visibleRange = useMemo(() => getRangeForView(currentDate, view), [currentDate, view]);
 
   const queryFilters = useMemo(() => ({
     ...filters,
     search,
     parent: 'all',
-    startDate: filters.startDate || globalStartDate || format(visibleRange.start, 'yyyy-MM-dd'),
-    endDate: filters.endDate || globalEndDate || format(visibleRange.end, 'yyyy-MM-dd'),
-  }), [filters, search, globalStartDate, globalEndDate, visibleRange]);
+    startDate: filters.startDate || format(visibleRange.start, 'yyyy-MM-dd'),
+    endDate: filters.endDate || format(visibleRange.end, 'yyyy-MM-dd'),
+  }), [filters, search, visibleRange]);
 
   const { data: calendarData, isLoading, refetch } = useTaskCalendar(queryFilters);
   const { data: employeeTasks = [] } = useTasks(
@@ -744,9 +732,8 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
 
   const tasks = useMemo(
     () => (calendarData?.tasks || [])
-      .filter((task) => isDateInRange(task.dueDate || task.startDate || task.createdAt))
       .map((task) => ({ ...task, status: normalizeTaskStatusLabel(task.status) })),
-    [calendarData, isDateInRange],
+    [calendarData],
   );
 
   const summary = calendarData?.summary || {

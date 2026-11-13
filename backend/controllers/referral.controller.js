@@ -80,6 +80,7 @@ export const getReferrals = async (req, res) => {
       .populate('referrer', 'name email referralCode')
       .populate('lead', 'name email company stage')
       .populate('client', 'name email company status')
+      .populate('projectId', 'name status category')
       .sort({ createdAt: -1 });
 
     const totalEarnings = referrals.reduce((sum, referral) => sum + Number(referral.commissionAmount || 0), 0);
@@ -128,10 +129,22 @@ export const createReferral = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Selected project does not belong to the selected client' });
     }
 
+    const referrerType = req.body.referrerType || 'outside';
+    const isOutside = referrerType === 'outside';
+    let referrerId = isOutside ? null : req.user._id;
+    if (referrerType === 'employee' && req.body.referrerEmployeeId) {
+      referrerId = req.body.referrerEmployeeId;
+    }
+
     const referral = await Referral.create({
+      referrerType,
+      outsideReferrerName: req.body.outsideReferrerName || req.body.referralPersonName || '',
+      outsideReferrerContact: req.body.outsideReferrerContact || req.body.phone || '',
+      payoutType: req.body.payoutType || 'one_time',
+      projectId: req.body.projectId || undefined,
       organizationId: req.user.organizationId,
       brandId: req.headers['x-workspace-id'] || undefined,
-      referrer: req.user._id,
+      referrer: referrerId,
       referrerModel: 'User',
       client: client._id,
       clientId: client._id,
@@ -258,8 +271,20 @@ export const submitReferralLead = async (req, res) => {
     });
     await lead.save();
 
+    const referrerType = req.body.referrerType || 'outside';
+    const isOutside = referrerType === 'outside';
+    let referrerId = isOutside ? null : req.user._id;
+    if (referrerType === 'employee' && req.body.referrerEmployeeId) {
+      referrerId = req.body.referrerEmployeeId;
+    }
+
     const referral = await Referral.create({
-      referrer: req.user._id,
+      referrerType,
+      outsideReferrerName: req.body.outsideReferrerName || req.body.referralPersonName || '',
+      outsideReferrerContact: req.body.outsideReferrerContact || req.body.phone || '',
+      payoutType: req.body.payoutType || 'one_time',
+      projectId: req.body.projectId || undefined,
+      referrer: referrerId,
       referrerModel: 'User',
       lead: lead._id,
       referralCode: req.user.referralCode || `REF-${Date.now().toString().slice(-6)}`,

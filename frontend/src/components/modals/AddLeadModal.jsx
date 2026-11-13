@@ -95,7 +95,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
         source: lead.source,
         status: lead.status,
         priority: lead.priority || 'medium',
-        budget: lead.budget || 0,
+        budget: lead.budget ?? '',
         currency: lead.currency || 'INR',
         expectedCloseDate: lead.expectedCloseDate ? new Date(lead.expectedCloseDate).toISOString().split('T')[0] : '',
         refollowDate: lead.refollowDate ? new Date(lead.refollowDate).toISOString().split('T')[0] : '',
@@ -384,6 +384,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                           placeholder="e.g. 50000"
                           className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
+                          value={field.value ?? ''}
                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
                         />
                       </FormControl>

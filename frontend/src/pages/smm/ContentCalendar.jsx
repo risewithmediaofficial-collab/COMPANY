@@ -6,6 +6,7 @@ import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 const EVENT_TYPES = [
   { id: 'Post', label: 'Scheduled Post', color: 'bg-secondary text-foreground ' },
@@ -246,12 +247,21 @@ export default function ContentCalendar() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">Event Type</label>
-              <select value={newEvent.type} onChange={e => setNewEvent({...newEvent, type: e.target.value})} className="app-select">
-                <option value="Post">Scheduled Post</option>
-                <option value="Launch">Campaign Launch</option>
-                <option value="Deadline">Creative Deadline</option>
-                <option value="Approval">Approval Deadline</option>
-              </select>
+              <SelectDropdown
+                value={newEvent.type || 'Post'}
+                onChange={(val) => setNewEvent({ ...newEvent, type: val || 'Post' })}
+                options={[
+                  { value: 'Post', label: 'Scheduled Post' },
+                  { value: 'Launch', label: 'Campaign Launch' },
+                  { value: 'Deadline', label: 'Creative Deadline' },
+                  { value: 'Approval', label: 'Approval Deadline' },
+                ]}
+                placeholder="Select Event Type"
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+              />
             </div>
 
             <div>

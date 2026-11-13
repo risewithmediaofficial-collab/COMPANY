@@ -30,6 +30,7 @@ import {
   useMonthlyPnl,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
 export default function ForecastReportsSection() {
   const [reportType, setReportType] = useState('forecast'); // 'forecast' | 'aging' | 'pnl'
@@ -153,15 +154,20 @@ export default function ForecastReportsSection() {
         {reportType === 'forecast' && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-muted-foreground font-medium">Scenario:</span>
-            <select
+            <SelectDropdown
               value={scenario}
-              onChange={(e) => setScenario(e.target.value)}
-              className="rounded-xl px-3 py-1.5 font-semibold text-foreground bg-background focus:ring-2 focus:ring-brand/40 outline-none cursor-pointer"
-            >
-              <option value="expected">Expected (100% Inflow / 100% Outflow)</option>
-              <option value="conservative">Conservative (85% Inflow / 108% Outflow)</option>
-              <option value="growth">Growth (115% Inflow / 95% Outflow)</option>
-            </select>
+              onChange={(val) => setScenario(val || 'expected')}
+              options={[
+                { value: 'expected', label: 'Expected (100% Inflow / 100% Outflow)' },
+                { value: 'conservative', label: 'Conservative (85% Inflow / 108% Outflow)' },
+                { value: 'growth', label: 'Growth (115% Inflow / 95% Outflow)' },
+              ]}
+              placeholder="Scenario"
+              allowCustom={false}
+              allowDeselect={false}
+              className="w-72"
+              buttonClassName="h-9 rounded-xl px-3 font-semibold text-foreground bg-background border border-border/50"
+            />
             <button
               onClick={handleExportForecast}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold transition-colors cursor-pointer"
@@ -182,15 +188,20 @@ export default function ForecastReportsSection() {
 
         {reportType === 'pnl' && (
           <div className="flex items-center gap-2">
-            <select
+            <SelectDropdown
               value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="rounded-xl px-3 py-1.5 font-semibold text-foreground bg-background focus:ring-2 focus:ring-brand/40 outline-none cursor-pointer"
-            >
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-            </select>
+              onChange={(val) => setSelectedYear(val || '2026')}
+              options={[
+                { value: '2025', label: '2025' },
+                { value: '2026', label: '2026' },
+                { value: '2027', label: '2027' },
+              ]}
+              placeholder="Year"
+              allowCustom={false}
+              allowDeselect={false}
+              className="w-28"
+              buttonClassName="h-9 rounded-xl px-3 font-semibold text-foreground bg-background border border-border/50"
+            />
             <button
               onClick={handleExportPnl}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold transition-colors cursor-pointer"

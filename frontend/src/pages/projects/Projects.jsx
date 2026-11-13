@@ -26,6 +26,7 @@ import {
   Search,
   Check,
   X,
+  ChevronDown,
   User,
   Users,
   PieChart,
@@ -65,7 +66,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
-import { useDateFilter } from '../../context/DateFilterContext';
+import { useDateFilter, toLocalYMD } from '../../context/DateFilterContext';
 import {
   PROJECT_CATEGORIES,
   getProjectCategoryMeta,
@@ -121,8 +122,17 @@ const Projects = () => {
   const [priorityFilter, setPriorityFilter] = useState('');
   const [clientFilter, setClientFilter] = useState('');
   const [sortBy, setSortBy] = useState('dueDate_asc');
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [boardGroupBy, setBoardGroupBy] = useState('status'); // 'status' | 'category'
+
+  const secondaryFiltersCount = useMemo(() => {
+    let count = 0;
+    if (priorityFilter) count++;
+    if (clientFilter) count++;
+    if (sortBy && sortBy !== 'dueDate_asc') count++;
+    return count;
+  }, [priorityFilter, clientFilter, sortBy]);
 
   // Drag and Drop States for Kanban
   const [draggingProjectId, setDraggingProjectId] = useState(null);
@@ -139,9 +149,6 @@ const Projects = () => {
   // Auto scroll while dragging
   useAutoScrollOnDrag(projectsBoardRef, Boolean(draggingProjectId));
 
-  // Queries
-  const { data: rawProjects = [], isLoading } = useProjects();
-  const { data: clients = [] } = useClients();
   const {
     startDate: globalStartDate,
     endDate: globalEndDate,
@@ -150,15 +157,51 @@ const Projects = () => {
     resetDateFilter,
   } = useDateFilter();
 
+  const projectFilters = useMemo(
+    () => ({
+      startDate: globalStartDate || undefined,
+      endDate: globalEndDate || undefined,
+    }),
+    [globalStartDate, globalEndDate]
+  );
+
+  // Queries
+  const { data: rawProjects = [], isLoading } = useProjects(projectFilters);
+  const { data: clients = [] } = useClients();
+
   const deleteProjectMutation = useDeleteProject();
   const updateProjectMutation = useUpdateProject();
 
   // 1. Base projects filtered by global date sort
   const baseDateFilteredProjects = useMemo(() => {
-    return rawProjects.filter((project) =>
-      isDateInRange([project.endDate, project.dueDate, project.startDate, project.createdAt])
-    );
-  }, [rawProjects, isDateInRange]);
+    if (!globalStartDate && !globalEndDate) return rawProjects;
+
+    const rangeStart = globalStartDate || '0000-00-00';
+    const rangeEnd = globalEndDate || '9999-99-99';
+
+    return rawProjects.filter((project) => {
+      const pStart = project.startDate ? toLocalYMD(project.startDate) : '';
+      const pEnd = (project.endDate || project.dueDate) ? toLocalYMD(project.endDate || project.dueDate) : '';
+
+      // If both start and end exist, project is active if its duration overlaps [rangeStart, rangeEnd]
+      if (pStart && pEnd) {
+        return pStart <= rangeEnd && pEnd >= rangeStart;
+      }
+
+      // If only start date exists
+      if (pStart) {
+        return pStart <= rangeEnd;
+      }
+
+      // If only end/due date exists
+      if (pEnd) {
+        return isDateInRange(pEnd);
+      }
+
+      // Fallback to createdAt if no operational timeline exists
+      return isDateInRange(project.createdAt);
+    });
+  }, [rawProjects, globalStartDate, globalEndDate, isDateInRange]);
 
 
   // 2. Compute dynamic project counts per category
@@ -244,13 +287,13 @@ const Projects = () => {
     const priorityWeights = { Critical: 4, Urgent: 4, High: 3, Medium: 2, Low: 1 };
     result.sort((a, b) => {
       if (sortBy === 'dueDate_asc') {
-        const dateA = a.endDate ? new Date(a.endDate).getTime() : Infinity;
-        const dateB = b.endDate ? new Date(b.endDate).getTime() : Infinity;
+        const dateA = (a.dueDate || a.endDate) ? new Date(a.dueDate || a.endDate).getTime() : Infinity;
+        const dateB = (b.dueDate || b.endDate) ? new Date(b.dueDate || b.endDate).getTime() : Infinity;
         return dateA - dateB;
       }
       if (sortBy === 'dueDate_desc') {
-        const dateA = a.endDate ? new Date(a.endDate).getTime() : -Infinity;
-        const dateB = b.endDate ? new Date(b.endDate).getTime() : -Infinity;
+        const dateA = (a.dueDate || a.endDate) ? new Date(a.dueDate || a.endDate).getTime() : -Infinity;
+        const dateB = (b.dueDate || b.endDate) ? new Date(b.dueDate || b.endDate).getTime() : -Infinity;
         return dateB - dateA;
       }
       if (sortBy === 'priority_desc') {
@@ -693,59 +736,70 @@ const Projects = () => {
           searchPlaceholder="Search projects, client, category..."
           totalCount={filteredProjects.length}
           filters={
-            <div className="flex items-center justify-between gap-3 w-full flex-wrap">
-              {/* Dropdown Filters Group */}
-              <div className="flex items-center gap-2 flex-wrap min-w-0 w-full sm:w-auto">
-                {/* Category Dropdown Filter */}
-                <SelectDropdown
-                  className="w-full sm:w-48 text-xs"
-                  value={categoryFilter}
-                  onChange={(val) => setCategoryFilter(val || 'all')}
-                  options={[{ value: 'all', label: 'All Categories' }, ...CATEGORY_OPTIONS]}
-                  allOptionLabel="All Categories"
-                />
-
-                {/* Status Dropdown Filter */}
-                <SelectDropdown
-                  className="w-full sm:w-40 text-xs"
-                  value={statusFilter}
-                  onChange={(val) => setStatusFilter(val)}
-                  options={['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled']}
-                  allOptionLabel="All Statuses"
-                />
-
-                {/* Priority Dropdown Filter */}
-                <SelectDropdown
-                  className="w-full sm:w-36 text-xs"
-                  value={priorityFilter}
-                  onChange={(val) => setPriorityFilter(val)}
-                  options={['Critical', 'High', 'Medium', 'Low']}
-                  allOptionLabel="All Priorities"
-                />
-
-                {/* Client Dropdown Filter (Hide for clients) */}
-                {user?.role !== 'client' && (
+            <div className="flex flex-col gap-3 w-full">
+              <div className="flex items-center justify-between gap-3 w-full flex-wrap">
+                {/* Primary Filters Group */}
+                <div className="flex items-center gap-2 flex-wrap min-w-0 w-full sm:w-auto">
+                  {/* Category Dropdown Filter */}
                   <SelectDropdown
-                    className="w-44 text-xs"
-                    value={clientFilter}
-                    onChange={(val) => setClientFilter(val)}
-                    options={clientOptions}
-                    placeholder="Filter by Client"
+                    className="w-full sm:w-48 text-xs"
+                    buttonClassName="h-9"
+                    value={categoryFilter}
+                    onChange={(val) => setCategoryFilter(val || 'all')}
+                    options={[{ value: 'all', label: 'All Categories' }, ...CATEGORY_OPTIONS]}
+                    allOptionLabel="All Categories"
                   />
-                )}
 
-                {/* Sorting Filter Dropdown */}
-                <SelectDropdown
-                  className="w-52 text-xs font-semibold"
-                  value={sortBy}
-                  onChange={(val) => setSortBy(val || 'dueDate_asc')}
-                  options={PROJECT_SORT_OPTIONS}
-                />
-              </div>
+                  {/* Status Dropdown Filter */}
+                  <SelectDropdown
+                    className="w-full sm:w-40 text-xs"
+                    buttonClassName="h-9"
+                    value={statusFilter}
+                    onChange={(val) => setStatusFilter(val)}
+                    options={['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled']}
+                    allOptionLabel="All Statuses"
+                  />
 
-              {/* View/Group Controls & Reset Button */}
-              <div className="flex items-center gap-2 shrink-0">
-                {/* Group By Selector for Kanban */}
+                  {/* More Filters Collapse Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreFilters((prev) => !prev)}
+                    className={`h-9 px-3 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                      showMoreFilters || secondaryFiltersCount > 0
+                        ? 'bg-primary/10 text-primary border border-primary/30'
+                        : 'bg-card border border-border/50 text-foreground hover:bg-secondary/60'
+                    }`}
+                    title="Toggle additional dropdown filters"
+                  >
+                    <SlidersHorizontal size={13} className="shrink-0" />
+                    <span>More Filters</span>
+                    {secondaryFiltersCount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground tabular-nums">
+                        {secondaryFiltersCount}
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={13}
+                      className={`text-muted-foreground transition-transform duration-200 ${showMoreFilters ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  {/* Reset All Filters Button */}
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={clearAllFilters}
+                      className="h-9 px-2.5 text-xs text-foreground hover:text-foreground bg-secondary hover:bg-muted flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
+                      title="Clear all active filters"
+                    >
+                      <RotateCcw size={12} className="shrink-0" />
+                      <span className="tabular-nums">Reset ({activeFiltersCount})</span>
+                    </Button>
+                  )}
+                </div>
+
+                {/* View/Group Controls for Kanban */}
                 {currentView === 'board' && (
                   <div className="flex items-center bg-secondary/70 p-0.5 rounded-xl shrink-0">
                     <button
@@ -772,21 +826,48 @@ const Projects = () => {
                     </button>
                   </div>
                 )}
-
-                {/* Reset All Filters Button */}
-                {activeFiltersCount > 0 && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={clearAllFilters}
-                    className="h-8 px-2.5 text-xs text-foreground hover:text-foreground bg-secondary hover:bg-muted flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
-                    title="Clear all active filters"
-                  >
-                    <RotateCcw size={12} className="shrink-0" />
-                    <span className="tabular-nums">Reset ({activeFiltersCount})</span>
-                  </Button>
-                )}
               </div>
+
+              {/* Collapsible Secondary Filters Row */}
+              {showMoreFilters && (
+                <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-2xl bg-secondary/30 border border-border/40 animate-in fade-in slide-in-from-top-1 duration-150 w-full">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground shrink-0 mr-1">
+                    <Filter size={13} />
+                    <span className="text-[11px] uppercase tracking-wider font-bold">Filters</span>
+                  </div>
+
+                  {/* Priority Dropdown Filter */}
+                  <SelectDropdown
+                    className="w-full sm:w-36 text-xs"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={priorityFilter}
+                    onChange={(val) => setPriorityFilter(val)}
+                    options={['Critical', 'High', 'Medium', 'Low']}
+                    allOptionLabel="All Priorities"
+                  />
+
+                  {/* Client Dropdown Filter (Hide for clients) */}
+                  {user?.role !== 'client' && (
+                    <SelectDropdown
+                      className="w-full sm:w-44 text-xs"
+                      buttonClassName="h-8.5 bg-background text-xs"
+                      value={clientFilter}
+                      onChange={(val) => setClientFilter(val)}
+                      options={clientOptions}
+                      placeholder="Filter by Client"
+                    />
+                  )}
+
+                  {/* Sorting Filter Dropdown */}
+                  <SelectDropdown
+                    className="w-full sm:w-52 text-xs font-semibold"
+                    buttonClassName="h-8.5 bg-background text-xs"
+                    value={sortBy}
+                    onChange={(val) => setSortBy(val || 'dueDate_asc')}
+                    options={PROJECT_SORT_OPTIONS}
+                  />
+                </div>
+              )}
             </div>
           }
         >

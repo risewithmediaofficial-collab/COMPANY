@@ -4,6 +4,7 @@ import api from '../../api';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { CreateDevTaskModal } from '../../components/development/CreateDevTaskModal';
@@ -252,7 +253,7 @@ export default function DevelopmentBoard() {
       if (filterPriority && t.priority?.toLowerCase() !== filterPriority.toLowerCase()) {
         return false;
       }
-      return isDateInRange([t.dueDate, t.createdAt, t.updatedAt]);
+      return isDateInRange(t.dueDate || t.createdAt);
     });
   }, [tasks, filterPriority, isDateInRange]);
 
@@ -407,76 +408,60 @@ export default function DevelopmentBoard() {
           </div>
 
           {/* Project Filter */}
-          <div className="relative">
-            <Briefcase size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <select
+          <div>
+            <SelectDropdown
               value={filterProject}
-              onChange={(e) => setFilterProject(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
-              title="Filter by Project"
-            >
-              <option value="">All Projects ({allProjects.length})</option>
-              {allProjects.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFilterProject(val || '')}
+              options={allProjects.map((p) => ({ value: p._id, label: p.name }))}
+              placeholder={`All Projects (${allProjects.length})`}
+              allOptionLabel={`All Projects (${allProjects.length})`}
+              className="w-full text-xs"
+              buttonClassName="h-10 text-xs font-medium bg-background border border-border/50 rounded-xl"
+            />
           </div>
 
           {/* Developer / Assignee Filter */}
-          <div className="relative">
-            <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <select
+          <div>
+            <SelectDropdown
               value={filterDeveloper}
-              onChange={(e) => setFilterDeveloper(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
-              title="Filter by Developer"
-            >
-              <option value="">All Developers ({allDevelopers.length})</option>
-              {allDevelopers.map((d) => (
-                <option key={d._id} value={d._id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFilterDeveloper(val || '')}
+              options={allDevelopers.map((d) => ({ value: d._id, label: d.name }))}
+              placeholder={`All Developers (${allDevelopers.length})`}
+              allOptionLabel={`All Developers (${allDevelopers.length})`}
+              className="w-full text-xs"
+              buttonClassName="h-10 text-xs font-medium bg-background border border-border/50 rounded-xl"
+            />
           </div>
 
           {/* Sprint Filter */}
-          <div className="relative">
-            <Zap size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <select
+          <div>
+            <SelectDropdown
               value={filterSprint}
-              onChange={(e) => setFilterSprint(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
-              title="Filter by Sprint"
-            >
-              <option value="">
-                {allSprints.length === 0 ? 'All Sprints (No active sprints)' : `All Sprints (${allSprints.length})`}
-              </option>
-              {allSprints.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.name} {s.status ? `(${s.status})` : ''}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFilterSprint(val || '')}
+              options={allSprints.map((s) => ({ value: s._id, label: `${s.name}${s.status ? ` (${s.status})` : ''}` }))}
+              placeholder={allSprints.length === 0 ? 'All Sprints (No active sprints)' : `All Sprints (${allSprints.length})`}
+              allOptionLabel={allSprints.length === 0 ? 'All Sprints (No active sprints)' : `All Sprints (${allSprints.length})`}
+              className="w-full text-xs"
+              buttonClassName="h-10 text-xs font-medium bg-background border border-border/50 rounded-xl"
+            />
           </div>
 
           {/* Priority Filter */}
-          <div className="relative">
-            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <select
+          <div>
+            <SelectDropdown
               value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
-              title="Filter by Priority"
-            >
-              <option value="">All Priorities</option>
-              <option value="urgent">Urgent</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
+              onChange={(val) => setFilterPriority(val || '')}
+              options={[
+                { value: 'urgent', label: 'Urgent' },
+                { value: 'high', label: 'High' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'low', label: 'Low' },
+              ]}
+              placeholder="All Priorities"
+              allOptionLabel="All Priorities"
+              className="w-full text-xs"
+              buttonClassName="h-10 text-xs font-medium bg-background border border-border/50 rounded-xl"
+            />
           </div>
 
           {/* Toggles & Reset */}
@@ -727,20 +712,16 @@ export default function DevelopmentBoard() {
                             </div>
 
                             {/* Quick Stage Move Dropdown */}
-                            <div className="relative shrink-0 max-w-[115px]">
-                              <select
+                            <div className="shrink-0 w-28">
+                              <SelectDropdown
                                 value={dev.stage || column.id}
-                                onChange={(e) => handleStageChange(task._id, e.target.value)}
-                                className="w-full appearance-none bg-secondary/80 hover:bg-secondary text-foreground rounded-lg text-[10px] font-bold py-1 pl-2 pr-5 outline-none cursor-pointer transition-colors truncate focus:ring-1 focus:ring-primary/20"
-                                title="Move task to stage"
-                              >
-                                {PIPELINE_COLUMNS.map((c) => (
-                                  <option key={c.id} value={c.id} className="bg-card text-foreground font-semibold">
-                                    {c.title}
-                                  </option>
-                                ))}
-                              </select>
-                              <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                                onChange={(val) => val && handleStageChange(task._id, val)}
+                                options={PIPELINE_COLUMNS.map((c) => ({ value: c.id, label: c.title }))}
+                                allowCustom={false}
+                                allowDeselect={false}
+                                className="w-28 text-[10px]"
+                                buttonClassName="h-6.5 py-0 px-2 text-[10px] font-bold rounded-lg bg-secondary/80 hover:bg-secondary border-none"
+                              />
                             </div>
                           </div>
                         </div>

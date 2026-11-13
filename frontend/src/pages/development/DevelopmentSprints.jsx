@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Dialog,
@@ -345,15 +346,19 @@ export default function DevelopmentSprints() {
 
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Sprint Status</label>
-                <select
+                <SelectDropdown
                   value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="app-select w-full"
-                >
-                  <option value="planning">Planning</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                </select>
+                  onChange={(val) => setForm({ ...form, status: val || 'planning' })}
+                  options={[
+                    { value: 'planning', label: 'Planning' },
+                    { value: 'active', label: 'Active' },
+                    { value: 'completed', label: 'Completed' },
+                  ]}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-10 text-xs sm:text-sm"
+                />
               </div>
 
               <div>

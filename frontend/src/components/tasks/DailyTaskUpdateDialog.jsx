@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { CalendarDays, X } from '@/components/ui/muiIcons';
 import { useAddProgressUpdate } from '../../hooks/useTasks';
 import { uploadFiles } from '../../utils/taskFields';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const buildTaskLabel = (task) => {
   const title = task.taskTitle || task.title || 'Untitled task';
@@ -105,16 +106,19 @@ export const DailyTaskUpdateDialog = ({
             <div className="space-y-6">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Task *</label>
-                <select
+                <SelectDropdown
                   value={taskId}
-                  onChange={(event) => setTaskId(event.target.value)}
-                  className="w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 "
-                >
-                  <option value="">Select a task</option>
-                  {orderedTasks.map((task) => (
-                    <option key={task._id} value={task._id}>{buildTaskLabel(task)}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setTaskId(val || '')}
+                  options={orderedTasks.map((task) => ({
+                    value: task._id,
+                    label: task.taskTitle || task.title || 'Untitled task',
+                    subLabel: task.client?.name || task.client?.company || task.clientName || undefined,
+                  }))}
+                  placeholder="Select a task"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 rounded-xl bg-secondary/75 px-4 text-sm border border-border/50"
+                />
               </div>
 
               <div>

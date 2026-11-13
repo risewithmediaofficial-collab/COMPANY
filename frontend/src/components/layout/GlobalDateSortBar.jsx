@@ -1,5 +1,58 @@
+import { useLocation } from 'react-router-dom';
 import { Calendar, X } from '@/components/ui/muiIcons';
 import { useDateFilter } from '@/context/DateFilterContext';
+
+/**
+ * Strict whitelist of routes that legitimately require global date range filtering.
+ * Pages with their own dedicated calendar/month navigation (e.g. /attendance, /smm/tracker, /calendar),
+ * static resource libraries (/sop, /assets), directory/user registries (/admin/users, /clients, /hr, /influencers),
+ * system utilities (/settings, /automations, /audit-logs, /recycle-bin), and single-entity detail pages
+ * are intentionally excluded so the layout remains clean and uncluttered.
+ */
+export const ALLOWED_DATE_FILTER_ROUTES = [
+  '/',
+  '/reports',
+  '/crm/leads',
+  '/projects',
+  '/tasks',
+  '/manager-tasks',
+  '/call-history',
+  '/my-eod-reports',
+  '/finance',
+  '/smm',
+  '/smm/campaigns',
+  '/smm/adsets',
+  '/smm/ads',
+  '/smm/budget',
+  '/smm/performance',
+  '/smm/analytics',
+  '/smm/reports',
+  '/smm/daily-tracking',
+  '/smm/call-logs',
+  '/smm/leads',
+  '/smm/content',
+  '/development',
+  '/development/board',
+  '/development/my-tasks',
+  '/development/sprints',
+  '/development/reviews',
+  '/development/qa',
+  '/development/releases',
+];
+
+export const shouldShowGlobalDateFilter = (rawPathname) => {
+  if (!rawPathname) return false;
+  // Normalize trailing slashes (e.g. '/finance/' -> '/finance')
+  const pathname = rawPathname.replace(/\/+$/, '') || '/';
+
+  // Explicitly allow exact routes in whitelist
+  if (ALLOWED_DATE_FILTER_ROUTES.includes(pathname)) return true;
+
+  // Explicitly allow all Finance OS sub-sections (e.g. /finance/invoices, /finance/expenses, etc.)
+  if (pathname.startsWith('/finance/')) return true;
+
+  return false;
+};
 
 const DATE_SORT_OPTIONS = [
   { id: 'this_month', label: 'This Month' },
@@ -21,6 +74,8 @@ const formatRangeLabel = (dateStr) => {
 };
 
 export const GlobalDateSortBar = () => {
+  const location = useLocation();
+
   const {
     startDate,
     endDate,
@@ -32,6 +87,11 @@ export const GlobalDateSortBar = () => {
     resetDateFilter,
     isFiltered,
   } = useDateFilter();
+
+  // If the current route does not require date filtering, render nothing
+  if (!shouldShowGlobalDateFilter(location.pathname)) {
+    return null;
+  }
 
   const handleOptionClick = (id) => {
     if (id === 'custom') {

@@ -132,6 +132,8 @@ const taskSchema = new mongoose.Schema(
 
     videographerAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     videographerName: { type: String, default: '' },
+    extraShootPersons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    extraShootPersonNames: [{ type: String }],
     videographerContentNeeded: { type: String, default: '' },
 
     editorAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -252,6 +254,16 @@ const taskSchema = new mongoose.Schema(
     requiredShots: { type: String, default: '' },
     presenterPerson: { type: String, default: '' },
     equipmentRequired: [{ type: String }],
+    equipmentChecklist: [
+      {
+        name: { type: String },
+        checked: { type: Boolean, default: false },
+        checkedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        checkedAt: { type: Date },
+      },
+    ],
+    pendingReason: { type: String, default: '' },
+    isDevTask: { type: Boolean, default: false },
     specialInstructions: { type: String, default: '' },
     cta: { type: String, default: 'None' },
     coverImageDriveLink: { type: String, default: '' },

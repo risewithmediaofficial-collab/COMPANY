@@ -21,8 +21,8 @@ import { DataTable } from '../../components/ui/DataTable';
 import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
-import { useDateFilter } from '../../context/DateFilterContext';
 import { useSOPs, useCreateSOP, useUpdateSOP, useDeleteSOP } from '../../hooks/useSOP';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -89,7 +89,6 @@ const SOPDashboard = () => {
   const [currentView, setCurrentView] = useState('grid'); // 'grid' | 'table'
   const [selectedType, setSelectedType] = useState('all');
 
-  const { isDateInRange } = useDateFilter();
   const { data: sops = [], isLoading } = useSOPs();
   const createSOP = useCreateSOP();
   const updateSOP = useUpdateSOP();
@@ -97,7 +96,6 @@ const SOPDashboard = () => {
 
   const filtered = sops.filter(
     (sop) =>
-      isDateInRange(sop.updatedAt || sop.createdAt) &&
       (selectedType === 'all' || sop.sopType === selectedType) &&
       (!search.trim() || sop.title?.toLowerCase().includes(search.toLowerCase())),
   );
@@ -496,33 +494,32 @@ const SOPDashboard = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">SOP Type</label>
-                <select
+                <SelectDropdown
                   value={form.sopType}
-                  onChange={(e) => setForm({ ...form, sopType: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
-                >
-                  {SOP_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm({ ...form, sopType: val })}
+                  options={SOP_TYPES}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  placeholder="Select SOP type"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Target Role</label>
-                <select
+                <SelectDropdown
                   value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
-                >
-                  <option value="">All Roles</option>
-                  {SOP_ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {r.replace(/_/g, ' ')}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm({ ...form, role: val })}
+                  options={[
+                    { value: '', label: 'All Roles' },
+                    ...SOP_ROLES.map((r) => ({
+                      value: r,
+                      label: r.replace(/_/g, ' '),
+                    })),
+                  ]}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  placeholder="Select target role"
+                />
               </div>
 
               <div>

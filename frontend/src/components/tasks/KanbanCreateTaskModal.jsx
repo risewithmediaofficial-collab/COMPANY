@@ -44,8 +44,11 @@ import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import { useUsers } from '../../hooks/useUsers';
 import api from '../../api';
+import { devApi } from '../../api/development';
 import DuplicateConfirmDialog from '../modals/DuplicateConfirmDialog';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../ui/SelectDropdown';
+import { ProjectTaskTargetsBanner } from '../projects/ProjectTaskTargetsBanner';
 
 export const PLATFORM_OPTIONS = [
   { id: 'Instagram', label: 'Instagram', Icon: Instagram },
@@ -108,6 +111,7 @@ export const KanbanCreateTaskModal = ({
 }) => {
   const isModalOpen = isOpen !== undefined ? Boolean(isOpen) : Boolean(open);
   const handleClose = () => {
+    setQueuedTasks([]);
     if (onClose) onClose();
     if (onOpenChange) onOpenChange(false);
   };
@@ -117,11 +121,18 @@ export const KanbanCreateTaskModal = ({
   const { data: projectsData = [] } = useProjects();
   const { data: usersData = [] } = useUsers();
 
-  const clients = Array.isArray(clientsData) ? clientsData : clientsData?.clients || [];
-  const projects = Array.isArray(projectsData) ? projectsData : projectsData?.projects || [];
-  const users = (Array.isArray(usersData) ? usersData : usersData?.users || []).filter(
-    (u) => u.role !== 'client'
+  const clients = useMemo(
+    () => (Array.isArray(clientsData) ? clientsData : clientsData?.clients || []),
+    [clientsData]
   );
+  const projects = useMemo(
+    () => (Array.isArray(projectsData) ? projectsData : projectsData?.projects || []),
+    [projectsData]
+  );
+  const users = useMemo(() => {
+    const list = Array.isArray(usersData) ? usersData : usersData?.users || [];
+    return list.filter((u) => u.role !== 'client');
+  }, [usersData]);
 
   // Mode: 'content' | 'non_content'
   const [taskCategory, setTaskCategory] = useState('content');
@@ -148,8 +159,8 @@ export const KanbanCreateTaskModal = ({
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
   });
-  const [allocatedHours, setAllocatedHours] = useState(2);
-  const [allocatedMinutes, setAllocatedMinutes] = useState(0);
+  const [allocatedHours, setAllocatedHours] = useState('');
+  const [allocatedMinutes, setAllocatedMinutes] = useState('');
   const [dueTime, setDueTime] = useState('');
 
   // ==========================================
@@ -176,6 +187,7 @@ export const KanbanCreateTaskModal = ({
 
   // 2. Videographer Details
   const [videographerUserId, setVideographerUserId] = useState('');
+  const [extraShootUserIds, setExtraShootUserIds] = useState([]);
   const [videographerVideoType, setVideographerVideoType] = useState('Promotional');
   const [videographerVideoFormat, setVideographerVideoFormat] = useState('Vertical');
   const [shootDate, setShootDate] = useState('');
@@ -186,6 +198,7 @@ export const KanbanCreateTaskModal = ({
   const [requiredShots, setRequiredShots] = useState('');
   const [presenterPerson, setPresenterPerson] = useState('');
   const [equipmentRequired, setEquipmentRequired] = useState(['Camera', 'Microphone', 'Lighting']);
+  const [customEquipmentInput, setCustomEquipmentInput] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [videographerRawFootageLink, setVideographerRawFootageLink] = useState('');
   const [videographerStatus, setVideographerStatus] = useState('Scheduled');
@@ -225,6 +238,7 @@ export const KanbanCreateTaskModal = ({
   const [techScope, setTechScope] = useState('');
   const [repoLink, setRepoLink] = useState('');
   const [bugSeverity, setBugSeverity] = useState('medium');
+  const [isDevTeamTask, setIsDevTeamTask] = useState(false);
 
   // Checklist
   const [checklist, setChecklist] = useState([]);
@@ -281,85 +295,83 @@ export const KanbanCreateTaskModal = ({
 
   // Reset or initialize when modal opens
   useEffect(() => {
-    if (isModalOpen) {
-      if (initialValues) {
-        if (initialValues.client) {
-          const cId = typeof initialValues.client === 'object' ? initialValues.client._id : initialValues.client;
-          setSingleClientId(cId || '');
-        }
-        if (initialValues.project) {
-          const pId = typeof initialValues.project === 'object' ? initialValues.project._id : initialValues.project;
-          setSingleProjectId(pId || '');
-        }
-        if (initialValues.assignedTo) {
-          const aId = Array.isArray(initialValues.assignedTo)
-            ? (initialValues.assignedTo[0]?._id || initialValues.assignedTo[0])
-            : (initialValues.assignedTo?._id || initialValues.assignedTo);
-          if (aId) setSelectedUserId(aId);
-        }
-        if (initialValues.priority) setPriority(initialValues.priority.toLowerCase());
-        if (initialValues.title || initialValues.taskTitle) setTitle(initialValues.title || initialValues.taskTitle);
-        if (initialValues.dueDate) setDueDate(new Date(initialValues.dueDate).toISOString().split('T')[0]);
-        if (initialValues.allocatedHours !== undefined) setAllocatedHours(Number(initialValues.allocatedHours) || 0);
-        if (initialValues.allocatedMinutes !== undefined) setAllocatedMinutes(Number(initialValues.allocatedMinutes) || 0);
-        if (initialValues.dueTime) setDueTime(initialValues.dueTime);
-        if (initialValues.taskCategory) {
-          setTaskCategory(initialValues.taskCategory);
-          if (initialValues.subType) {
-            setSubType(initialValues.subType);
-          } else if (initialValues.taskCategory === 'non_content') {
-            setSubType('website_development');
-          } else {
-            setSubType('reel');
-          }
-        }
+    if (!isModalOpen) return;
+
+    if (initialValues) {
+      if (initialValues.client) {
+        const cId = typeof initialValues.client === 'object' ? initialValues.client._id : initialValues.client;
+        setSingleClientId(cId || '');
       }
-
-      if (initialUser?._id) {
-        setSelectedUserId(initialUser._id);
-        const userDept = (initialUser.department || '').toLowerCase();
-        const userPos = (initialUser.position || initialUser.designation || '').toLowerCase();
-
-        if (
-          userDept.includes('dev') ||
-          userDept.includes('tech') ||
-          userPos.includes('dev') ||
-          userPos.includes('engineer') ||
-          userPos.includes('program')
-        ) {
-          setTaskCategory('non_content');
+      if (initialValues.project) {
+        const pId = typeof initialValues.project === 'object' ? initialValues.project._id : initialValues.project;
+        setSingleProjectId(pId || '');
+      }
+      if (initialValues.assignedTo) {
+        const aId = Array.isArray(initialValues.assignedTo)
+          ? (initialValues.assignedTo[0]?._id || initialValues.assignedTo[0])
+          : (initialValues.assignedTo?._id || initialValues.assignedTo);
+        if (aId) setSelectedUserId(aId);
+      }
+      if (initialValues.priority) setPriority(initialValues.priority.toLowerCase());
+      if (initialValues.title || initialValues.taskTitle) setTitle(initialValues.title || initialValues.taskTitle);
+      if (initialValues.dueDate) setDueDate(new Date(initialValues.dueDate).toISOString().split('T')[0]);
+      if (initialValues.allocatedHours !== undefined) setAllocatedHours(initialValues.allocatedHours ?? '');
+      if (initialValues.allocatedMinutes !== undefined) setAllocatedMinutes(initialValues.allocatedMinutes ?? '');
+      if (initialValues.dueTime) setDueTime(initialValues.dueTime);
+      if (initialValues.taskCategory) {
+        setTaskCategory(initialValues.taskCategory);
+        if (initialValues.subType) {
+          setSubType(initialValues.subType);
+        } else if (initialValues.taskCategory === 'non_content') {
           setSubType('website_development');
-        } else if (userPos.includes('editor')) {
-          setTaskCategory('content');
-          setSubType('reel');
-          setEditorUserId(initialUser._id);
-        } else if (userPos.includes('design')) {
-          setTaskCategory('content');
-          setSubType('poster');
-          setDesignerUserId(initialUser._id);
-        } else if (userDept.includes('smm') || userPos.includes('smm')) {
-          setTaskCategory('content');
-          setSubType('reel');
-          setSmmUserId(initialUser._id);
-        } else if (userPos.includes('video') || userDept.includes('shoot')) {
-          setTaskCategory('content');
-          setSubType('video_content');
-          setVideographerUserId(initialUser._id);
-        } else if (userPos.includes('script') || userPos.includes('writer') || userDept.includes('script')) {
-          setTaskCategory('content');
-          setSubType('content');
-          setScriptWriterUserId(initialUser._id);
         } else {
-          setTaskCategory('content');
           setSubType('reel');
         }
-      } else if (users.length > 0 && !selectedUserId && !initialValues?.assignedTo) {
-        setSelectedUserId(users[0]._id);
       }
-    } else {
-      setQueuedTasks([]);
     }
-  }, [isModalOpen, initialUser, initialValues, users, clients]);
+
+    if (initialUser?._id) {
+      setSelectedUserId(initialUser._id);
+      const userDept = (initialUser.department || '').toLowerCase();
+      const userPos = (initialUser.position || initialUser.designation || '').toLowerCase();
+
+      if (
+        userDept.includes('dev') ||
+        userDept.includes('tech') ||
+        userPos.includes('dev') ||
+        userPos.includes('engineer') ||
+        userPos.includes('program')
+      ) {
+        setTaskCategory('non_content');
+        setSubType('website_development');
+      } else if (userPos.includes('editor')) {
+        setTaskCategory('content');
+        setSubType('reel');
+        setEditorUserId(initialUser._id);
+      } else if (userPos.includes('design')) {
+        setTaskCategory('content');
+        setSubType('poster');
+        setDesignerUserId(initialUser._id);
+      } else if (userDept.includes('smm') || userPos.includes('smm')) {
+        setTaskCategory('content');
+        setSubType('reel');
+        setSmmUserId(initialUser._id);
+      } else if (userPos.includes('video') || userDept.includes('shoot')) {
+        setTaskCategory('content');
+        setSubType('video_content');
+        setVideographerUserId(initialUser._id);
+      } else if (userPos.includes('script') || userPos.includes('writer') || userDept.includes('script')) {
+        setTaskCategory('content');
+        setSubType('content');
+        setScriptWriterUserId(initialUser._id);
+      } else {
+        setTaskCategory('content');
+        setSubType('reel');
+      }
+    } else if (users.length > 0 && !selectedUserId && !initialValues?.assignedTo) {
+      setSelectedUserId(users[0]._id);
+    }
+  }, [isModalOpen, initialUser, initialValues]);
 
   // Update default checklist when subtype changes
   useEffect(() => {
@@ -411,7 +423,10 @@ export const KanbanCreateTaskModal = ({
     if (singleClientId) {
       const specific = projects.filter((p) => isProjectMatchClient(p, singleClientId));
       if (specific.length > 0) {
-        setSingleProjectId(specific[0]._id);
+        setSingleProjectId((prev) => {
+          const alreadyValid = specific.some((p) => p._id === prev);
+          return alreadyValid ? prev : specific[0]._id;
+        });
       } else {
         setSingleProjectId('');
       }
@@ -419,6 +434,10 @@ export const KanbanCreateTaskModal = ({
   }, [singleClientId, projects]);
 
   if (!isOpen && !open) return null;
+
+  const kanbanTargetDate = postDate ? new Date(postDate) : dueDate ? new Date(dueDate) : new Date();
+  const kanbanMonth = !isNaN(kanbanTargetDate.getTime()) ? kanbanTargetDate.getMonth() + 1 : new Date().getMonth() + 1;
+  const kanbanYear = !isNaN(kanbanTargetDate.getTime()) ? kanbanTargetDate.getFullYear() : new Date().getFullYear();
 
   // Checklist Handlers
   const handleAddChecklistItem = () => {
@@ -472,6 +491,7 @@ export const KanbanCreateTaskModal = ({
         toast.error('Please assign an employee for the non-content task');
         return null;
       }
+      taskItem.isDevTeamTask = isDevTeamTask;
       taskItem.assignedTo = [selectedUserId];
       taskItem.assignedPersonName = assignedUserObj?.name || 'Assigned Member';
       taskItem.requirementDetails = techScope;
@@ -511,6 +531,10 @@ export const KanbanCreateTaskModal = ({
       // Videographer Details
       taskItem.videographerAssigned = videographerUserId || undefined;
       taskItem.videographerName = videographerUserObj?.name || '';
+      taskItem.extraShootPersons = [...extraShootUserIds];
+      taskItem.extraShootPersonNames = extraShootUserIds
+        .map((id) => users.find((u) => u._id === id)?.name)
+        .filter(Boolean);
       taskItem.shootDate = shootDate || undefined;
       taskItem.shootTime = shootTime || undefined;
       taskItem.shootLocation = shootLocation || undefined;
@@ -519,6 +543,10 @@ export const KanbanCreateTaskModal = ({
       taskItem.requiredShots = requiredShots || undefined;
       taskItem.presenterPerson = presenterPerson || undefined;
       taskItem.equipmentRequired = [...equipmentRequired];
+      taskItem.equipmentChecklist = equipmentRequired.map((name) => ({
+        name,
+        checked: false,
+      }));
       taskItem.specialInstructions = specialInstructions || undefined;
       taskItem.shootStatus = videographerStatus || 'pending';
       taskItem.videographerContentNeeded = [requiredShots, shootLocation, presenterPerson].filter(Boolean).join(' • ') || undefined;
@@ -559,6 +587,7 @@ export const KanbanCreateTaskModal = ({
       const subIds = [
         editorUserId,
         videographerUserId,
+        ...extraShootUserIds,
         scriptWriterUserId,
         designerUserId,
         smmUserId,
@@ -613,12 +642,40 @@ export const KanbanCreateTaskModal = ({
   // Submit Handler
   const executeTasksSubmit = async (tasksToSubmit) => {
     try {
-      if (tasksToSubmit.length === 1) {
-        await createTaskMutation.mutateAsync(tasksToSubmit[0]);
-        toast.success(`Task created successfully!`);
+      const devTasks = tasksToSubmit.filter((t) => t.isDevTeamTask);
+      const regularTasks = tasksToSubmit.filter((t) => !t.isDevTeamTask);
+
+      for (const devItem of devTasks) {
+        await devApi.createTask({
+          title: devItem.title,
+          taskTitle: devItem.title,
+          taskType: devItem.taskType || 'feature',
+          priority: devItem.priority || 'medium',
+          stage: 'backlog',
+          dueDate: devItem.dueDate || undefined,
+          projectId: devItem.project || undefined,
+          project: devItem.project || undefined,
+          client: devItem.client || undefined,
+          assignedTo: devItem.assignedTo || [],
+          description: devItem.description || devItem.requirementDetails || '',
+          scope: devItem.requirementDetails || '',
+          repoLink: devItem.referenceLink || '',
+          checklist: devItem.checklist || [],
+        });
+      }
+
+      if (regularTasks.length === 1) {
+        await createTaskMutation.mutateAsync(regularTasks[0]);
+      } else if (regularTasks.length > 1) {
+        await createTaskMutation.mutateAsync({ tasks: regularTasks });
+      }
+
+      if (devTasks.length > 0 && regularTasks.length === 0) {
+        toast.success(`Task assigned to Dev Team and routed directly to Development Board!`);
+      } else if (devTasks.length > 0 && regularTasks.length > 0) {
+        toast.success(`Tasks created! ${devTasks.length} routed to Dev Board, ${regularTasks.length} created in Tasks.`);
       } else {
-        await createTaskMutation.mutateAsync({ tasks: tasksToSubmit });
-        toast.success(`Successfully created & assigned ${tasksToSubmit.length} tasks!`);
+        toast.success(`Task created successfully!`);
       }
 
       setQueuedTasks([]);
@@ -750,17 +807,18 @@ export const KanbanCreateTaskModal = ({
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 2. Deliverable Type
               </label>
-              <select
+              <SelectDropdown
                 value={subType}
-                onChange={(e) => setSubType(e.target.value)}
-                className="app-select h-11 w-full rounded-xl px-4 text-sm font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-              >
-                {(taskCategory === 'content' ? CONTENT_TYPE_OPTIONS : TECH_TYPE_OPTIONS).map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSubType(val || 'reel')}
+                options={(taskCategory === 'content' ? CONTENT_TYPE_OPTIONS : TECH_TYPE_OPTIONS).map((opt) => ({
+                  value: opt.id,
+                  label: opt.label,
+                }))}
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+              />
             </div>
           </div>
 
@@ -792,18 +850,20 @@ export const KanbanCreateTaskModal = ({
                 <label className="block text-sm font-semibold text-foreground mb-1.5">
                   Client Name
                 </label>
-                <select
+                <SelectDropdown
                   value={singleClientId}
-                  onChange={(e) => setSingleClientId(e.target.value)}
-                  className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                >
-                  <option value="">General / Internal (No Client)</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name || c.company}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setSingleClientId(val || '')}
+                  options={clients.map((c) => ({
+                    value: c._id,
+                    label: c.name || c.company,
+                    subLabel: c.company && c.name ? c.company : undefined,
+                  }))}
+                  placeholder="General / Internal (No Client)"
+                  allOptionLabel="General / Internal (No Client)"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                />
               </div>
 
               {/* Project Selection */}
@@ -811,33 +871,54 @@ export const KanbanCreateTaskModal = ({
                 <label className="block text-sm font-semibold text-foreground mb-1.5">
                   Project
                 </label>
-                <select
+                <SelectDropdown
                   value={singleProjectId}
-                  onChange={(e) => setSingleProjectId(e.target.value)}
-                  className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                >
-                  <option value="">No Project Assigned</option>
-                  {clientSpecificProjects.length > 0 && (
-                    <optgroup label="Client Projects">
-                      {clientSpecificProjects.map((p) => (
-                        <option key={p._id} value={p._id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-                  {otherProjects.length > 0 && (
-                    <optgroup label="Other Projects">
-                      {otherProjects.map((p) => (
-                        <option key={p._id} value={p._id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-                </select>
+                  onChange={(val) => setSingleProjectId(val || '')}
+                  options={[
+                    ...clientSpecificProjects.map((p) => ({
+                      value: p._id,
+                      label: p.name,
+                      subLabel: 'Client Project',
+                    })),
+                    ...otherProjects.map((p) => ({
+                      value: p._id,
+                      label: p.name,
+                      subLabel: 'Other Project',
+                    })),
+                  ]}
+                  placeholder="No Project Assigned"
+                  allOptionLabel="No Project Assigned"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                />
               </div>
             </div>
+
+            {/* Project Monthly Deliverables Targets Banner */}
+            {singleProjectId && (
+              <ProjectTaskTargetsBanner
+                projectId={singleProjectId}
+                month={kanbanMonth}
+                year={kanbanYear}
+                activeDeliverableType={subType}
+                onSelectDeliverable={(item) => {
+                  const norm = (item.contentType || '').toLowerCase().trim();
+                  setTaskCategory('content');
+                  if (norm.includes('reel') || norm.includes('short')) {
+                    setSubType('reel');
+                  } else if (norm.includes('video') || norm.includes('youtube')) {
+                    setSubType('video_content');
+                  } else if (norm.includes('story')) {
+                    setSubType('content');
+                  } else if (norm.includes('carousel')) {
+                    setSubType('carousel');
+                  } else {
+                    setSubType('poster');
+                  }
+                }}
+              />
+            )}
 
             {/* Priority & NF ID (Max 2 columns) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -846,16 +927,20 @@ export const KanbanCreateTaskModal = ({
                 <label className="block text-sm font-semibold text-foreground mb-1.5">
                   Priority
                 </label>
-                <select
+                <SelectDropdown
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer capitalize"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
+                  onChange={(val) => setPriority(val || 'medium')}
+                  options={[
+                    { value: 'low', label: 'Low' },
+                    { value: 'medium', label: 'Medium' },
+                    { value: 'high', label: 'High' },
+                    { value: 'urgent', label: 'Urgent' },
+                  ]}
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm font-normal rounded-xl capitalize"
+                />
               </div>
 
               {/* NF ID (Notion ID / Numbering) */}
@@ -912,7 +997,8 @@ export const KanbanCreateTaskModal = ({
                       type="number"
                       min="0"
                       max="100"
-                      value={allocatedHours}
+                      placeholder="0"
+                      value={allocatedHours ?? ''}
                       onChange={(e) => setAllocatedHours(e.target.value)}
                       className="h-11 w-full rounded-xl bg-background pl-4 pr-10 text-sm font-normal tabular-nums text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none"
                     />
@@ -923,7 +1009,8 @@ export const KanbanCreateTaskModal = ({
                       type="number"
                       min="0"
                       max="59"
-                      value={allocatedMinutes}
+                      placeholder="0"
+                      value={allocatedMinutes ?? ''}
                       onChange={(e) => setAllocatedMinutes(e.target.value)}
                       className="h-11 w-full rounded-xl bg-background pl-4 pr-12 text-sm font-normal tabular-nums text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none"
                     />
@@ -959,29 +1046,19 @@ export const KanbanCreateTaskModal = ({
                   <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Lead Developer / Assignee *
                   </label>
-                  <select
+                  <SelectDropdown
                     value={selectedUserId}
-                    onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                  >
-                    <option value="">Select Developer...</option>
-                    {roleGroups.developers.length > 0 && (
-                      <optgroup label="Software & Web Engineers">
-                        {roleGroups.developers.map((u) => (
-                          <option key={u._id} value={u._id}>
-                            {u.name} ({u.position || u.role})
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    <optgroup label="All Team Members">
-                      {users.map((u) => (
-                        <option key={u._id} value={u._id}>
-                          {u.name} ({u.position || u.role})
-                        </option>
-                      ))}
-                    </optgroup>
-                  </select>
+                    onChange={(val) => setSelectedUserId(val || '')}
+                    options={users.map((u) => ({
+                      value: u._id,
+                      label: u.name,
+                      subLabel: u.position || u.role,
+                    }))}
+                    placeholder="Select Developer..."
+                    allowCustom={false}
+                    className="w-full"
+                    buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                  />
                 </div>
 
                 {subType === 'bug_fix' && (
@@ -989,16 +1066,20 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Bug Severity
                     </label>
-                    <select
+                    <SelectDropdown
                       value={bugSeverity}
-                      onChange={(e) => setBugSeverity(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      <option value="low">Low Severity</option>
-                      <option value="medium">Medium Severity</option>
-                      <option value="high">High Severity</option>
-                      <option value="critical">Critical (P0 Blocker)</option>
-                    </select>
+                      onChange={(val) => setBugSeverity(val || 'medium')}
+                      options={[
+                        { value: 'low', label: 'Low Severity' },
+                        { value: 'medium', label: 'Medium Severity' },
+                        { value: 'high', label: 'High Severity' },
+                        { value: 'critical', label: 'Critical (P0 Blocker)' },
+                      ]}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 )}
               </div>
@@ -1030,6 +1111,37 @@ export const KanbanCreateTaskModal = ({
                   className="min-h-[96px] w-full rounded-xl bg-background px-4 py-3 text-sm font-normal text-foreground placeholder:text-muted-foreground/60 focus:ring-1 focus:ring-brand/40 focus:outline-none leading-relaxed"
                 />
               </div>
+
+              {/* Dev Team Checkbox / Tick button */}
+              <div
+                onClick={() => setIsDevTeamTask(!isDevTeamTask)}
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none ${
+                  isDevTeamTask
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-background border-border/60 hover:bg-secondary/40 text-foreground'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`h-5 w-5 rounded-md border flex items-center justify-center transition-colors ${
+                      isDevTeamTask
+                        ? 'bg-primary border-primary text-primary-foreground'
+                        : 'border-muted-foreground/50'
+                    }`}
+                  >
+                    {isDevTeamTask && <Check size={14} className="stroke-[3]" />}
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold block text-foreground">
+                      Assign to Dev Team (Route to Dev Board)
+                    </span>
+                    <span className="text-xs text-muted-foreground block">
+                      Directly routes to Development Board (/development/board) &mdash; will not appear in general tasks.
+                    </span>
+                  </div>
+                </div>
+                <Code2 className="h-5 w-5 shrink-0 opacity-70" />
+              </div>
             </div>
           ) : (
             /* CONTENT DELIVERABLE FORMS (5 TEAM FORMS) */
@@ -1054,29 +1166,20 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Scriptwriter
                     </label>
-                    <select
+                    <SelectDropdown
                       value={scriptWriterUserId}
-                      onChange={(e) => setScriptWriterUserId(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">Unassigned (Optional)</option>
-                      {roleGroups.scriptwriters.length > 0 && (
-                        <optgroup label="Scriptwriters / Copywriters">
-                          {roleGroups.scriptwriters.map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="All Team Members">
-                        {users.map((u) => (
-                          <option key={u._id} value={u._id}>
-                            {u.name} ({u.position || u.role})
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
+                      onChange={(val) => setScriptWriterUserId(val || '')}
+                      options={(roleGroups.scriptwriters.length > 0 ? roleGroups.scriptwriters : users).map((u) => ({
+                        value: u._id,
+                        label: u.name,
+                        subLabel: u.position || u.role,
+                      }))}
+                      placeholder="Unassigned (Optional)"
+                      allOptionLabel="Unassigned (Optional)"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   {/* Script Status */}
@@ -1084,15 +1187,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Script Status
                     </label>
-                    <select
+                    <SelectDropdown
                       value={scriptStatus}
-                      onChange={(e) => setScriptStatus(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {STATUS_SCRIPT_OPTIONS.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setScriptStatus(val || 'Draft')}
+                      options={STATUS_SCRIPT_OPTIONS.map((st) => ({ value: st, label: st }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1103,15 +1206,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Video Type
                     </label>
-                    <select
+                    <SelectDropdown
                       value={scriptVideoType}
-                      onChange={(e) => setScriptVideoType(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {VIDEO_TYPES_OPTIONS.map((vt) => (
-                        <option key={vt} value={vt}>{vt}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setScriptVideoType(val || 'Promotional')}
+                      options={VIDEO_TYPES_OPTIONS.map((vt) => ({ value: vt, label: vt }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   {/* Language */}
@@ -1119,15 +1222,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Language
                     </label>
-                    <select
+                    <SelectDropdown
                       value={scriptLanguage}
-                      onChange={(e) => setScriptLanguage(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {SCRIPT_LANGUAGES.map((lang) => (
-                        <option key={lang} value={lang}>{lang}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setScriptLanguage(val || 'English')}
+                      options={SCRIPT_LANGUAGES.map((lang) => ({ value: lang, label: lang }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1138,15 +1241,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Call To Action (CTA)
                     </label>
-                    <select
+                    <SelectDropdown
                       value={scriptCta}
-                      onChange={(e) => setScriptCta(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {CTA_OPTIONS.map((cta) => (
-                        <option key={cta} value={cta}>{cta}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setScriptCta(val || 'None')}
+                      options={CTA_OPTIONS.map((cta) => ({ value: cta, label: cta }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   {/* Google Docs Script Link */}
@@ -1264,29 +1367,20 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Videographer
                     </label>
-                    <select
+                    <SelectDropdown
                       value={videographerUserId}
-                      onChange={(e) => setVideographerUserId(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">Unassigned (Optional)</option>
-                      {roleGroups.videographers.length > 0 && (
-                        <optgroup label="Videographers & Creators">
-                          {roleGroups.videographers.map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="All Team Members">
-                        {users.map((u) => (
-                          <option key={u._id} value={u._id}>
-                            {u.name} ({u.position || u.role})
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
+                      onChange={(val) => setVideographerUserId(val || '')}
+                      options={(roleGroups.videographers.length > 0 ? roleGroups.videographers : users).map((u) => ({
+                        value: u._id,
+                        label: u.name,
+                        subLabel: u.position || u.role,
+                      }))}
+                      placeholder="Unassigned (Optional)"
+                      allOptionLabel="Unassigned (Optional)"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   {/* Shoot Status */}
@@ -1294,15 +1388,69 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Shoot Status
                     </label>
-                    <select
+                    <SelectDropdown
                       value={videographerStatus}
-                      onChange={(e) => setVideographerStatus(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {STATUS_VIDEOGRAPHER_OPTIONS.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setVideographerStatus(val || 'Scheduled')}
+                      options={STATUS_VIDEOGRAPHER_OPTIONS.map((st) => ({ value: st, label: st }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
+                  </div>
+
+                  {/* Extra Shoot Crew / Assistants */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-foreground mb-1.5 flex items-center justify-between">
+                      <span>Extra Shoot Persons (Crew / Assistants)</span>
+                      <span className="text-xs text-muted-foreground font-normal">Add extra team members attending shoot</span>
+                    </label>
+                    <div className="space-y-2">
+                      <SelectDropdown
+                        value=""
+                        onChange={(val) => {
+                          if (val && !extraShootUserIds.includes(val)) {
+                            setExtraShootUserIds([...extraShootUserIds, val]);
+                          }
+                        }}
+                        options={users
+                          .filter((u) => u._id !== videographerUserId && !extraShootUserIds.includes(u._id))
+                          .map((u) => ({
+                            value: u._id,
+                            label: u.name,
+                            subLabel: u.position || u.role,
+                          }))}
+                        placeholder="+ Select Extra Shoot Member"
+                        allowCustom={false}
+                        allowDeselect={false}
+                        className="w-full"
+                        buttonClassName="h-10 bg-background text-xs font-semibold rounded-xl border border-dashed border-border/70 hover:border-primary/50"
+                      />
+
+                      {extraShootUserIds.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {extraShootUserIds.map((uid) => {
+                            const uObj = users.find((u) => u._id === uid);
+                            return (
+                              <span
+                                key={uid}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-secondary text-foreground text-xs font-semibold"
+                              >
+                                <Users size={12} className="text-primary shrink-0" />
+                                <span>{uObj?.name || 'Member'}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setExtraShootUserIds(extraShootUserIds.filter((id) => id !== uid))}
+                                  className="text-muted-foreground hover:text-foreground p-0.5 rounded-full cursor-pointer"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1313,15 +1461,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Video Type
                     </label>
-                    <select
+                    <SelectDropdown
                       value={videographerVideoType}
-                      onChange={(e) => setVideographerVideoType(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {VIDEO_TYPES_OPTIONS.map((vt) => (
-                        <option key={vt} value={vt}>{vt}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setVideographerVideoType(val || 'Promotional')}
+                      options={VIDEO_TYPES_OPTIONS.map((vt) => ({ value: vt, label: vt }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   {/* Video Format */}
@@ -1329,15 +1477,19 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Video Format
                     </label>
-                    <select
+                    <SelectDropdown
                       value={videographerVideoFormat}
-                      onChange={(e) => setVideographerVideoFormat(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      <option value="Vertical">Vertical (9:16)</option>
-                      <option value="Horizontal">Horizontal (16:9)</option>
-                      <option value="Square">Square (1:1)</option>
-                    </select>
+                      onChange={(val) => setVideographerVideoFormat(val || 'Vertical')}
+                      options={[
+                        { value: 'Vertical', label: 'Vertical (9:16)' },
+                        { value: 'Horizontal', label: 'Horizontal (16:9)' },
+                        { value: 'Square', label: 'Square (1:1)' },
+                      ]}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1440,11 +1592,18 @@ export const KanbanCreateTaskModal = ({
                   />
                 </div>
 
-                {/* Row 7: Equipment Required (Full width) */}
-                <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">
-                    Equipment Required
-                  </label>
+                {/* Row 7: Equipment Required (Full width with custom manual entry) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-semibold text-foreground">
+                      Equipment Required
+                    </label>
+                    <span className="text-xs text-muted-foreground font-normal">
+                      Select standard equipments or enter manual custom gear
+                    </span>
+                  </div>
+
+                  {/* Standard & Custom Equipment Pills */}
                   <div className="flex flex-wrap gap-2">
                     {EQUIPMENT_OPTIONS.map((item) => {
                       const isSelected = equipmentRequired.includes(item);
@@ -1461,7 +1620,7 @@ export const KanbanCreateTaskModal = ({
                           }}
                           className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-primary text-primary-foreground '
+                              ? 'bg-primary text-primary-foreground'
                               : 'bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
                           }`}
                         >
@@ -1470,6 +1629,62 @@ export const KanbanCreateTaskModal = ({
                         </button>
                       );
                     })}
+
+                    {/* Custom / Manual equipments */}
+                    {equipmentRequired
+                      .filter((item) => !EQUIPMENT_OPTIONS.includes(item))
+                      .map((customItem) => (
+                        <span
+                          key={customItem}
+                          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground"
+                        >
+                          <Check className="h-3 w-3 shrink-0" />
+                          <span>{customItem}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEquipmentRequired(equipmentRequired.filter((eq) => eq !== customItem))
+                            }
+                            className="p-0.5 hover:opacity-80 cursor-pointer"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+
+                  {/* Manual Equipment Entry Box */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={customEquipmentInput}
+                      onChange={(e) => setCustomEquipmentInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = customEquipmentInput.trim();
+                          if (val && !equipmentRequired.includes(val)) {
+                            setEquipmentRequired([...equipmentRequired, val]);
+                            setCustomEquipmentInput('');
+                          }
+                        }
+                      }}
+                      placeholder="Other / Manual enter (e.g. Drone, Teleprompter, Slider, ND Filter)..."
+                      className="h-10 flex-1 rounded-xl bg-background px-3.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:ring-1 focus:ring-brand/40 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = customEquipmentInput.trim();
+                        if (val && !equipmentRequired.includes(val)) {
+                          setEquipmentRequired([...equipmentRequired, val]);
+                          setCustomEquipmentInput('');
+                        }
+                      }}
+                      className="h-10 px-4 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold cursor-pointer shrink-0 transition-colors"
+                    >
+                      + Add Other
+                    </button>
                   </div>
                 </div>
 
@@ -1523,29 +1738,20 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Editor
                     </label>
-                    <select
+                    <SelectDropdown
                       value={editorUserId}
-                      onChange={(e) => setEditorUserId(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">Unassigned (Optional)</option>
-                      {roleGroups.editors.length > 0 && (
-                        <optgroup label="Video / Graphic Editors">
-                          {roleGroups.editors.map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="All Team Members">
-                        {users.map((u) => (
-                          <option key={u._id} value={u._id}>
-                            {u.name} ({u.position || u.role})
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
+                      onChange={(val) => setEditorUserId(val || '')}
+                      options={(roleGroups.editors.length > 0 ? roleGroups.editors : users).map((u) => ({
+                        value: u._id,
+                        label: u.name,
+                        subLabel: u.position || u.role,
+                      }))}
+                      placeholder="Unassigned (Optional)"
+                      allOptionLabel="Unassigned (Optional)"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   {/* Editor Status */}
@@ -1553,15 +1759,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Editor Status
                     </label>
-                    <select
+                    <SelectDropdown
                       value={editorStatus}
-                      onChange={(e) => setEditorStatus(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {STATUS_EDITOR_OPTIONS.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setEditorStatus(val || 'Pending')}
+                      options={STATUS_EDITOR_OPTIONS.map((st) => ({ value: st, label: st }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1611,15 +1817,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Video Duration
                     </label>
-                    <select
+                    <SelectDropdown
                       value={editorVideoDuration}
-                      onChange={(e) => setEditorVideoDuration(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal tabular-nums text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {VIDEO_DURATION_OPTIONS.map((dur) => (
-                        <option key={dur} value={dur}>{dur}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setEditorVideoDuration(val || '30 sec')}
+                      options={VIDEO_DURATION_OPTIONS.map((dur) => ({ value: dur, label: dur }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1629,30 +1835,30 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Video Type
                     </label>
-                    <select
+                    <SelectDropdown
                       value={editorVideoType}
-                      onChange={(e) => setEditorVideoType(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {VIDEO_TYPES_OPTIONS.map((vt) => (
-                        <option key={vt} value={vt}>{vt}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setEditorVideoType(val || 'Promotional')}
+                      options={VIDEO_TYPES_OPTIONS.map((vt) => ({ value: vt, label: vt }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Video Format
                     </label>
-                    <select
+                    <SelectDropdown
                       value={editorVideoFormat}
-                      onChange={(e) => setEditorVideoFormat(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal tabular-nums text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {VIDEO_FORMAT_OPTIONS.map((fmt) => (
-                        <option key={fmt} value={fmt}>{fmt}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setEditorVideoFormat(val || '9:16')}
+                      options={VIDEO_FORMAT_OPTIONS.map((fmt) => ({ value: fmt, label: fmt }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1792,29 +1998,20 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       SMM Member (Posting)
                     </label>
-                    <select
+                    <SelectDropdown
                       value={smmUserId}
-                      onChange={(e) => setSmmUserId(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">Unassigned (Optional)</option>
-                      {roleGroups.smmMembers.length > 0 && (
-                        <optgroup label="SMM Specialists">
-                          {roleGroups.smmMembers.map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="All Team Members">
-                        {users.map((u) => (
-                          <option key={u._id} value={u._id}>
-                            {u.name} ({u.position || u.role})
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
+                      onChange={(val) => setSmmUserId(val || '')}
+                      options={(roleGroups.smmMembers.length > 0 ? roleGroups.smmMembers : users).map((u) => ({
+                        value: u._id,
+                        label: u.name,
+                        subLabel: u.position || u.role,
+                      }))}
+                      placeholder="Unassigned (Optional)"
+                      allOptionLabel="Unassigned (Optional)"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   {/* SMM Status */}
@@ -1822,15 +2019,15 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       SMM Status
                     </label>
-                    <select
+                    <SelectDropdown
                       value={smmStatus}
-                      onChange={(e) => setSmmStatus(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {STATUS_SMM_OPTIONS.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setSmmStatus(val || 'Content Pending')}
+                      options={STATUS_SMM_OPTIONS.map((st) => ({ value: st, label: st }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -1867,30 +2064,30 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Content Type
                     </label>
-                    <select
+                    <SelectDropdown
                       value={smmContentType}
-                      onChange={(e) => setSmmContentType(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {['Reel', 'Post', 'Carousel', 'Story', 'YouTube Short'].map((ct) => (
-                        <option key={ct} value={ct}>{ct}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setSmmContentType(val || 'Reel')}
+                      options={['Reel', 'Post', 'Carousel', 'Story', 'YouTube Short'].map((ct) => ({ value: ct, label: ct }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       CTA (Call To Action)
                     </label>
-                    <select
+                    <SelectDropdown
                       value={smmCta}
-                      onChange={(e) => setSmmCta(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      {CTA_OPTIONS.map((cta) => (
-                        <option key={cta} value={cta}>{cta}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setSmmCta(val || 'None')}
+                      options={CTA_OPTIONS.map((cta) => ({ value: cta, label: cta }))}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
                 </div>
 
@@ -2019,29 +2216,20 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Graphic Designer
                     </label>
-                    <select
+                    <SelectDropdown
                       value={designerUserId}
-                      onChange={(e) => setDesignerUserId(e.target.value)}
-                      className="app-select h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">Unassigned (Optional)</option>
-                      {roleGroups.designers.length > 0 && (
-                        <optgroup label="Graphic Designers">
-                          {roleGroups.designers.map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="All Team Members">
-                        {users.map((u) => (
-                          <option key={u._id} value={u._id}>
-                            {u.name} ({u.position || u.role})
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
+                      onChange={(val) => setDesignerUserId(val || '')}
+                      options={(roleGroups.designers.length > 0 ? roleGroups.designers : users).map((u) => ({
+                        value: u._id,
+                        label: u.name,
+                        subLabel: u.position || u.role,
+                      }))}
+                      placeholder="Unassigned (Optional)"
+                      allOptionLabel="Unassigned (Optional)"
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 bg-background text-sm font-normal rounded-xl"
+                    />
                   </div>
 
                   <div>

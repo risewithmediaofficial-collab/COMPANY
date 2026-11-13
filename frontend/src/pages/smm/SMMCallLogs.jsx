@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/muiIcons';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { smmApi } from '../../api/smm';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
@@ -472,20 +473,21 @@ export default function SMMCallLogs() {
             <label className="block text-[11px] font-bold text-muted-foreground mb-1">
               Select Client
             </label>
-            <div className="relative">
-              <select
-                value={selectedClient}
-                onChange={(e) => handleClientFilterChange(e.target.value)}
-                className="w-full h-9 px-3 pr-8 rounded-xl bg-background text-xs font-semibold appearance-none cursor-pointer"
-              >
-                <option value="">All Clients ({clients.length})</option>
-                {clients.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.companyName || c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SelectDropdown
+              value={selectedClient}
+              onChange={(val) => handleClientFilterChange(val || '')}
+              options={[
+                { value: '', label: `All Clients (${clients.length})` },
+                ...clients.map((c) => ({
+                  value: c._id,
+                  label: c.companyName || c.name,
+                })),
+              ]}
+              placeholder={`All Clients (${clients.length})`}
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-9 px-3 rounded-xl bg-background text-xs font-semibold border border-border/50"
+            />
           </div>
 
           {/* Project Filter (Dynamically populated based on chosen client) */}
@@ -493,23 +495,26 @@ export default function SMMCallLogs() {
             <label className="block text-[11px] font-bold text-muted-foreground mb-1">
               Select Project
             </label>
-            <div className="relative">
-              <select
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                className="w-full h-9 px-3 pr-8 rounded-xl bg-background text-xs font-semibold appearance-none cursor-pointer"
-              >
-                <option value="">
-                  {selectedClient ? 'All Projects for this Client' : 'All Projects'} (
-                  {availableProjectsForFilter.length})
-                </option>
-                {availableProjectsForFilter.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SelectDropdown
+              value={selectedProject}
+              onChange={(val) => setSelectedProject(val || '')}
+              options={[
+                {
+                  value: '',
+                  label: selectedClient
+                    ? `All Projects for this Client (${availableProjectsForFilter.length})`
+                    : `All Projects (${availableProjectsForFilter.length})`,
+                },
+                ...availableProjectsForFilter.map((p) => ({
+                  value: p._id,
+                  label: p.name,
+                })),
+              ]}
+              placeholder="All Projects"
+              allowCustom={false}
+              className="w-full"
+              buttonClassName="h-9 px-3 rounded-xl bg-background text-xs font-semibold border border-border/50"
+            />
           </div>
 
           {/* Search Input */}
@@ -726,21 +731,21 @@ export default function SMMCallLogs() {
                 {/* Inline Status Selector */}
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold text-muted-foreground">Status:</span>
-                  <div className="relative">
-                    <select
-                      value={log.status}
-                      onChange={(e) => handleInlineStatusChange(log._id, e.target.value)}
-                      className={`h-7 px-2.5 pr-7 rounded-lg text-xs font-bold appearance-none cursor-pointer ${getStatusColor(
-                        log.status
-                      )}`}
-                    >
-                      {CALL_STATUSES.map((st) => (
-                        <option key={st.value} value={st.value}>
-                          {st.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <SelectDropdown
+                    value={log.status}
+                    onChange={(val) => handleInlineStatusChange(log._id, val || log.status)}
+                    options={CALL_STATUSES.map((st) => ({
+                      value: st.value,
+                      label: st.label,
+                    }))}
+                    placeholder="Status"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-32"
+                    buttonClassName={`h-7 px-2.5 rounded-lg text-xs font-bold border border-border/50 ${getStatusColor(
+                      log.status
+                    )}`}
+                  />
                 </div>
 
                 {/* Creator info & action buttons */}
@@ -815,110 +820,110 @@ export default function SMMCallLogs() {
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Select Client *
                 </label>
-                <select
-                  required
+                <SelectDropdown
                   value={form.clientId}
-                  onChange={(e) => {
-                    const cId = e.target.value;
+                  onChange={(val) => {
+                    const cId = val;
                     const cObj = clients.find((c) => String(c._id) === String(cId));
                     setForm((prev) => ({
                       ...prev,
-                      clientId: cId,
+                      clientId: cId || '',
                       clientName: cObj ? cObj.companyName || cObj.name : '',
                       projectId: '',
                       projectName: '',
                     }));
                   }}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="">-- Choose Client --</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.companyName || c.name}
-                    </option>
-                  ))}
-                </select>
+                  options={clients.map((c) => ({
+                    value: c._id,
+                    label: c.companyName || c.name,
+                  }))}
+                  placeholder="-- Choose Client --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Select Project (Optional)
                 </label>
-                <select
+                <SelectDropdown
                   value={form.projectId}
-                  onChange={(e) => {
-                    const pId = e.target.value;
+                  onChange={(val) => {
+                    const pId = val;
                     const pObj = projects.find((p) => String(p._id) === String(pId));
                     setForm((prev) => ({
                       ...prev,
-                      projectId: pId,
+                      projectId: pId || '',
                       projectName: pObj ? pObj.name : '',
                     }));
                   }}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="">
-                    {form.clientId
-                      ? '-- General Client Discussion --'
-                      : '-- Select Client First / General --'}
-                  </option>
-                  {availableProjectsForForm.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    {
+                      value: '',
+                      label: form.clientId
+                        ? '-- General Client Discussion --'
+                        : '-- Select Client First / General --',
+                    },
+                    ...availableProjectsForForm.map((p) => ({
+                      value: p._id,
+                      label: p.name,
+                    })),
+                  ]}
+                  placeholder={form.clientId ? '-- General Client Discussion --' : '-- Select Client First / General --'}
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Type
                 </label>
-                <select
+                <SelectDropdown
                   value={form.callType}
-                  onChange={(e) => setForm({ ...form, callType: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  {CALL_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm({ ...form, callType: val || 'Incoming' })}
+                  options={CALL_TYPES.map((t) => ({ value: t, label: t }))}
+                  placeholder="Call Type"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Purpose
                 </label>
-                <select
+                <SelectDropdown
                   value={form.callPurpose}
-                  onChange={(e) => setForm({ ...form, callPurpose: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  {CALL_PURPOSES.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm({ ...form, callPurpose: val || 'Campaign Review' })}
+                  options={CALL_PURPOSES.map((p) => ({ value: p, label: p }))}
+                  placeholder="Call Purpose"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Status *
                 </label>
-                <select
+                <SelectDropdown
                   value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm font-bold text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  {CALL_STATUSES.map((st) => (
-                    <option key={st.value} value={st.value}>
-                      {st.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm({ ...form, status: val || 'Completed' })}
+                  options={CALL_STATUSES.map((st) => ({ value: st.value, label: st.label }))}
+                  placeholder="Call Status"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm font-bold rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
@@ -989,16 +994,21 @@ export default function SMMCallLogs() {
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Priority
                 </label>
-                <select
+                <SelectDropdown
                   value={form.priority}
-                  onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                  className="w-full h-11 px-4 rounded-xl bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
+                  onChange={(val) => setForm({ ...form, priority: val || 'Medium' })}
+                  options={[
+                    { value: 'Low', label: 'Low' },
+                    { value: 'Medium', label: 'Medium' },
+                    { value: 'High', label: 'High' },
+                    { value: 'Urgent', label: 'Urgent' },
+                  ]}
+                  placeholder="Priority"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>

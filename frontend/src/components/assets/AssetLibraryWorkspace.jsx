@@ -3,6 +3,7 @@ import { Download, FileText, FolderOpen, Image as ImageIcon, Plus, Tag, Trash2, 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
+import { SelectDropdown } from '../ui/SelectDropdown';
 import { DataTable } from '../ui/DataTable';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '../ui/dialog';
 import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, SectionCard, StatusBadge } from '../ui/page';
@@ -11,7 +12,6 @@ import { useProjects } from '../../hooks/useProjects';
 import { useAssets, useCreateAsset, useDeleteAsset, useUpdateAsset } from '../../hooks/useAssets';
 import { uploadFiles } from '../../utils/taskFields';
 import { getAssetUrl } from '../../utils/assetUrl';
-import { useDateFilter } from '../../context/DateFilterContext';
 
 export const assetCategories = [
   { value: 'logo', label: 'Logo' },
@@ -138,15 +138,15 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
               <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Category
               </label>
-              <select
+              <SelectDropdown
                 value={form.category}
-                onChange={(event) => updateField('category', event.target.value)}
-                className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 "
-              >
-                {assetCategories.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
-                ))}
-              </select>
+                onChange={(val) => updateField('category', val || 'logo')}
+                options={assetCategories}
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 rounded-xl bg-background text-sm font-medium"
+              />
             </div>
 
             {/* Client */}
@@ -154,17 +154,15 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
               <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Client *
               </label>
-              <select
+              <SelectDropdown
                 value={form.client}
-                onChange={(event) => updateField('client', event.target.value)}
-                className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 "
-                required
-              >
-                <option value="">Select client</option>
-                {clients.map((client) => (
-                  <option key={client._id} value={client._id}>{client.company || client.name}</option>
-                ))}
-              </select>
+                onChange={(val) => updateField('client', val || '')}
+                options={clients.map((client) => ({ value: client._id, label: client.company || client.name }))}
+                placeholder="Select client"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 rounded-xl bg-background text-sm font-medium"
+              />
             </div>
 
             {/* Project */}
@@ -172,16 +170,16 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
               <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Project
               </label>
-              <select
+              <SelectDropdown
                 value={form.project}
-                onChange={(event) => updateField('project', event.target.value)}
-                className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 "
-              >
-                <option value="">No linked project</option>
-                {filteredProjects.map((project) => (
-                  <option key={project._id} value={project._id}>{project.name}</option>
-                ))}
-              </select>
+                onChange={(val) => updateField('project', val || '')}
+                options={filteredProjects.map((project) => ({ value: project._id, label: project.name }))}
+                placeholder="No linked project"
+                allOptionLabel="No linked project"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 rounded-xl bg-background text-sm font-medium"
+              />
             </div>
 
             {/* Description */}
@@ -301,14 +299,13 @@ export const AssetLibraryWorkspace = ({
   const [formOpen, setFormOpen] = useState(false);
 
   const { data: clients = [] } = useClients({}, { enabled: canManage });
-  const { isDateInRange } = useDateFilter();
   const { data: projects = [] } = useProjects({}, { enabled: canManage });
   const { data: rawAssets = [], isLoading } = useAssets({
     search,
     client: clientFilter || undefined,
     category: categoryFilter || undefined,
   });
-  const assets = useMemo(() => rawAssets.filter((a) => isDateInRange(a.createdAt)), [rawAssets, isDateInRange]);
+  const assets = rawAssets;
 
   const createAsset = useCreateAsset();
   const updateAsset = useUpdateAsset();
@@ -389,15 +386,27 @@ export const AssetLibraryWorkspace = ({
       <PageToolbar>
         <SearchField value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search assets, descriptions, or tags..." />
         {!portalMode ? (
-          <select value={clientFilter} onChange={(event) => setClientFilter(event.target.value)} className="app-input w-full sm:w-auto lg:w-56">
-            <option value="">All clients</option>
-            {clients.map((client) => <option key={client._id} value={client._id}>{client.company || client.name}</option>)}
-          </select>
+          <SelectDropdown
+            value={clientFilter}
+            onChange={(val) => setClientFilter(val || '')}
+            options={clients.map((client) => ({ value: client._id, label: client.company || client.name }))}
+            placeholder="All clients"
+            allOptionLabel="All clients"
+            allowCustom={false}
+            className="w-full sm:w-auto lg:w-56"
+            buttonClassName="h-10 text-xs sm:text-sm font-medium bg-background border border-border/50 rounded-xl"
+          />
         ) : null}
-        <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="app-input w-full sm:w-auto lg:w-52">
-          <option value="">All categories</option>
-          {assetCategories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-        </select>
+        <SelectDropdown
+          value={categoryFilter}
+          onChange={(val) => setCategoryFilter(val || '')}
+          options={assetCategories}
+          placeholder="All categories"
+          allOptionLabel="All categories"
+          allowCustom={false}
+          className="w-full sm:w-auto lg:w-52"
+          buttonClassName="h-10 text-xs sm:text-sm font-medium bg-background border border-border/50 rounded-xl"
+        />
       </PageToolbar>
 
       <SectionCard

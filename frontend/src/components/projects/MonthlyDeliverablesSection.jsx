@@ -31,7 +31,7 @@ export const MonthlyDeliverablesSection = ({
 }) => {
   const [selectedType, setSelectedType] = useState('Video');
   const [customType, setCustomType] = useState('');
-  const [targetQty, setTargetQty] = useState('8');
+  const [targetQty, setTargetQty] = useState('');
   const [error, setError] = useState('');
 
   const currentYear = new Date().getFullYear();

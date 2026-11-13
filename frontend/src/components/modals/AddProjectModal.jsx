@@ -5,7 +5,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
@@ -20,9 +20,12 @@ import {
   Layers,
   Code2,
   ArrowRight,
+  FileText,
+  Check,
 } from '@/components/ui/muiIcons';
-import { useAcceptedProposals } from '../../hooks/useProposals';
+import { useProposals, useClientProposals } from '../../hooks/useProposals';
 import { formatINR } from '../../utils/currency';
+import { SelectDropdown } from '../ui/SelectDropdown';
 import {
   Dialog,
   DialogContent,
@@ -41,13 +44,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateProject, useUpdateProject } from '../../hooks/useProjects';
 import { useClients } from '../../hooks/useClients';
@@ -197,8 +193,221 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
   const isDevCategory = isDevOrSoftwareCategory(selectedCategory);
 
-  const { data: acceptedProposals = [] } = useAcceptedProposals(selectedClientId);
   const { data: clients = [] } = useClients();
+  const { data: allProposals = [] } = useProposals();
+  const { data: clientProposals = [] } = useClientProposals(
+    selectedClientId && selectedClientId !== 'none' ? selectedClientId : null
+  );
+
+  // Derive proposals for current client selection or show all if no client selected yet
+  const availableProposals = useMemo(() => {
+    let list = [];
+    if (selectedClientId && selectedClientId !== 'none') {
+      if (clientProposals && clientProposals.length > 0) {
+        list = [...clientProposals];
+      } else {
+        list = (allProposals || []).filter((p) => {
+          const cId = p.client?._id || (typeof p.client === 'string' ? p.client : '');
+          return cId === selectedClientId;
+        });
+      }
+    } else {
+      list = [...(allProposals || [])];
+    }
+
+    const statusPriority = { accepted: 1, sent: 2, viewed: 3, draft: 4 };
+    return list.sort((a, b) => {
+      const pA = statusPriority[a.status?.toLowerCase()] || 99;
+      const pB = statusPriority[b.status?.toLowerCase()] || 99;
+      if (pA !== pB) return pA - pB;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+  }, [selectedClientId, clientProposals, allProposals]);
+
+  const proposalOptions = useMemo(() => {
+    const list = availableProposals.map((p) => {
+      const pNum = p.proposalNumber ? `${p.proposalNumber} — ` : '';
+      const sym = p.currency === 'USD' ? '$' : p.currency === 'EUR' ? '€' : p.currency === 'GBP' ? '£' : '₹';
+      const amountStr = p.amount ? `${sym}${Number(p.amount).toLocaleString('en-IN')}` : 'No budget set';
+      const statusStr = (p.status || 'SENT').toUpperCase();
+      const clientName = p.client?.name || p.client?.company ? ` • Client: ${p.client?.name || p.client?.company}` : '';
+
+      return {
+        value: p._id,
+        label: `${pNum}${p.title || 'Untitled Proposal'}`,
+        subLabel: `${amountStr} • Status: ${statusStr}${!selectedClientId || selectedClientId === 'none' ? clientName : ''}`,
+      };
+    });
+
+    const defaultOption = {
+      value: '',
+      label: 'None / No Proposal (Custom Project)',
+      subLabel: selectedClientId && selectedClientId !== 'none'
+        ? 'Create project without linking proposals for this client'
+        : 'Create project without linking any proposal',
+    };
+
+    return [defaultOption, ...list];
+  }, [availableProposals, selectedClientId]);
+
+  // Selected proposal object for card display
+  const selectedProposalId = form.watch('acceptedProposalId');
+  const selectedProposal = useMemo(() => {
+    if (!selectedProposalId) return null;
+    return (
+      availableProposals.find((p) => p._id === selectedProposalId) ||
+      allProposals.find((p) => p._id === selectedProposalId) ||
+      (project?.acceptedProposalId && typeof project.acceptedProposalId === 'object' && project.acceptedProposalId._id === selectedProposalId
+        ? project.acceptedProposalId
+        : null)
+    );
+  }, [selectedProposalId, availableProposals, allProposals, project]);
+
+  // When selected client changes, if currently linked proposal does not belong to this client, unlink it
+  useEffect(() => {
+    const currentProposalId = form.getValues('acceptedProposalId');
+    if (currentProposalId && selectedClientId && selectedClientId !== 'none') {
+      const match = (allProposals || []).find((p) => p._id === currentProposalId);
+      if (match) {
+        const pClientId = match.client?._id || (typeof match.client === 'string' ? match.client : '');
+        if (pClientId && pClientId !== selectedClientId) {
+          form.setValue('acceptedProposalId', '');
+        }
+      }
+    }
+  }, [selectedClientId, allProposals, form]);
+
+  const handleProposalSelect = (proposalId) => {
+    form.setValue('acceptedProposalId', proposalId);
+
+    if (!proposalId) return;
+
+    const proposal =
+      availableProposals.find((p) => p._id === proposalId) ||
+      allProposals.find((p) => p._id === proposalId);
+
+    if (!proposal) return;
+
+    // 1. Auto-select client if not yet selected
+    const proposalClientId = proposal.client?._id || (typeof proposal.client === 'string' ? proposal.client : '');
+    if (proposalClientId && (!form.getValues('client') || form.getValues('client') === 'none')) {
+      form.setValue('client', proposalClientId);
+    }
+
+    // 2. Autofill project name if empty
+    const currentName = form.getValues('name');
+    if (!currentName || currentName.trim() === '') {
+      form.setValue('name', proposal.title || '');
+    }
+
+    // 3. Autofill budget & quoted amount
+    if (proposal.amount) {
+      const currentBudget = form.getValues('budget');
+      if (!currentBudget || Number(currentBudget) === 0) {
+        form.setValue('budget', proposal.amount);
+        form.setValue('quotedAmount', proposal.amount);
+        form.setValue('totalBudget', proposal.amount);
+      }
+    }
+
+    // 4. Autofill currency
+    if (proposal.currency) {
+      form.setValue('currency', proposal.currency);
+    }
+
+    // 5. Autofill project description
+    const currentDesc = form.getValues('description');
+    if (!currentDesc || currentDesc.trim() === '') {
+      form.setValue(
+        'description',
+        proposal.description || proposal.scopeOfWork || proposal.deliverables || ''
+      );
+    }
+
+    // 6. Map service category to project category if empty
+    const currentCategory = form.getValues('category');
+    if (!currentCategory && proposal.serviceCategory) {
+      const categoryMapping = {
+        website: 'web_development',
+        social_media: 'social_media',
+        branding: 'branding',
+        seo: 'seo',
+        ads: 'paid_ads',
+        video_editing: 'video_content',
+        content_creation: 'content',
+        custom: 'other',
+      };
+      const mapped = categoryMapping[proposal.serviceCategory] || 'other';
+      form.setValue('category', mapped);
+    }
+
+    // 7. Dates if available
+    if (proposal.startDate && !form.getValues('startDate')) {
+      form.setValue('startDate', toDateInputValue(proposal.startDate));
+    }
+    if (proposal.endDate && !form.getValues('endDate')) {
+      form.setValue('endDate', toDateInputValue(proposal.endDate));
+    }
+
+    toast.success(`Proposal linked: "${proposal.title}"`);
+  };
+
+  const clientOptions = useMemo(() => {
+    const list = (clients || []).map((c) => ({
+      value: c._id,
+      label: `${c.name || 'Unnamed'} - ${c.company || 'Company'}`,
+      subLabel: c.email || c.phone || '',
+    }));
+    if (isSaasOrInternal) {
+      return [{ value: 'none', label: 'None (Internal SaaS Product)', subLabel: 'No external client needed' }, ...list];
+    }
+    return list;
+  }, [clients, isSaasOrInternal]);
+
+  const categoryOptions = useMemo(() => [
+    { value: 'saas_product', label: 'SaaS Product / Platform (No Client)', subLabel: 'Internal or commercial SaaS software' },
+    { value: 'internal_tool', label: 'Internal Software / Tool (No Client)', subLabel: 'Agency internal automation or dashboard' },
+    { value: 'web_development', label: 'Website / Web Development', subLabel: 'Full-stack, frontend, backend sites' },
+    { value: 'web_design', label: 'Web Design / UI-UX', subLabel: 'Figma, prototyping & wireframes' },
+    { value: 'social_media', label: 'Social Media Marketing', subLabel: 'Instagram, YouTube, LinkedIn retainers' },
+    { value: 'seo', label: 'Search Engine Optimization (SEO)', subLabel: 'Keyword ranking & organic growth' },
+    { value: 'paid_ads', label: 'Paid Ads & Performance Marketing', subLabel: 'Meta, Google, LinkedIn campaign ads' },
+    { value: 'branding', label: 'Branding & Identity', subLabel: 'Logos, brand guidelines & stationery' },
+    { value: 'graphic_design', label: 'Graphic Design & Creatives', subLabel: 'Posters, flyers, banners, social assets' },
+    { value: 'video_content', label: 'Video Production & Content', subLabel: 'Reels, shorts, corporate shoots, editing' },
+    { value: 'mobile_app', label: 'Mobile App Development', subLabel: 'iOS, Android or cross-platform apps' },
+    { value: 'e_commerce', label: 'E-Commerce Solutions', subLabel: 'Shopify, WooCommerce, online stores' },
+    { value: 'content', label: 'Content Creation & Copywriting', subLabel: 'Blogs, scripts, ad copy' },
+    { value: 'other', label: 'Other Services', subLabel: 'Custom project scope' },
+  ], []);
+
+  const statusOptions = useMemo(() => [
+    { value: 'Planning', label: 'Planning' },
+    { value: 'In Progress', label: 'In Progress' },
+    { value: 'On Hold', label: 'On Hold' },
+    { value: 'Completed', label: 'Completed' },
+    { value: 'Cancelled', label: 'Cancelled' },
+  ], []);
+
+  const priorityOptions = useMemo(() => [
+    { value: 'Low', label: 'Low' },
+    { value: 'Medium', label: 'Medium' },
+    { value: 'High', label: 'High' },
+    { value: 'Critical', label: 'Critical' },
+  ], []);
+
+  const currencyOptions = useMemo(() => [
+    { value: 'INR', label: 'INR (₹)' },
+    { value: 'USD', label: 'USD ($)' },
+    { value: 'EUR', label: 'EUR (€)' },
+    { value: 'GBP', label: 'GBP (£)' },
+  ], []);
+
+  const paymentStatusOptions = useMemo(() => [
+    { value: 'pending', label: 'Pending' },
+    { value: 'partial', label: 'Partial' },
+    { value: 'paid', label: 'Paid' },
+  ], []);
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
   const batchSaveDeliverables = useBatchSaveProjectMonthlyDeliverables();
@@ -555,8 +764,9 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     <FormLabel className="text-sm font-semibold text-foreground">
                       Project Type <span className="text-foreground">*</span>
                     </FormLabel>
-                    <Select
-                      onValueChange={(val) => {
+                    <SelectDropdown
+                      value={field.value || ''}
+                      onChange={(val) => {
                         field.onChange(val);
                         if (['saas_product', 'saas', 'internal_tool', 'internal_product'].includes(val)) {
                           form.setValue('isInternal', true);
@@ -565,34 +775,13 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                           }
                         }
                       }}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
-                          <SelectValue placeholder="Select project type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="saas_product" className="font-semibold text-foreground">
-                          SaaS Product / Platform (No Client)
-                        </SelectItem>
-                        <SelectItem value="internal_tool" className="font-semibold text-foreground">
-                          Internal Software / Tool (No Client)
-                        </SelectItem>
-                        <SelectItem value="web_development">Website / Web Development</SelectItem>
-                        <SelectItem value="web_design">Web Design / UI-UX</SelectItem>
-                        <SelectItem value="social_media">Social Media Marketing</SelectItem>
-                        <SelectItem value="seo">Search Engine Optimization (SEO)</SelectItem>
-                        <SelectItem value="paid_ads">Paid Ads &amp; Performance Marketing</SelectItem>
-                        <SelectItem value="branding">Branding &amp; Identity</SelectItem>
-                        <SelectItem value="graphic_design">Graphic Design &amp; Creatives</SelectItem>
-                        <SelectItem value="video_content">Video Production &amp; Content</SelectItem>
-                        <SelectItem value="mobile_app">Mobile App Development</SelectItem>
-                        <SelectItem value="e_commerce">E-Commerce Solutions</SelectItem>
-                        <SelectItem value="content">Content Creation &amp; Copywriting</SelectItem>
-                        <SelectItem value="other">Other Services</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      options={categoryOptions}
+                      placeholder="Select project type"
+                      searchPlaceholder="Search project types..."
+                      allowCustom={false}
+                      allowDeselect={false}
+                      buttonClassName="h-11 bg-secondary/75 text-sm font-normal rounded-xl border-none"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -613,30 +802,18 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         )}
                       </FormLabel>
                     </div>
-                    <Select
-                      onValueChange={(val) => {
+                    <SelectDropdown
+                      value={field.value || (isSaasOrInternal ? 'none' : '')}
+                      onChange={(val) => {
                         field.onChange(val === 'none' ? '' : val);
                       }}
-                      value={field.value || (isSaasOrInternal ? 'none' : '')}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
-                          <SelectValue placeholder={isSaasOrInternal ? 'None (Internal SaaS Product)' : 'Select client'} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isSaasOrInternal && (
-                          <SelectItem value="none" className="text-muted-foreground font-medium">
-                            None (Internal SaaS Product)
-                          </SelectItem>
-                        )}
-                        {clients.map((client) => (
-                          <SelectItem key={client._id} value={client._id}>
-                            {client.name} - {client.company}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      options={clientOptions}
+                      placeholder={isSaasOrInternal ? 'None (Internal SaaS Product)' : 'Select client'}
+                      searchPlaceholder="Search clients by name, company..."
+                      allowCustom={false}
+                      allowDeselect={!isSaasOrInternal}
+                      buttonClassName="h-11 bg-secondary/75 text-sm font-normal rounded-xl border-none"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -652,6 +829,144 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 </div>
               )}
 
+              {/* Field 3.5: Proposal Selection (Link proposal sent to client or choose valid proposal) */}
+              {!isSaasOrInternal && (
+                <FormField
+                  control={form.control}
+                  name="acceptedProposalId"
+                  render={({ field }) => {
+                    const clientObj = clients.find((c) => c._id === selectedClientId);
+                    const clientName = clientObj?.name || clientObj?.company;
+                    const proposalsCount = availableProposals.length;
+
+                    return (
+                      <FormItem className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                            <FileText size={15} className="text-primary" />
+                            <span>Linked Client Proposal</span>
+                            <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                          </FormLabel>
+                          {selectedClientId && selectedClientId !== 'none' && (
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-secondary text-muted-foreground">
+                              {proposalsCount} {proposalsCount === 1 ? 'proposal' : 'proposals'} {clientName ? `for ${clientName}` : 'available'}
+                            </span>
+                          )}
+                        </div>
+
+                        <SelectDropdown
+                          value={field.value || ''}
+                          onChange={handleProposalSelect}
+                          options={proposalOptions}
+                          placeholder={
+                            selectedClientId && selectedClientId !== 'none'
+                              ? `Select proposal sent to ${clientName || 'this client'}...`
+                              : 'Select from all client proposals...'
+                          }
+                          searchPlaceholder="Search proposals by title, PROP #, amount..."
+                          allowCustom={false}
+                          allowDeselect={true}
+                          buttonClassName="h-11 bg-secondary/75 text-sm font-normal rounded-xl border-none"
+                        />
+
+                        <p className="text-xs text-muted-foreground">
+                          {selectedClientId && selectedClientId !== 'none'
+                            ? `Select any proposal sent to this client to auto-fill agreed budget, milestones, scope, and timeline.`
+                            : `Choose a proposal to automatically set client, budget, timeline, and scope.`}
+                        </p>
+
+                        {/* Linked Proposal Highlight Card */}
+                        {selectedProposal && (
+                          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3 transition-all mt-2.5">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                                  <FileText size={18} />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs font-mono font-bold text-primary">
+                                      {selectedProposal.proposalNumber || 'PROP'}
+                                    </span>
+                                    <span
+                                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full capitalize ${
+                                        selectedProposal.status === 'accepted'
+                                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                          : selectedProposal.status === 'sent'
+                                          ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
+                                          : selectedProposal.status === 'viewed'
+                                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                          : 'bg-secondary text-muted-foreground'
+                                      }`}
+                                    >
+                                      {selectedProposal.status || 'Draft'}
+                                    </span>
+                                  </div>
+                                  <h4 className="text-sm font-bold text-foreground mt-0.5 leading-snug">
+                                    {selectedProposal.title}
+                                  </h4>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  form.setValue('acceptedProposalId', '');
+                                  toast.info('Proposal unlinked');
+                                }}
+                                className="text-xs text-muted-foreground hover:text-foreground font-semibold px-2 py-1 rounded-lg hover:bg-secondary transition-colors cursor-pointer"
+                                title="Unlink proposal"
+                              >
+                                Unlink
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
+                              <div className="rounded-xl bg-background/80 p-2.5">
+                                <span className="text-[11px] text-muted-foreground block font-medium">Proposed Value</span>
+                                <span className="font-bold text-foreground text-sm">
+                                  {selectedProposal.currency === 'USD' ? '$' : selectedProposal.currency === 'EUR' ? '€' : selectedProposal.currency === 'GBP' ? '£' : '₹'}
+                                  {Number(selectedProposal.amount || 0).toLocaleString('en-IN')}
+                                </span>
+                              </div>
+                              {selectedProposal.serviceCategory && (
+                                <div className="rounded-xl bg-background/80 p-2.5">
+                                  <span className="text-[11px] text-muted-foreground block font-medium">Service</span>
+                                  <span className="font-bold text-foreground capitalize truncate block">
+                                    {selectedProposal.serviceCategory.replace('_', ' ')}
+                                  </span>
+                                </div>
+                              )}
+                              {(selectedProposal.acceptedAt || selectedProposal.createdAt) && (
+                                <div className="rounded-xl bg-background/80 p-2.5 col-span-2 sm:col-span-1">
+                                  <span className="text-[11px] text-muted-foreground block font-medium">
+                                    {selectedProposal.acceptedAt ? 'Accepted Date' : 'Created Date'}
+                                  </span>
+                                  <span className="font-bold text-foreground">
+                                    {new Date(selectedProposal.acceptedAt || selectedProposal.createdAt).toLocaleDateString('en-IN', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      year: 'numeric',
+                                    })}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {selectedProposal.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2 italic">
+                                &ldquo;{selectedProposal.description}&rdquo;
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+              )}
+
               {/* Field 4: Status */}
               <FormField
                 control={form.control}
@@ -659,20 +974,14 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold text-foreground">Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Planning">Planning</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="On Hold">On Hold</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <SelectDropdown
+                      value={field.value || 'Planning'}
+                      onChange={field.onChange}
+                      options={statusOptions}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      buttonClassName="h-11 bg-secondary/75 text-sm font-normal rounded-xl border-none"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -685,19 +994,14 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold text-foreground">Priority</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <SelectDropdown
+                      value={field.value || 'Medium'}
+                      onChange={field.onChange}
+                      options={priorityOptions}
+                      allowCustom={false}
+                      allowDeselect={false}
+                      buttonClassName="h-11 bg-secondary/75 text-sm font-normal rounded-xl border-none"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -927,19 +1231,14 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-semibold text-foreground">Currency</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="INR">INR (₹)</SelectItem>
-                          <SelectItem value="USD">USD ($)</SelectItem>
-                          <SelectItem value="EUR">EUR (€)</SelectItem>
-                          <SelectItem value="GBP">GBP (£)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <SelectDropdown
+                        value={field.value || 'INR'}
+                        onChange={field.onChange}
+                        options={currencyOptions}
+                        allowCustom={false}
+                        allowDeselect={false}
+                        buttonClassName="h-11 bg-secondary/75 text-sm font-normal rounded-xl border-none"
+                      />
                     </FormItem>
                   )}
                 />
@@ -950,18 +1249,14 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-semibold text-foreground">Payment Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="partial">Partial</SelectItem>
-                          <SelectItem value="paid">Paid</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <SelectDropdown
+                        value={field.value || 'pending'}
+                        onChange={field.onChange}
+                        options={paymentStatusOptions}
+                        allowCustom={false}
+                        allowDeselect={false}
+                        buttonClassName="h-11 bg-secondary/75 text-sm font-normal rounded-xl border-none"
+                      />
                     </FormItem>
                   )}
                 />

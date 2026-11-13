@@ -51,7 +51,6 @@ import {
 } from '../../hooks/useInfluencers';
 import { AddEditInfluencerModal } from '../../components/modals/AddEditInfluencerModal';
 import { InfluencerDetailModal } from '../../components/modals/InfluencerDetailModal';
-import { useDateFilter } from '../../context/DateFilterContext';
 import { formatINR } from '../../utils/currency';
 
 const PLATFORMS = ['all', 'Instagram', 'YouTube', 'Facebook', 'Moj', 'Josh', 'X', 'Multi-platform'];
@@ -86,7 +85,6 @@ const InfluencersDashboard = () => {
   const [selectedInfluencer, setSelectedInfluencer] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const { isDateInRange } = useDateFilter();
 
   const { data: summary = {} } = useInfluencerSummary();
   const { data: rawInfluencers = [], isLoading } = useInfluencers({
@@ -96,10 +94,7 @@ const InfluencersDashboard = () => {
     search,
   });
 
-  const influencers = useMemo(
-    () => rawInfluencers.filter((inf) => isDateInRange([inf.createdAt, inf.updatedAt])),
-    [rawInfluencers, isDateInRange]
-  );
+  const influencers = rawInfluencers;
 
   const deleteInfluencer = useDeleteInfluencer();
 

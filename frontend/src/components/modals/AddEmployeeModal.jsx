@@ -41,7 +41,7 @@ const employeeFormSchema = z.object({
   phone: z.string().min(5, 'Phone is required'),
   department: z.string().min(1, 'Department is required'),
   position: z.string().min(1, 'Position is required'),
-  salary: z.number().min(0, 'Salary must be positive'),
+  salary: z.preprocess((val) => (val === '' || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).default(0)),
   joinDate: z.string(),
   status: z.enum(['Active', 'Inactive', 'On Leave', 'Terminated']).default('Active'),
   notes: z.string().optional(),
@@ -60,7 +60,7 @@ export const AddEmployeeModal = ({ open, onOpenChange, employee = null }) => {
       phone: '',
       department: '',
       position: '',
-      salary: 0,
+      salary: '',
       joinDate: new Date().toISOString().split('T')[0],
       status: 'Active',
       notes: '',
@@ -79,7 +79,7 @@ export const AddEmployeeModal = ({ open, onOpenChange, employee = null }) => {
         phone: employee.phone || '',
         department: employee.department || '',
         position: employee.position || '',
-        salary: employee.salary || 0,
+        salary: employee.salary ?? '',
         joinDate: employee.joinDate ? new Date(employee.joinDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         status: employee.status || 'Active',
         notes: employee.notes || '',
@@ -91,7 +91,7 @@ export const AddEmployeeModal = ({ open, onOpenChange, employee = null }) => {
         phone: '',
         department: '',
         position: '',
-        salary: 0,
+        salary: '',
         joinDate: new Date().toISOString().split('T')[0],
         status: 'Active',
         notes: '',
@@ -268,7 +268,8 @@ export const AddEmployeeModal = ({ open, onOpenChange, employee = null }) => {
                           placeholder="e.g. 50000"
                           className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
                         />
                       </FormControl>
                       <FormMessage />

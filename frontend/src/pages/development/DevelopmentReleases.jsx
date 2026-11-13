@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Dialog,
@@ -64,7 +65,7 @@ export default function DevelopmentReleases() {
   }, [fetchReleases]);
 
   const releases = useMemo(
-    () => rawReleases.filter((r) => isDateInRange([r.releaseDate, r.createdAt])),
+    () => rawReleases.filter((r) => isDateInRange(r.releaseDate || r.createdAt)),
     [rawReleases, isDateInRange]
   );
 
@@ -324,15 +325,19 @@ export default function DevelopmentReleases() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-foreground mb-1.5">Environment</label>
-                  <select
+                  <SelectDropdown
                     value={form.environment}
-                    onChange={(e) => setForm({ ...form, environment: e.target.value })}
-                    className="app-select w-full"
-                  >
-                    <option value="development">Development</option>
-                    <option value="staging">Staging</option>
-                    <option value="production">Production</option>
-                  </select>
+                    onChange={(val) => setForm({ ...form, environment: val || 'development' })}
+                    options={[
+                      { value: 'development', label: 'Development' },
+                      { value: 'staging', label: 'Staging' },
+                      { value: 'production', label: 'Production' },
+                    ]}
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="h-10 text-xs sm:text-sm"
+                  />
                 </div>
               </div>
 

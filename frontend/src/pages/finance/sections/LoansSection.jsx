@@ -34,6 +34,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '../../../components/ui/button';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 import {
   useLoans,
   useCreateLoan,
@@ -992,18 +993,23 @@ export default function LoansSection({ onQuickAdd }) {
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Payment Mode
                   </label>
-                  <select
-                    value={paymentForm.paymentMode}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, paymentMode: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
-                  >
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Auto Debit">Auto Debit (ECS/NACH)</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Cheque">Cheque</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  <SelectDropdown
+                    value={paymentForm.paymentMode || 'Bank Transfer'}
+                    onChange={(val) => setPaymentForm({ ...paymentForm, paymentMode: val || 'Bank Transfer' })}
+                    options={[
+                      { value: 'Bank Transfer', label: 'Bank Transfer' },
+                      { value: 'Auto Debit', label: 'Auto Debit (ECS/NACH)' },
+                      { value: 'UPI', label: 'UPI' },
+                      { value: 'Cheque', label: 'Cheque' },
+                      { value: 'Cash', label: 'Cash' },
+                      { value: 'Other', label: 'Other' },
+                    ]}
+                    placeholder="Payment Mode"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground border border-border/50"
+                  />
                 </div>
 
                 <div>

@@ -9,6 +9,7 @@ import { PageHeader } from '../../components/ui/page';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 export default function Reports() {
   const { startDate, endDate, period: globalPeriod, isDateInRange } = useDateFilter();
@@ -125,14 +126,21 @@ export default function Reports() {
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">Target Client</label>
-            <select
+            <SelectDropdown
               value={filters.client}
-              onChange={e => setFilters({...filters, client: e.target.value})}
-              className="h-9 px-3 bg-secondary/50 rounded-xl font-semibold text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40"
-            >
-              <option value="">All Clients</option>
-              {crmClients.map(c => <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>)}
-            </select>
+              onChange={(val) => setFilters({ ...filters, client: val || '' })}
+              options={[
+                { value: '', label: 'All Clients' },
+                ...crmClients.map((c) => ({
+                  value: c._id,
+                  label: c.company || c.companyName || c.name,
+                })),
+              ]}
+              placeholder="All Clients"
+              allowCustom={false}
+              className="w-44 sm:w-52"
+              buttonClassName="h-9 px-3 bg-secondary/50 rounded-xl font-semibold text-xs text-foreground border border-border/50"
+            />
           </div>
 
           <div>

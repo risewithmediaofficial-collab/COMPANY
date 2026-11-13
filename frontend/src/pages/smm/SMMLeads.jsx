@@ -17,6 +17,7 @@ import {
   DialogClose,
 } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 
 export const SMMLeads = () => {
   const { startDate, endDate, isDateInRange } = useDateFilter();
@@ -297,10 +298,22 @@ export const SMMLeads = () => {
                       <span className="text-[10px] text-muted-foreground">{item.source}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <select
+                      <SelectDropdown
                         value={item.status}
-                        onChange={(e) => handleStatusChange(item._id, e.target.value)}
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer ${
+                        onChange={(val) => handleStatusChange(item._id, val || item.status)}
+                        options={[
+                          { value: 'New', label: 'New' },
+                          { value: 'Contacted', label: 'Contacted' },
+                          { value: 'Qualified', label: 'Qualified' },
+                          { value: 'Follow-up', label: 'Follow-up' },
+                          { value: 'Converted', label: 'Converted' },
+                          { value: 'Lost', label: 'Lost' },
+                        ]}
+                        placeholder="Status"
+                        allowCustom={false}
+                        allowDeselect={false}
+                        className="w-32"
+                        buttonClassName={`text-xs font-semibold px-2.5 py-1 rounded-full border border-border/50 ${
                           item.status === 'Converted'
                             ? 'bg-primary text-primary-foreground '
                             : item.status === 'Qualified'
@@ -309,14 +322,7 @@ export const SMMLeads = () => {
                             ? 'bg-card text-muted-foreground '
                             : 'bg-background text-foreground '
                         }`}
-                      >
-                        <option value="New">New</option>
-                        <option value="Contacted">Contacted</option>
-                        <option value="Qualified">Qualified</option>
-                        <option value="Follow-up">Follow-up</option>
-                        <option value="Converted">Converted</option>
-                        <option value="Lost">Lost</option>
-                      </select>
+                      />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -368,61 +374,60 @@ export const SMMLeads = () => {
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Client *</label>
-                <select
-                  required
+                <SelectDropdown
                   value={formData.client}
-                  onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '', campaign: '' })}
-                  className="w-full h-11 px-4 bg-background rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-foreground cursor-pointer"
-                >
-                  <option value="">-- Choose Client --</option>
-                  {clientsList.map((c) => {
+                  onChange={(val) => setFormData({ ...formData, client: val || '', project: '', campaign: '' })}
+                  options={clientsList.map((c) => {
                     const comp = c.company || c.companyName || '';
                     const name = c.name || '';
                     const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
                       ? `${comp} - ${name}`
                       : (comp || name || 'Client');
-                    return (
-                      <option key={c._id} value={c._id}>
-                        {display}
-                      </option>
-                    );
+                    return {
+                      value: c._id,
+                      label: display,
+                    };
                   })}
-                </select>
+                  placeholder="-- Choose Client --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Project *</label>
-                <select
-                  required
+                <SelectDropdown
                   value={formData.project}
-                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  disabled={!formData.client}
-                  className="w-full h-11 px-4 bg-background rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground cursor-pointer"
-                >
-                  <option value="">-- Choose Project --</option>
-                  {projectsList.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, project: val || '' })}
+                  options={projectsList.map((p) => ({
+                    value: p._id,
+                    label: p.name,
+                  }))}
+                  placeholder={!formData.client ? 'Select Client First' : '-- Choose Project --'}
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Campaign (Optional)</label>
-                <select
+                <SelectDropdown
                   value={formData.campaign}
-                  onChange={(e) => setFormData({ ...formData, campaign: e.target.value })}
-                  disabled={!formData.client}
-                  className="w-full h-11 px-4 bg-background rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground cursor-pointer"
-                >
-                  <option value="">-- No Linked Campaign --</option>
-                  {campaignsList.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name} ({c.platform})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, campaign: val || '' })}
+                  options={[
+                    { value: '', label: '-- No Linked Campaign --' },
+                    ...campaignsList.map((c) => ({
+                      value: c._id,
+                      label: `${c.name} (${c.platform})`,
+                    })),
+                  ]}
+                  placeholder="-- No Linked Campaign --"
+                  allowCustom={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
@@ -461,34 +466,44 @@ export const SMMLeads = () => {
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Source Channel</label>
-                <select
-                  value={formData.source}
-                  onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="Meta Ads">Meta Ads</option>
-                  <option value="Google Ads">Google Ads</option>
-                  <option value="LinkedIn Ads">LinkedIn Ads</option>
-                  <option value="Organic Instagram">Organic Instagram</option>
-                  <option value="Organic Facebook">Organic Facebook</option>
-                  <option value="Website">Website Form</option>
-                </select>
+                <SelectDropdown
+                  value={formData.source || 'Meta Ads'}
+                  onChange={(val) => setFormData({ ...formData, source: val || 'Meta Ads' })}
+                  options={[
+                    { value: 'Meta Ads', label: 'Meta Ads' },
+                    { value: 'Google Ads', label: 'Google Ads' },
+                    { value: 'LinkedIn Ads', label: 'LinkedIn Ads' },
+                    { value: 'Organic Instagram', label: 'Organic Instagram' },
+                    { value: 'Organic Facebook', label: 'Organic Facebook' },
+                    { value: 'Website', label: 'Website Form' },
+                  ]}
+                  placeholder="Source Channel"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Lead Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
-                >
-                  <option value="New">New</option>
-                  <option value="Contacted">Contacted</option>
-                  <option value="Qualified">Qualified</option>
-                  <option value="Follow-up">Follow-up</option>
-                  <option value="Converted">Converted</option>
-                  <option value="Lost">Lost</option>
-                </select>
+                <SelectDropdown
+                  value={formData.status || 'New'}
+                  onChange={(val) => setFormData({ ...formData, status: val || 'New' })}
+                  options={[
+                    { value: 'New', label: 'New' },
+                    { value: 'Contacted', label: 'Contacted' },
+                    { value: 'Qualified', label: 'Qualified' },
+                    { value: 'Follow-up', label: 'Follow-up' },
+                    { value: 'Converted', label: 'Converted' },
+                    { value: 'Lost', label: 'Lost' },
+                  ]}
+                  placeholder="Lead Status"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                />
               </div>
             </div>
 

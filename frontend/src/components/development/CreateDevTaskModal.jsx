@@ -27,6 +27,7 @@ import {
 import { devApi } from '../../api/development';
 import api from '../../api';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const TECH_TYPES = [
   { id: 'website_development', label: 'Web Feature / App Dev', defaultChecklist: ['Review Specs & Wireframes', 'Component / API Implementation', 'Responsive Mobile Verification', 'Deploy to Staging'] },
@@ -249,49 +250,55 @@ export const CreateDevTaskModal = ({
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Development Type
               </label>
-              <select
+              <SelectDropdown
                 value={taskType}
-                onChange={(e) => setTaskType(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                {TECH_TYPES.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setTaskType(val || 'website_development')}
+                options={TECH_TYPES.map((t) => ({ value: t.id, label: t.label }))}
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Initial Pipeline Stage
               </label>
-              <select
+              <SelectDropdown
                 value={stage}
-                onChange={(e) => setStage(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="backlog">Backlog</option>
-                <option value="analysis">Analysis</option>
-                <option value="ready_for_dev">Ready for Dev</option>
-                <option value="in_development">In Development</option>
-              </select>
+                onChange={(val) => setStage(val || 'backlog')}
+                options={[
+                  { value: 'backlog', label: 'Backlog' },
+                  { value: 'analysis', label: 'Analysis' },
+                  { value: 'ready_for_dev', label: 'Ready for Dev' },
+                  { value: 'in_development', label: 'In Development' },
+                ]}
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Priority
               </label>
-              <select
+              <SelectDropdown
                 value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="low">Low Priority</option>
-                <option value="medium">Medium Priority</option>
-                <option value="high">High Priority</option>
-                <option value="urgent">Urgent / Blocker</option>
-              </select>
+                onChange={(val) => setPriority(val || 'medium')}
+                options={[
+                  { value: 'low', label: 'Low Priority' },
+                  { value: 'medium', label: 'Medium Priority' },
+                  { value: 'high', label: 'High Priority' },
+                  { value: 'urgent', label: 'Urgent / Blocker' },
+                ]}
+                allowCustom={false}
+                allowDeselect={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
           </div>
 
@@ -301,36 +308,36 @@ export const CreateDevTaskModal = ({
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Associated Project
               </label>
-              <select
+              <SelectDropdown
                 value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="">No Project (Internal / Tech)</option>
-                {projects.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedProject(val || '')}
+                options={projects.map((p) => ({ value: p._id, label: p.name }))}
+                placeholder="No Project (Internal / Tech)"
+                allOptionLabel="No Project (Internal / Tech)"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Client
               </label>
-              <select
+              <SelectDropdown
                 value={selectedClient}
-                onChange={(e) => setSelectedClient(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="">Internal / Agency Task</option>
-                {clients.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name} {c.company ? `(${c.company})` : ''}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedClient(val || '')}
+                options={clients.map((c) => ({
+                  value: c._id,
+                  label: c.name,
+                  subLabel: c.company || undefined,
+                }))}
+                placeholder="Internal / Agency Task"
+                allOptionLabel="Internal / Agency Task"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
           </div>
 
@@ -340,54 +347,59 @@ export const CreateDevTaskModal = ({
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Lead Developer
               </label>
-              <select
+              <SelectDropdown
                 value={developerId}
-                onChange={(e) => setDeveloperId(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="">Select Developer</option>
-                {users.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setDeveloperId(val || '')}
+                options={users.map((u) => ({
+                  value: u._id,
+                  label: u.name,
+                  subLabel: u.department ? `${u.department} · ${u.role}` : u.role,
+                }))}
+                placeholder="Select Developer"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Code Reviewer
               </label>
-              <select
+              <SelectDropdown
                 value={reviewerId}
-                onChange={(e) => setReviewerId(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="">Select Reviewer (Optional)</option>
-                {users.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setReviewerId(val || '')}
+                options={users.map((u) => ({
+                  value: u._id,
+                  label: u.name,
+                  subLabel: u.department ? `${u.department} · ${u.role}` : u.role,
+                }))}
+                placeholder="Select Reviewer (Optional)"
+                allOptionLabel="Select Reviewer (Optional)"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 QA Tester
               </label>
-              <select
+              <SelectDropdown
                 value={testerId}
-                onChange={(e) => setTesterId(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="">Select QA Tester (Optional)</option>
-                {users.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setTesterId(val || '')}
+                options={users.map((u) => ({
+                  value: u._id,
+                  label: u.name,
+                  subLabel: u.department ? `${u.department} · ${u.role}` : u.role,
+                }))}
+                placeholder="Select QA Tester (Optional)"
+                allOptionLabel="Select QA Tester (Optional)"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
           </div>
 
@@ -397,36 +409,40 @@ export const CreateDevTaskModal = ({
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Sprint
               </label>
-              <select
+              <SelectDropdown
                 value={sprintId}
-                onChange={(e) => setSprintId(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="">No Sprint Assigned</option>
-                {sprints.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name} ({s.status})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSprintId(val || '')}
+                options={sprints.map((s) => ({
+                  value: s._id,
+                  label: s.name,
+                  subLabel: s.status ? `Status: ${s.status}` : undefined,
+                }))}
+                placeholder="No Sprint Assigned"
+                allOptionLabel="No Sprint Assigned"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Release / Deployment
               </label>
-              <select
+              <SelectDropdown
                 value={releaseId}
-                onChange={(e) => setReleaseId(e.target.value)}
-                className="app-select h-11 px-4 text-sm font-normal"
-              >
-                <option value="">No Release Assigned</option>
-                {releases.map((r) => (
-                  <option key={r._id} value={r._id}>
-                    {r.version} - {r.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setReleaseId(val || '')}
+                options={releases.map((r) => ({
+                  value: r._id,
+                  label: `${r.version} - ${r.name}`,
+                  subLabel: r.status ? `Status: ${r.status}` : undefined,
+                }))}
+                placeholder="No Release Assigned"
+                allOptionLabel="No Release Assigned"
+                allowCustom={false}
+                className="w-full"
+                buttonClassName="h-11 bg-secondary/75 text-sm"
+              />
             </div>
 
             <div>

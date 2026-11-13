@@ -23,6 +23,7 @@ import {
   Save,
 } from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
+import { SelectDropdown } from '../ui/SelectDropdown';
 
 const TYPE_CONFIG = {
   reel: {
@@ -658,16 +659,21 @@ export const TrackerDayDeliverablesDrawer = ({
                   <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Initial Status
                   </label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    className="app-select h-11 bg-background px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-                  >
-                    <option value="todo">TODO</option>
-                    <option value="pending">PENDING</option>
-                    <option value="done">DONE</option>
-                    <option value="skip">SKIP</option>
-                  </select>
+                  <SelectDropdown
+                    value={newStatus || 'todo'}
+                    onChange={(val) => setNewStatus(val || 'todo')}
+                    options={[
+                      { value: 'todo', label: 'TODO' },
+                      { value: 'pending', label: 'PENDING' },
+                      { value: 'done', label: 'DONE' },
+                      { value: 'skip', label: 'SKIP' },
+                    ]}
+                    placeholder="Initial Status"
+                    allowCustom={false}
+                    allowDeselect={false}
+                    className="w-full"
+                    buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                  />
                 </div>
 
                 <div>
@@ -853,16 +859,21 @@ export const TrackerDayDeliverablesDrawer = ({
                           <label className="block text-sm font-semibold text-foreground mb-1.5">
                             Status
                           </label>
-                          <select
+                          <SelectDropdown
                             value={editDraft.status || 'todo'}
-                            onChange={(e) => setEditDraft((prev) => ({ ...prev, status: e.target.value }))}
-                            className="app-select h-11 px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
-                          >
-                            <option value="todo">TODO</option>
-                            <option value="pending">PENDING</option>
-                            <option value="done">DONE</option>
-                            <option value="skip">SKIP</option>
-                          </select>
+                            onChange={(val) => setEditDraft((prev) => ({ ...prev, status: val || 'todo' }))}
+                            options={[
+                              { value: 'todo', label: 'TODO' },
+                              { value: 'pending', label: 'PENDING' },
+                              { value: 'done', label: 'DONE' },
+                              { value: 'skip', label: 'SKIP' },
+                            ]}
+                            placeholder="Status"
+                            allowCustom={false}
+                            allowDeselect={false}
+                            className="w-full"
+                            buttonClassName="h-11 bg-background text-sm rounded-xl border border-border/50"
+                          />
                         </div>
 
                         <div>
