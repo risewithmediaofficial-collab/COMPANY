@@ -216,32 +216,43 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
             </div>
           </div>
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlySeries} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground) / 0.06)" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <YAxis
-                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                />
-                <Tooltip
-                  formatter={(val) => [formatINR(val), '']}
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: 'none',
-                    color: 'hsl(var(--foreground))',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                  }}
-                />
-                <Bar dataKey="revenue" fill="#12B7D4" radius={[4, 4, 0, 0]} name="Service Revenue" />
-                <Bar dataKey="expenses" fill="#64748b" radius={[4, 4, 0, 0]} name="Operating Costs" />
-              </BarChart>
-            </ResponsiveContainer>
+            {monthlySeries.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlySeries} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground) / 0.06)" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(val) => {
+                      if (val === 0) return '₹0';
+                      if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
+                      if (val >= 1000) return `₹${(val / 1000).toFixed(0)}k`;
+                      return `₹${val}`;
+                    }}
+                  />
+                  <Tooltip
+                    formatter={(val) => [formatINR(val), '']}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: 'none',
+                      color: 'hsl(var(--foreground))',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                    }}
+                  />
+                  <Bar dataKey="revenue" fill="#12B7D4" radius={[4, 4, 0, 0]} name="Service Revenue" />
+                  <Bar dataKey="expenses" fill="#64748b" radius={[4, 4, 0, 0]} name="Operating Costs" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                No monthly revenue and expense records found
+              </div>
+            )}
           </div>
         </div>
 
@@ -251,36 +262,42 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
             <h3 className="text-sm font-bold text-foreground">Expense Category Breakdown</h3>
           </div>
           <div className="h-44 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categoryBreakdown}
-                  dataKey="amount"
-                  nameKey="category"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={75}
-                  paddingAngle={3}
-                >
-                  {categoryBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(val) => [formatINR(val), 'Amount']}
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    border: 'none',
-                    color: 'hsl(var(--foreground))',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {categoryBreakdown.length > 0 && categoryBreakdown.some(c => c.amount > 0) ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categoryBreakdown}
+                    dataKey="amount"
+                    nameKey="category"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={3}
+                  >
+                    {categoryBreakdown.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(val) => [formatINR(val), 'Amount']}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: 'none',
+                      color: 'hsl(var(--foreground))',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                No expense category data for this period
+              </div>
+            )}
           </div>
           <div className="mt-3 space-y-1.5 max-h-32 overflow-y-auto text-xs">
             {categoryBreakdown.slice(0, 5).map((cat, i) => (

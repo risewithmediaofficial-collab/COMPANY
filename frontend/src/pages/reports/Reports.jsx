@@ -120,8 +120,10 @@ const Reports = () => {
   const formatCurrency = (value) => formatINR(value);
   const formatCompactCurrency = (value) => {
     const num = Number(value || 0);
+    if (num === 0) return '₹0';
+    if (num >= 100000) return `₹${(num / 100000).toFixed(1)}L`;
     if (num >= 1000) return `₹${(num / 1000).toFixed(0)}k`;
-    return formatINR(num);
+    return `₹${num}`;
   };
 
   const kpiCards = [
@@ -488,34 +490,40 @@ const Reports = () => {
                 <TrendingUp size={18} className="text-foreground shrink-0" />
               </div>
               <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenue}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground) / 0.06)" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={formatCompactCurrency} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: 'none',
-                        borderRadius: '12px',
-                        color: 'hsl(var(--foreground))',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                      }}
-                      formatter={v => [formatCurrency(v), 'Revenue']}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#12B7D4"
-                      strokeWidth={2.5}
-                      fillOpacity={0.14}
-                      fill="#12B7D4"
-                      dot={{ fill: '#12B7D4', strokeWidth: 0, r: 4 }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {revenue.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={revenue}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground) / 0.06)" />
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={formatCompactCurrency} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: 'none',
+                          borderRadius: '12px',
+                          color: 'hsl(var(--foreground))',
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                        }}
+                        formatter={v => [formatCurrency(v), 'Revenue']}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#12B7D4"
+                        strokeWidth={2.5}
+                        fillOpacity={0.14}
+                        fill="#12B7D4"
+                        dot={{ fill: '#12B7D4', strokeWidth: 0, r: 4 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                    No revenue data available for the selected period
+                  </div>
+                )}
               </div>
             </div>
 
@@ -528,26 +536,32 @@ const Reports = () => {
                 <CheckCircle2 size={18} className="text-foreground shrink-0" />
               </div>
               <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={taskBreakdown} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={4} dataKey="count" nameKey="status">
-                      {taskBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: 'none',
-                        borderRadius: '12px',
-                        color: 'hsl(var(--foreground))',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                {taskBreakdown.length > 0 && taskBreakdown.some(t => t.count > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={taskBreakdown} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={4} dataKey="count" nameKey="status">
+                        {taskBreakdown.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: 'none',
+                          borderRadius: '12px',
+                          color: 'hsl(var(--foreground))',
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                    No task status data available
+                  </div>
+                )}
               </div>
               <div className="mt-3 space-y-2">
                 {taskBreakdown.slice(0, 4).map((item, i) => (
@@ -572,29 +586,35 @@ const Reports = () => {
                 <Target size={18} className="text-foreground shrink-0" />
               </div>
               <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={leadFunnel} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--foreground) / 0.06)" />
-                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis type="category" dataKey="stage" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={80} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: 'none',
-                        borderRadius: '12px',
-                        color: 'hsl(var(--foreground))',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                      }}
-                    />
-                    <Bar dataKey="count" fill="#12B7D4" radius={[0, 8, 8, 0]}>
-                      {leadFunnel.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                {leadFunnel.length > 0 && leadFunnel.some(l => l.count > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={leadFunnel} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--foreground) / 0.06)" />
+                      <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                      <YAxis type="category" dataKey="stage" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={80} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: 'none',
+                          borderRadius: '12px',
+                          color: 'hsl(var(--foreground))',
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                        }}
+                      />
+                      <Bar dataKey="count" fill="#12B7D4" radius={[0, 8, 8, 0]}>
+                        {leadFunnel.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                    No lead funnel data available
+                  </div>
+                )}
               </div>
             </div>
 

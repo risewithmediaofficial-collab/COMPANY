@@ -478,37 +478,48 @@ const Dashboard = () => {
                 </div>
 
                 <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="rwmRevenueFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#12B7D4" stopOpacity={0.28} />
-                          <stop offset="95%" stopColor="#12B7D4" stopOpacity={0.0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--foreground) / 0.06)" vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                      <YAxis
-                        tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(v) => `₹${v >= 100000 ? (v / 100000).toFixed(1) + 'L' : (v / 1000).toFixed(0) + 'k'}`}
-                      />
-                      <RechartsTooltip
-                        formatter={(value) => [showFinance ? formatINR(value) : '*****', 'Revenue']}
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--popover))',
-                          border: 'none',
-                          color: 'hsl(var(--foreground))',
-                          borderRadius: '12px',
-                          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                        }}
-                      />
-                      <Area type="monotone" dataKey="revenue" stroke="#12B7D4" strokeWidth={2.5} fill="url(#rwmRevenueFill)" dot={{ fill: '#12B7D4', strokeWidth: 0, r: 3 }} activeDot={{ r: 5, fill: '#12B7D4' }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {revenueTrend.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={revenueTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="rwmRevenueFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#12B7D4" stopOpacity={0.28} />
+                            <stop offset="95%" stopColor="#12B7D4" stopOpacity={0.0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--foreground) / 0.06)" vertical={false} />
+                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                        <YAxis
+                          tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(v) => {
+                            if (v === 0) return '₹0';
+                            if (v >= 100000) return `₹${(v / 100000).toFixed(1)}L`;
+                            if (v >= 1000) return `₹${(v / 1000).toFixed(0)}k`;
+                            return `₹${v}`;
+                          }}
+                        />
+                        <RechartsTooltip
+                          formatter={(value) => [showFinance ? formatINR(value) : '*****', 'Revenue']}
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--popover))',
+                            border: 'none',
+                            color: 'hsl(var(--foreground))',
+                            borderRadius: '12px',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                          }}
+                        />
+                        <Area type="monotone" dataKey="revenue" stroke="#12B7D4" strokeWidth={2.5} fill="url(#rwmRevenueFill)" dot={{ fill: '#12B7D4', strokeWidth: 0, r: 3 }} activeDot={{ r: 5, fill: '#12B7D4' }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                      No revenue data recorded yet for this period
+                    </div>
+                  )}
                 </div>
               </div>
 

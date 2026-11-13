@@ -240,34 +240,47 @@ export default function ForecastReportsSection() {
               <h3 className="text-sm font-bold text-foreground">Projected Cash Balance Trajectory</h3>
             </div>
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={forecastMonths} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground) / 0.06)" />
-                  <XAxis dataKey="monthLabel" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(val) => Math.abs(val) >= 1000 ? `₹${(val / 1000).toFixed(0)}k` : `₹${val}`}
-                  />
-                  <Tooltip
-                    formatter={(val) => [formatINR(val), '']}
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: 'none',
-                      color: 'hsl(var(--foreground))',
-                      borderRadius: '12px',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                  <Line type="monotone" dataKey="closingCash" stroke="#12B7D4" strokeWidth={3} name="Closing Cash" dot={{ r: 4, fill: '#12B7D4' }} />
-                  <Line type="monotone" dataKey="projectedInflow" stroke="#0891b2" strokeWidth={2} name="Projected Collections" strokeDasharray="4 4" />
-                  <Line type="monotone" dataKey="projectedOutflow" stroke="#94a3b8" strokeWidth={2} name="Projected Disbursements" strokeDasharray="2 3" />
-                </LineChart>
-              </ResponsiveContainer>
+              {forecastMonths.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={forecastMonths} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground) / 0.06)" />
+                    <XAxis dataKey="monthLabel" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(val) => {
+                        if (val === 0) return '₹0';
+                        const abs = Math.abs(val);
+                        const prefix = val < 0 ? '-₹' : '₹';
+                        if (abs >= 100000) return `${prefix}${(abs / 100000).toFixed(1)}L`;
+                        if (abs >= 1000) return `${prefix}${(abs / 1000).toFixed(0)}k`;
+                        return `${prefix}${abs}`;
+                      }}
+                    />
+                    <Tooltip
+                      formatter={(val) => [formatINR(val), '']}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: 'none',
+                        color: 'hsl(var(--foreground))',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                    <Line type="monotone" dataKey="closingCash" stroke="#12B7D4" strokeWidth={3} name="Closing Cash" dot={{ r: 4, fill: '#12B7D4' }} />
+                    <Line type="monotone" dataKey="projectedInflow" stroke="#0891b2" strokeWidth={2} name="Projected Collections" strokeDasharray="4 4" />
+                    <Line type="monotone" dataKey="projectedOutflow" stroke="#94a3b8" strokeWidth={2} name="Projected Disbursements" strokeDasharray="2 3" />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+                  No cash forecast projection data available
+                </div>
+              )}
             </div>
           </div>
 

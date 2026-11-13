@@ -21,16 +21,6 @@ import {
   Youtube,
   Video,
 } from '@/components/ui/muiIcons';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip,
-  CartesianGrid,
-} from 'recharts';
-
 import { Button } from '../../components/ui/button';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
