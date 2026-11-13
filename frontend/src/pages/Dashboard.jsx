@@ -142,7 +142,7 @@ const Dashboard = () => {
             ? '/referrals'
             : '/reports/employee';
 
-      const params = { period: (startDate || endDate) ? 'custom' : (period || 'allTime') };
+      const params = { period: period || 'this_month' };
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 

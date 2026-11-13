@@ -20,13 +20,25 @@ export const normalizeDatePeriod = (rawPeriod) => {
   return rawPeriod;
 };
 
+export const getThisMonthRange = () => {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return {
+    period: 'this_month',
+    startDate: toLocalYMD(firstDay),
+    endDate: toLocalYMD(lastDay),
+  };
+};
+
 export const useDateFilter = () => {
   const context = useContext(DateFilterContext);
   if (!context) {
+    const initialRange = getThisMonthRange();
     return {
-      startDate: '',
-      endDate: '',
-      period: 'allTime',
+      startDate: initialRange.startDate,
+      endDate: initialRange.endDate,
+      period: initialRange.period,
       setStartDate: () => {},
       setEndDate: () => {},
       setFromDate: () => {},
@@ -44,10 +56,11 @@ export const useDateFilter = () => {
 };
 
 export const DateFilterProvider = ({ children }) => {
-  // 'allTime' | 'this_month' | 'previous_month' | 'yearly' | 'custom'
-  const [period, setPeriodState] = useState('allTime');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  // Initial default is strictly 'this_month' with current month date range
+  const initial = useMemo(() => getThisMonthRange(), []);
+  const [period, setPeriodState] = useState(initial.period);
+  const [startDate, setStartDate] = useState(initial.startDate);
+  const [endDate, setEndDate] = useState(initial.endDate);
 
   const setPeriod = useCallback((rawPeriod) => {
     const normalized = normalizeDatePeriod(rawPeriod);
@@ -112,14 +125,11 @@ export const DateFilterProvider = ({ children }) => {
 
   const openCustomRange = useCallback(() => {
     if (period === 'custom') {
-      setPeriodState('allTime');
-      setStartDate('');
-      setEndDate('');
+      const range = getThisMonthRange();
+      setPeriodState('this_month');
+      setStartDate(range.startDate);
+      setEndDate(range.endDate);
       return;
-    }
-    if (period !== 'allTime') {
-      setStartDate('');
-      setEndDate('');
     }
     setPeriodState('custom');
   }, [period]);
@@ -141,9 +151,10 @@ export const DateFilterProvider = ({ children }) => {
   }, []);
 
   const resetDateFilter = useCallback(() => {
-    setStartDate('');
-    setEndDate('');
-    setPeriodState('allTime');
+    const range = getThisMonthRange();
+    setPeriodState('this_month');
+    setStartDate(range.startDate);
+    setEndDate(range.endDate);
   }, []);
 
   const isDateInRange = useCallback(
@@ -218,7 +229,7 @@ export const DateFilterProvider = ({ children }) => {
       resetDateFilter,
       isDateInRange,
       filterByDateRange,
-      isFiltered: Boolean(startDate || endDate || (period && period !== 'allTime')),
+      isFiltered: Boolean(period && period !== 'this_month'),
     }),
     [
       startDate,
