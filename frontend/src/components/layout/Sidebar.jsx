@@ -30,13 +30,8 @@ import {
   Search,
   UserCheck,
   X,
-  Kanban,
-  GitPullRequest,
-  Bug,
-  Zap,
   FolderKanban,
   Megaphone,
-  Rocket,
   ShieldCheck,
   Trash2,
 } from '@/components/ui/muiIcons';
@@ -179,12 +174,6 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           title: 'DEVELOPMENT',
           items: [
             { name: 'Dev Dashboard', icon: LayoutDashboard, path: '/development' },
-            { name: 'Dev Board', icon: Kanban, path: '/development/board' },
-            { name: 'My Dev Tasks', icon: CheckSquare, path: '/development/my-tasks' },
-            { name: 'Sprints', icon: Zap, path: '/development/sprints' },
-            { name: 'Code Reviews', icon: GitPullRequest, path: '/development/reviews' },
-            { name: 'QA & Testing', icon: Bug, path: '/development/qa' },
-            { name: 'Releases', icon: Rocket, path: '/development/releases' },
           ],
         },
         {
@@ -250,12 +239,6 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         title: 'DEVELOPMENT',
         items: [
           { name: 'Dev Dashboard', icon: LayoutDashboard, path: '/development' },
-          { name: 'Dev Board', icon: Kanban, path: '/development/board' },
-          { name: 'My Dev Tasks', icon: CheckSquare, path: '/development/my-tasks' },
-          { name: 'Sprints', icon: Zap, path: '/development/sprints' },
-          { name: 'Code Reviews', icon: GitPullRequest, path: '/development/reviews' },
-          { name: 'QA & Testing', icon: Bug, path: '/development/qa' },
-          { name: 'Releases', icon: Rocket, path: '/development/releases' },
         ],
       },
       {
@@ -303,13 +286,19 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
 
   const navSections = useMemo(() => getNavSections(), [userRole, userPermissions]);
 
+  const isItemActive = (itemPath) => {
+    if (pathname === itemPath) return true;
+    if (itemPath !== '/' && pathname.startsWith(itemPath + '/')) return true;
+    return false;
+  };
+
   // Auto-expand section containing the currently active route and close drawer on mobile navigation
   useEffect(() => {
     if (isMobile && sidebarOpen) {
       dispatch(setSidebarOpen(false));
     }
     const activeSection = navSections.find((s) =>
-      s.items.some((item) => item.path === pathname)
+      s.items.some((item) => isItemActive(item.path))
     );
     if (activeSection) {
       setOpenSections((prev) => {
@@ -403,7 +392,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                 <span>Favorites</span>
               </div>
               {pinnedItems.map((item) => {
-                const isActive = pathname === item.path;
+                const isActive = isItemActive(item.path);
                 return (
                   <div
                     key={`pinned-${item.path}`}
@@ -462,7 +451,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                 {/* Section Items */}
                 <div className={`${!isOpen ? 'hidden' : 'space-y-0.5'}`}>
                   {section.items.map((item) => {
-                    const isActive = pathname === item.path;
+                    const isActive = isItemActive(item.path);
                     const badgeKey = badgePaths[item.name];
                     const count = badgeKey ? badgeCounts?.[badgeKey] || 0 : 0;
                     const isPinned = pinnedPaths.includes(item.path);
