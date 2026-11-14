@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams, Link, Navigate } from 'react-router-dom';
+import { useParams, useSearchParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
@@ -8,7 +8,7 @@ import {
   Building2, Phone, Mail, ListChecks, ArrowRight,
   Briefcase, CheckCircle2, Clock, AlertCircle, Users,
   FileText, TrendingUp, Edit2, FolderOpen, Calendar,
-  LockKeyhole, KeyRound, Eye, EyeOff, Copy, Check, ExternalLink, Plus, ChevronDown, ChevronUp, AtSign, DollarSign, X
+  LockKeyhole, KeyRound, Eye, EyeOff, Copy, Check, ExternalLink, Plus, ChevronDown, ChevronUp, AtSign, DollarSign, X, Trash2
 } from '@/components/ui/muiIcons';
 import {
   Dialog,
@@ -17,6 +17,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { AddProposalModal } from '../../components/modals/AddProposalModal';
@@ -29,8 +38,9 @@ import {
 } from '../../components/ui/NotionDetailTemplate';
 import { formatINR } from '../../utils/currency';
 import { getProjectCategoryMeta } from '../../utils/projectCategories';
-import { useCredential, useCreateCredential } from '../../hooks/useClientCredentials';
+import { useCredential, useCreateCredential, useDeleteCredential } from '../../hooks/useClientCredentials';
 import { useClientProposals } from '../../hooks/useProposals';
+import { useDeleteClient } from '../../hooks/useClients';
 
 const PLATFORM_MAP = {
   instagram: { label: 'Instagram', code: 'IG' },
@@ -76,6 +86,12 @@ const ClientDetails = () => {
 
   const queryClient = useQueryClient();
   const createCredentialMutation = useCreateCredential();
+  const deleteCredentialMutation = useDeleteCredential();
+  const deleteClientMutation = useDeleteClient();
+  const navigate = useNavigate();
+
+  const [showDeleteClientDialog, setShowDeleteClientDialog] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || (isClientUser ? 'vault' : 'overview'));
@@ -90,6 +106,57 @@ const ClientDetails = () => {
   const [activePasswordId, setActivePasswordId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [expandedCards, setExpandedCards] = useState({});
+
+  const handleDeleteClient = async () => {
+    if (!id) return;
+    try {
+      await deleteClientMutation.mutateAsync(id);
+      setShowDeleteClientDialog(false);
+      navigate('/clients');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete client');
+    }
+  };
+
+  const handleExecuteDelete = async () => {
+    if (!deleteConfirm?.id || !deleteConfirm?.type) return;
+    try {
+      const { type, id: itemId } = deleteConfirm;
+      if (type === 'project') {
+        await api.delete(`/projects/${itemId}`);
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        toast.success('Project deleted successfully');
+      } else if (type === 'invoice') {
+        await api.delete(`/finance/invoices/${itemId}`);
+        toast.success('Invoice deleted successfully');
+      } else if (type === 'proposal') {
+        await api.delete(`/proposals/${itemId}`);
+        queryClient.invalidateQueries({ queryKey: ['client-proposals', id] });
+        toast.success('Proposal deleted successfully');
+      } else if (type === 'paymentNote') {
+        if (deleteConfirm.isReceipt) {
+          await api.delete(`/finance/receipts/${itemId}`);
+        } else {
+          await api.delete(`/finance/records/${itemId}`);
+        }
+        toast.success('Payment record removed');
+      } else if (type === 'credential') {
+        await deleteCredentialMutation.mutateAsync(itemId);
+        queryClient.invalidateQueries({ queryKey: ['client-credentials', id] });
+        toast.success('Credential deleted');
+      } else if (type === 'call') {
+        await api.delete(`/finance/call-history/${itemId}`);
+        toast.success('Call log deleted');
+      } else if (type === 'referral') {
+        await api.delete(`/referrals/${itemId}`);
+        toast.success('Referral deleted');
+      }
+      setDeleteConfirm(null);
+      refetch();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete item');
+    }
+  };
 
   useEffect(() => {
     if (tabParam && tabParam !== activeTab) {
@@ -460,6 +527,16 @@ const ClientDetails = () => {
                 <Edit2 size={15} className="shrink-0" /> Edit Client
               </button>
             )}
+            {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteClientDialog(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 px-3.5 py-2 text-xs font-bold transition-all cursor-pointer"
+                title="Delete Client"
+              >
+                <Trash2 size={15} className="shrink-0" /> Delete Client
+              </button>
+            )}
           </>
         )}
       />
@@ -621,17 +698,38 @@ const ClientDetails = () => {
                           <CatIcon size={12} className="shrink-0" />
                           <span>{catMeta.shortLabel || catMeta.label}</span>
                         </span>
-                        <span
-                          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider ${
-                            isActiveStatus
-                              ? 'bg-primary text-primary-foreground'
-                              : isDoneStatus
-                              ? 'bg-secondary text-foreground'
-                              : 'bg-muted text-muted-foreground'
-                          }`}
-                        >
-                          {projStatus}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider ${
+                              isActiveStatus
+                                ? 'bg-primary text-primary-foreground'
+                                : isDoneStatus
+                                ? 'bg-secondary text-foreground'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            {projStatus}
+                          </span>
+                          {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDeleteConfirm({
+                                  type: 'project',
+                                  id: proj._id,
+                                  title: `Delete Project "${proj.name}"?`,
+                                  message: 'Are you sure you want to delete this project? All associated tasks will be permanently removed.',
+                                });
+                              }}
+                              className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                              title="Delete Project"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-start justify-between gap-2">
@@ -787,13 +885,30 @@ const ClientDetails = () => {
                     <span className="text-muted-foreground">
                       {prop.createdAt ? new Date(prop.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                     </span>
-                    <Link
-                      to={`/proposals/${prop._id}`}
-                      className="font-bold text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      <span>View Proposal</span>
-                      <ArrowRight size={12} />
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {user?.role !== 'client' && (
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirm({
+                            type: 'proposal',
+                            id: prop._id,
+                            title: `Delete Proposal "${prop.title}"?`,
+                            message: 'Are you sure you want to delete this proposal? This action cannot be undone.',
+                          })}
+                          className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                          title="Delete Proposal"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                      <Link
+                        to={`/proposals/${prop._id}`}
+                        className="font-bold text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>View Proposal</span>
+                        <ArrowRight size={12} />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -874,18 +989,35 @@ const ClientDetails = () => {
                         <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-secondary uppercase tracking-wider text-muted-foreground ">
                           {item.credentialType?.replace(/_/g, ' ') || 'Credential'}
                         </span>
-                        {item.url && (
-                          <a
-                            href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground hover:underline"
-                            title="Open login URL"
-                          >
-                            <span>Login Portal</span>
-                            <ExternalLink size={11} className="shrink-0" />
-                          </a>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {item.url && (
+                            <a
+                              href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground hover:underline"
+                              title="Open login URL"
+                            >
+                              <span>Login Portal</span>
+                              <ExternalLink size={11} className="shrink-0" />
+                            </a>
+                          )}
+                          {user?.role !== 'client' && (
+                            <button
+                              type="button"
+                              onClick={() => setDeleteConfirm({
+                                type: 'credential',
+                                id: item._id,
+                                title: `Delete Credential "${item.credentialName}"?`,
+                                message: 'Are you sure you want to delete this vault credential? This action cannot be undone.',
+                              })}
+                              className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                              title="Delete Credential"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Card Title */}
@@ -1262,6 +1394,9 @@ const ClientDetails = () => {
                   <th className="px-6 py-4 text-right">Amount</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Due Date</th>
+                  {user?.role !== 'client' && (
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/[0.05]">
@@ -1277,10 +1412,27 @@ const ClientDetails = () => {
                       }`}>{inv.status}</span>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground tabular-nums">{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}</td>
+                    {user?.role !== 'client' && (
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirm({
+                            type: 'invoice',
+                            id: inv._id,
+                            title: `Delete Invoice ${inv.invoiceNumber}?`,
+                            message: 'Are you sure you want to delete this invoice? This will remove the invoice record from the system.',
+                          })}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer inline-flex items-center justify-center"
+                          title="Delete Invoice"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={user?.role !== 'client' ? 5 : 4} className="px-6 py-12 text-center text-muted-foreground">
                       <div className="space-y-3">
                         <p>No invoices yet for this client.</p>
                         {user?.role !== 'client' && (
@@ -1391,9 +1543,27 @@ const ClientDetails = () => {
                       <p className="text-xs text-muted-foreground font-mono mt-1">Receipt #: {note.receiptNumber}</p>
                     )}
                   </div>
-                  <div className="text-right tabular-nums shrink-0">
-                    <p className="font-bold text-foreground">₹{Number(note.amountPaid || note.amount || 0).toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">{note.paymentDate || note.receivedDate ? new Date(note.paymentDate || note.receivedDate).toLocaleDateString() : '—'}</p>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right tabular-nums">
+                      <p className="font-bold text-foreground">₹{Number(note.amountPaid || note.amount || 0).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{note.paymentDate || note.receivedDate ? new Date(note.paymentDate || note.receivedDate).toLocaleDateString() : '—'}</p>
+                    </div>
+                    {user?.role !== 'client' && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirm({
+                          type: 'paymentNote',
+                          id: note._id,
+                          isReceipt: Boolean(note.receiptNumber || note.paymentMode),
+                          title: 'Delete Payment Record?',
+                          message: 'Are you sure you want to delete this payment record?',
+                        })}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        title="Delete Payment Record"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1453,7 +1623,24 @@ const ClientDetails = () => {
                     <p className="text-sm text-muted-foreground mt-1">{call.callSummary || 'No summary added'}</p>
                     <p className="text-xs text-muted-foreground mt-2">Spoken with {call.spokenWith || 'N/A'} • {call.nextFollowUpDate ? `Next follow-up ${new Date(call.nextFollowUpDate).toLocaleDateString()}` : 'No follow-up set'}</p>
                   </div>
-                  <p className="text-xs font-semibold text-muted-foreground">{call.callDate ? new Date(call.callDate).toLocaleDateString() : '—'}</p>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <p className="text-xs font-semibold text-muted-foreground">{call.callDate ? new Date(call.callDate).toLocaleDateString() : '—'}</p>
+                    {user?.role !== 'client' && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirm({
+                          type: 'call',
+                          id: call._id,
+                          title: 'Delete Call Log?',
+                          message: 'Are you sure you want to delete this call history log?',
+                        })}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        title="Delete Call Log"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )) : (
@@ -1512,9 +1699,26 @@ const ClientDetails = () => {
                     <p className="text-sm text-muted-foreground mt-1">{referral.referralPersonName || 'Unknown person'} • {referral.campaignName || 'No campaign'}</p>
                     <p className="text-xs text-muted-foreground mt-2">{referral.notes || 'No notes added.'}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold uppercase tracking-wider text-primary">{referral.conversionStatus || referral.status}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{referral.leadQuality || '—'}</p>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right">
+                      <p className="text-xs font-bold uppercase tracking-wider text-primary">{referral.conversionStatus || referral.status}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{referral.leadQuality || '—'}</p>
+                    </div>
+                    {user?.role !== 'client' && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirm({
+                          type: 'referral',
+                          id: referral._id,
+                          title: 'Delete Referral?',
+                          message: 'Are you sure you want to delete this referral record?',
+                        })}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        title="Delete Referral"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1635,6 +1839,48 @@ const ClientDetails = () => {
           />
         </>
       )}
+
+      {/* Delete Client Dialog */}
+      <AlertDialog open={showDeleteClientDialog} onOpenChange={setShowDeleteClientDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Client?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong className="text-foreground">{client?.company || client?.name}</strong>? All associated records, vaults, and history will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3 mt-4">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteClient}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl font-bold cursor-pointer"
+            >
+              Delete Client
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Item Confirmation Dialog */}
+      <AlertDialog open={Boolean(deleteConfirm)} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{deleteConfirm?.title || 'Delete Item?'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm?.message || 'Are you sure you want to permanently delete this item? This action cannot be undone.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3 mt-4">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExecuteDelete}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl font-bold cursor-pointer"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -24,7 +24,7 @@ router.get('/:id', authorize('superAdmin', 'admin', 'manager', 'employee', 'clie
 router.get('/:id/kanban', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), getProjectKanban);
 router.post('/', authorize('superAdmin', 'admin', 'manager'), createProject);
 router.put('/:id', authorize('superAdmin', 'admin', 'manager'), updateProject);
-router.delete('/:id', authorize('superAdmin', 'admin'), deleteProject);
+router.delete('/:id', authorize('superAdmin', 'admin', 'manager'), deleteProject);
 
 // Project Monthly Deliverables & Targets
 router.get('/:projectId/monthly-deliverables', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), getProjectMonthlyDeliverables);

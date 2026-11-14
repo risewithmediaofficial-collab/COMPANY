@@ -38,6 +38,6 @@ router.post('/', authorize('superAdmin', 'admin', 'organizationOwner', 'manager'
 router.put('/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), updateClient);
 router.post('/:id/activate-portal', authorize('superAdmin', 'admin', 'organizationOwner', 'manager'), activatePortal);
 router.patch('/:id/onboarding', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), updateOnboardingStep);
-router.delete('/:id', authorize('superAdmin', 'admin', 'organizationOwner'), deleteClient);
+router.delete('/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'manager'), deleteClient);
 
 export default router;

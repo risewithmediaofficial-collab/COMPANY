@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useMemo, useState, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Settings,
@@ -22,11 +22,12 @@ import {
   IndianRupee,
   FileText,
   Edit3,
+  Trash2,
   X,
 } from '@/components/ui/muiIcons';
 import { formatINR } from '../../utils/currency';
-import { useUpdateProject } from '../../hooks/useProjects';
-import { useUpdateTaskStatus } from '../../hooks/useTasks';
+import { useUpdateProject, useDeleteProject } from '../../hooks/useProjects';
+import { useUpdateTaskStatus, useDeleteTask } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../api';
@@ -53,6 +54,15 @@ import {
   DialogDescription,
   DialogClose,
 } from '../../components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 const statuses = ['todo', 'in_progress', 'review', 'approved', 'rejected', 'done'];
 
@@ -105,6 +115,34 @@ const ProjectDetails = () => {
 
   const updateProject = useUpdateProject();
   const updateTaskStatus = useUpdateTaskStatus();
+  const deleteProjectMutation = useDeleteProject();
+  const deleteTaskMutation = useDeleteTask();
+  const navigate = useNavigate();
+
+  const [showDeleteProjectDialog, setShowDeleteProjectDialog] = useState(false);
+  const [deleteTaskId, setDeleteTaskId] = useState(null);
+
+  const handleDeleteProject = async () => {
+    if (!project?._id) return;
+    try {
+      await deleteProjectMutation.mutateAsync(project._id);
+      setShowDeleteProjectDialog(false);
+      navigate('/projects');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete project');
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    if (!deleteTaskId) return;
+    try {
+      await deleteTaskMutation.mutateAsync(deleteTaskId);
+      setDeleteTaskId(null);
+      fetchProjectData(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete task');
+    }
+  };
 
   // ─── Data Fetching ───────────────────────────────────────────────────────────
   const fetchProjectData = async (showLoading = true) => {
@@ -615,13 +653,28 @@ const ProjectDetails = () => {
                               </span>
                             ))}
                           </div>
-                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 ${
-                            task.priority === 'Urgent' || task.priority === 'High'
-                              ? 'bg-foreground text-background '
-                              : 'bg-secondary text-muted-foreground'
-                          }`}>
-                            {task.priority || 'Med'}
-                          </span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 ${
+                              task.priority === 'Urgent' || task.priority === 'High'
+                                ? 'bg-foreground text-background '
+                                : 'bg-secondary text-muted-foreground'
+                            }`}>
+                              {task.priority || 'Med'}
+                            </span>
+                            {user?.role !== 'client' && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTaskId(task._id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all cursor-pointer"
+                                title="Delete Task"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         <h4 className="line-clamp-2 text-sm font-bold leading-tight">{task.title}</h4>
@@ -710,6 +763,7 @@ const ProjectDetails = () => {
                 <th className="px-6 py-4">Created</th>
                 <th className="px-6 py-4">Due Date</th>
                 <th className="px-6 py-4">Assignees</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/[0.05]">
@@ -747,10 +801,22 @@ const ProjectDetails = () => {
                       ? task.assignedTo.map((member) => member.name).join(', ')
                       : 'Unassigned'}
                   </td>
+                  <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                    {user?.role !== 'client' && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTaskId(task._id)}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        title="Delete Task"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan="7" className="px-6 py-12 text-center text-muted-foreground">
                     No tasks have been created yet.
                   </td>
                 </tr>
@@ -840,7 +906,22 @@ const ProjectDetails = () => {
                   <p className="text-xs text-muted-foreground">{member.role}</p>
                 </div>
               </div>
-              <button className="text-xs font-bold text-destructive hover:underline">Remove</button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const updatedTeam = (project.team || []).filter((m) => m._id !== member._id).map((m) => m._id);
+                    await updateProject.mutateAsync({ id: project._id, data: { team: updatedTeam } });
+                    toast.success(`${member.name} removed from project team`);
+                    fetchProjectData(false);
+                  } catch (err) {
+                    toast.error('Failed to remove team member');
+                  }
+                }}
+                className="text-xs font-bold text-destructive hover:underline cursor-pointer"
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>
@@ -1156,14 +1237,24 @@ const ProjectDetails = () => {
               <Share2 size={18} />
             </button>
             {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
-              <button
-                onClick={() => setShowProjectModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-all cursor-pointer"
-                title="Edit Project Details"
-              >
-                <Edit3 size={14} />
-                <span>Edit Project</span>
-              </button>
+              <>
+                <button
+                  onClick={() => setShowProjectModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-all cursor-pointer"
+                  title="Edit Project Details"
+                >
+                  <Edit3 size={14} />
+                  <span>Edit Project</span>
+                </button>
+                <button
+                  onClick={() => setShowDeleteProjectDialog(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive font-bold text-xs hover:bg-destructive/20 transition-all cursor-pointer"
+                  title="Delete Project"
+                >
+                  <Trash2 size={14} />
+                  <span>Delete</span>
+                </button>
+              </>
             )}
             {user?.role !== 'client' && (
               <button
@@ -1248,6 +1339,48 @@ const ProjectDetails = () => {
           }
         }}
       />
+
+      {/* Delete Project Confirmation Dialog */}
+      <AlertDialog open={showDeleteProjectDialog} onOpenChange={setShowDeleteProjectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong className="text-foreground">{project?.name}</strong>? All associated tasks, milestones, and data will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3 mt-4">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProject}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl font-bold"
+            >
+              Delete Project
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Task Confirmation Dialog */}
+      <AlertDialog open={Boolean(deleteTaskId)} onOpenChange={(open) => !open && setDeleteTaskId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete this task? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3 mt-4">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTask}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl font-bold"
+            >
+              Delete Task
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
