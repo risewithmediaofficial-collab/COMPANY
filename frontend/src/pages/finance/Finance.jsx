@@ -172,6 +172,34 @@ export default function Finance() {
     setQuickAddOpen(true);
   };
 
+  const handleAddNewForTab = () => {
+    switch (activeTab) {
+      case 'invoices':
+        openQuickAdd('invoice');
+        break;
+      case 'payments':
+      case 'income':
+        openQuickAdd('receipt');
+        break;
+      case 'expenses':
+      case 'vendors':
+        openQuickAdd('expense');
+        break;
+      case 'subscriptions':
+        openQuickAdd('subscription');
+        break;
+      case 'payroll':
+        openQuickAdd('payroll');
+        break;
+      case 'clients':
+        openQuickAdd('client');
+        break;
+      default:
+        openQuickAdd('invoice');
+        break;
+    }
+  };
+
   const handleLockPortal = () => {
     sessionStorage.removeItem('rwm_finance_auth_token');
     sessionStorage.removeItem('rwm_finance_auth_time');
@@ -227,13 +255,21 @@ export default function Finance() {
               </button>
             )}
 
-            {/* Central Add New Button */}
+            {/* Central Contextual Add New Button */}
             <button
-              onClick={() => openQuickAdd('invoice')}
+              onClick={handleAddNewForTab}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl transition-colors cursor-pointer min-h-[38px] shadow-xs"
             >
               <Plus className="h-4 w-4 shrink-0" />
-              <span>Add New</span>
+              <span>
+                {activeTab === 'invoices' && 'New Invoice'}
+                {(activeTab === 'payments' || activeTab === 'income') && 'Record Payment'}
+                {(activeTab === 'expenses' || activeTab === 'vendors') && 'New Expense'}
+                {activeTab === 'subscriptions' && 'Add Subscription'}
+                {activeTab === 'payroll' && 'Payroll Entry'}
+                {activeTab === 'clients' && 'New Client'}
+                {!['invoices', 'payments', 'income', 'expenses', 'vendors', 'subscriptions', 'payroll', 'clients'].includes(activeTab) && 'Add New'}
+              </span>
             </button>
 
             {/* Lock Portal Button */}

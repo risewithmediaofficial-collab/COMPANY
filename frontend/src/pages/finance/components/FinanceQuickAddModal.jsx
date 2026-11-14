@@ -464,15 +464,51 @@ export default function FinanceQuickAddModal({
     } catch (err) {}
   };
 
-  const actionTabs = [
-    { id: 'invoice', label: 'Income / Invoice', icon: FileText },
-    { id: 'receipt', label: 'Client Payment', icon: Receipt },
-    { id: 'expense', label: 'Expense / Bill', icon: CreditCard },
-    { id: 'client', label: 'New Client', icon: UserPlus },
-    { id: 'payroll', label: 'Payroll Entry', icon: Banknote },
-    { id: 'transfer', label: 'Internal Transfer', icon: ArrowRightLeft },
-    { id: 'subscription', label: 'Subscription', icon: CalendarCheck },
-  ];
+  const actionMeta = {
+    invoice: {
+      title: 'Create New Invoice',
+      subtitle: 'Generate and issue an official client invoice with deliverables, tax, and payment terms',
+      icon: FileText,
+    },
+    receipt: {
+      title: 'Record Client Payment',
+      subtitle: 'Record an advance, partial, or final payment receipt against an invoice',
+      icon: Receipt,
+    },
+    expense: {
+      title: 'Record Expense / Bill',
+      subtitle: 'Log a direct project cost or company operational overhead',
+      icon: CreditCard,
+    },
+    client: {
+      title: 'Add New Client',
+      subtitle: 'Add a new client profile to the agency directory',
+      icon: UserPlus,
+    },
+    payroll: {
+      title: 'Add Payroll Entry',
+      subtitle: 'Record an employee monthly salary, advance, or bonus',
+      icon: Banknote,
+    },
+    founder: {
+      title: 'Record Capital / Founder Entry',
+      subtitle: 'Record founder equity injection or drawing',
+      icon: Banknote,
+    },
+    transfer: {
+      title: 'Internal Account Transfer',
+      subtitle: 'Transfer funds between agency bank, cash, and UPI accounts',
+      icon: ArrowRightLeft,
+    },
+    subscription: {
+      title: 'Add Software Subscription',
+      subtitle: 'Track recurring software tools, hosting, and domains',
+      icon: CalendarCheck,
+    },
+  };
+
+  const currentMeta = actionMeta[activeAction] || actionMeta.invoice;
+  const CurrentIcon = currentMeta.icon || FileText;
 
   return (
     <>
@@ -484,42 +520,19 @@ export default function FinanceQuickAddModal({
         className="bg-card overflow-hidden flex flex-col font-sans"
       >
         {/* ── DRAWER HEADER (PINNED) ───────────────────────────────────── */}
-        <div className="shrink-0 px-4 sm:px-6 pt-4 sm:pt-5 pb-3.5 sm:pb-4 bg-muted/20 pr-14 sm:pr-28 select-none">
+        <div className="shrink-0 px-4 sm:px-6 py-4 bg-muted/20 pr-14 sm:pr-28 border-b border-border/40 select-none">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground font-bold text-base shrink-0">
-              +
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-base shrink-0 shadow-xs">
+              <CurrentIcon size={20} />
             </div>
-            <div>
-              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
-                Add New Financial Transaction
+            <div className="min-w-0">
+              <DialogTitle className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate">
+                {currentMeta.title}
               </DialogTitle>
-              <DialogDescription className="sr-only">
-                Record operational entries with double-entry reconciliation into RiseWithMedia Finance.
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                {currentMeta.subtitle}
               </DialogDescription>
             </div>
-          </div>
-
-          {/* Action Tabs Grid (4 columns on desktop, 2 on mobile) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
-            {actionTabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeAction === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveAction(tab.id)}
-                  className={`flex items-center justify-center gap-2 h-9 px-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground font-bold'
-                      : 'bg-card text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                  <span className="truncate">{tab.label}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
 
