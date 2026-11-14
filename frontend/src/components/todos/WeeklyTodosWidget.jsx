@@ -46,6 +46,7 @@ import { useUsers } from '../../hooks/useUsers';
 import { WeeklyTodoModal } from '../modals/WeeklyTodoModal';
 import { AppTooltip } from '../ui/tooltip';
 import { SelectDropdown } from '../ui/SelectDropdown';
+import { toast } from 'sonner';
 
 const DAYS = [
   'All Days',
@@ -158,7 +159,8 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
       if (selectedDay !== 'All Days' && t.dayOfWeek !== selectedDay) {
         return false;
       }
-      // Status filter
+      // Status filter: In 'all' or 'pending', exclude completed todos so marked items move to 'Done'
+      if (statusFilter === 'all' && t.isCompleted) return false;
       if (statusFilter === 'pending' && t.isCompleted) return false;
       if (statusFilter === 'completed' && !t.isCompleted) return false;
 
@@ -176,18 +178,24 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
     });
   }, [todos, selectedDay, statusFilter, searchQuery]);
 
-  // Day counts for badge tabs
+  // Day counts for badge tabs - tracks count for current status view
   const dayCounts = useMemo(() => {
     const counts = {};
     DAYS.forEach((d) => (counts[d] = 0));
-    counts['All Days'] = todos.length;
-    todos.forEach((t) => {
+
+    const visibleForCounts = todos.filter((t) => {
+      if (statusFilter === 'completed') return t.isCompleted;
+      return !t.isCompleted;
+    });
+
+    counts['All Days'] = visibleForCounts.length;
+    visibleForCounts.forEach((t) => {
       if (t.dayOfWeek && counts[t.dayOfWeek] !== undefined) {
         counts[t.dayOfWeek]++;
       }
     });
     return counts;
-  }, [todos]);
+  }, [todos, statusFilter]);
 
   // Quick inline add handler
   const handleQuickAdd = async (e) => {
@@ -377,28 +385,44 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
             {/* Status pills */}
             <div className="flex items-center bg-secondary/50 rounded-xl p-0.5 text-xs">
               <button
+                type="button"
                 onClick={() => setStatusFilter('all')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  statusFilter === 'all' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'all' || statusFilter === 'pending'
+                    ? 'bg-card text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                All
+                <span>All</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
+                    statusFilter === 'all' || statusFilter === 'pending'
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-background text-muted-foreground'
+                  }`}
+                >
+                  {summary.pending}
+                </span>
               </button>
               <button
-                onClick={() => setStatusFilter('pending')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  statusFilter === 'pending' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Pending
-              </button>
-              <button
+                type="button"
                 onClick={() => setStatusFilter('completed')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  statusFilter === 'completed' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'completed'
+                    ? 'bg-card text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Done
+                <span>Done</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
+                    statusFilter === 'completed'
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-background text-muted-foreground'
+                  }`}
+                >
+                  {summary.completed}
+                </span>
               </button>
             </div>
           </div>
@@ -483,9 +507,20 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <button
                         type="button"
-                        onClick={() => toggleTodo.mutate(todo._id)}
+                        onClick={() => {
+                          const nextCompleted = !isCompleted;
+                          toggleTodo.mutate(todo._id, {
+                            onSuccess: () => {
+                              if (nextCompleted) {
+                                toast.success('Todo marked as completed (moved to Done)');
+                              } else {
+                                toast.success('Todo moved back to active list');
+                              }
+                            },
+                          });
+                        }}
                         className="mt-0.5 shrink-0 text-muted-foreground hover:text-primary transition-transform hover:scale-110 cursor-pointer"
-                        title={isCompleted ? 'Mark pending' : 'Mark completed'}
+                        title={isCompleted ? 'Mark pending (move to All)' : 'Mark completed (move to Done)'}
                       >
                         {isCompleted ? (
                           <CheckCircle2 size={18} className="text-foreground" />
@@ -497,7 +532,18 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                       <div className="space-y-1 flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <span
-                            onClick={() => toggleTodo.mutate(todo._id)}
+                            onClick={() => {
+                              const nextCompleted = !isCompleted;
+                              toggleTodo.mutate(todo._id, {
+                                onSuccess: () => {
+                                  if (nextCompleted) {
+                                    toast.success('Todo marked as completed (moved to Done)');
+                                  } else {
+                                    toast.success('Todo moved back to active list');
+                                  }
+                                },
+                              });
+                            }}
                             className={`text-xs font-bold cursor-pointer transition-colors ${
                               isCompleted
                                 ? 'line-through text-muted-foreground font-medium'
@@ -636,12 +682,32 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
             <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
               <CheckSquare size={20} />
             </div>
-            <p className="font-semibold text-foreground">No weekly todos found for this view.</p>
+            <p className="font-semibold text-foreground">
+              {statusFilter === 'completed'
+                ? 'No completed weekly todos yet.'
+                : summary.completed > 0
+                ? 'All deliverables for this view are completed! Check the Done tab to view them.'
+                : 'No weekly todos found for this view.'}
+            </p>
             <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
-              {selectedDay !== 'All Days'
-                ? `No todos scheduled for ${selectedDay}. Use the quick adder above to create one.`
+              {statusFilter === 'completed'
+                ? 'Mark todos as completed to have them appear here.'
+                : selectedDay !== 'All Days'
+                ? `No active todos scheduled for ${selectedDay}. Use the quick adder above to create one.`
                 : 'All caught up! Plan your week ahead or assign milestones to your team.'}
             </p>
+            {statusFilter !== 'completed' && summary.completed > 0 && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('completed')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card hover:bg-secondary text-xs font-bold text-foreground transition-all cursor-pointer shadow-xs"
+                >
+                  <CheckCircle2 size={13} className="text-emerald-500" />
+                  <span>View Completed ({summary.completed}) →</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

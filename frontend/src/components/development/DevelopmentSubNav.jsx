@@ -24,8 +24,8 @@ export const DevelopmentSubNav = () => {
   const location = useLocation();
 
   return (
-    <div className="bg-card rounded-2xl p-2 mb-6 responsive-table-container overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
-      <div className="flex items-center gap-1.5 min-w-max">
+    <div className="bg-card rounded-2xl p-1.5 sm:p-2 mb-4 sm:mb-6 responsive-table-container overflow-x-auto max-w-full custom-scrollbar">
+      <div className="flex items-center gap-1 sm:gap-1.5 min-w-max">
         {DEV_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = item.exact
@@ -37,13 +37,13 @@ export const DevelopmentSubNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 min-h-[38px] transition-all duration-150 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-semibold shrink-0 min-h-[36px] sm:min-h-[38px] transition-all duration-150 ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_-4px_hsl(var(--brand)/0.45)]'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
-              <Icon size={15} />
+              <Icon size={14} className="shrink-0" />
               <span>{item.name}</span>
             </Link>
           );

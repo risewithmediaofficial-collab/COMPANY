@@ -306,7 +306,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   }
 
   return (
-    <div className="bg-card p-6 rounded-3xl relative overflow-hidden space-y-6">
+    <div className="bg-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl relative overflow-hidden space-y-4 sm:space-y-6">
       {/* Header Info */}
       <div className="flex items-center justify-between gap-3 pb-2">
         <div className="min-w-0">
@@ -319,7 +319,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           </p>
         </div>
         <div className="text-right shrink-0">
-          <span className="text-xl sm:text-2xl font-bold tabular-nums text-foreground tracking-tight whitespace-nowrap block">
+          <span className="text-lg sm:text-2xl font-bold tabular-nums text-foreground tracking-tight whitespace-nowrap block">
             {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
         </div>
@@ -412,30 +412,30 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
         {/* Step 1: Selection Buttons if not present/clocked-in yet */}
         {!isPresent && !isClockedIn && !isAbsent && !isLeave && !isHoliday && (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               <button
                 type="button"
                 onClick={handleSelectPresent}
-                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 h-10 sm:h-11 px-2 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
               >
-                <CheckCircle2 size={17} />
-                Present
+                <CheckCircle2 size={15} className="shrink-0" />
+                <span>Present</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShowAbsentModal(true)}
-                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-sm transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 h-10 sm:h-11 px-2 sm:px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-xs sm:text-sm transition-all cursor-pointer"
               >
-                <XCircle size={17} />
-                Absent
+                <XCircle size={15} className="shrink-0" />
+                <span>Absent</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShowLeaveModal(true)}
-                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-sm transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 h-10 sm:h-11 px-2 sm:px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs sm:text-sm transition-all cursor-pointer"
               >
-                <Calendar size={17} />
-                Leave
+                <Calendar size={15} className="shrink-0" />
+                <span>Leave</span>
               </button>
             </div>
           </div>
@@ -449,20 +449,20 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 type="button"
                 onClick={handleClockOutClick}
                 disabled={clockOut.isPending}
-                className="w-full py-4 rounded-2xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-black text-base shadow-lg shadow-rose-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-black text-sm sm:text-base shadow-lg shadow-rose-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Timer size={20} className={clockOut.isPending ? 'animate-spin' : ''} />
-                {clockOut.isPending ? 'Clocking Out...' : 'Clock Out (End Shift / Take Break)'}
+                <Timer size={18} className={`shrink-0 ${clockOut.isPending ? 'animate-spin' : ''}`} />
+                <span>{clockOut.isPending ? 'Clocking Out...' : 'Clock Out (End Shift / Take Break)'}</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleClockInClick}
                 disabled={clockIn.isPending || isGettingLocation}
-                className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-base shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-sm sm:text-base shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Timer size={20} className={clockIn.isPending || isGettingLocation ? 'animate-spin' : ''} />
-                {isGettingLocation
+                <Timer size={18} className={`shrink-0 ${clockIn.isPending || isGettingLocation ? 'animate-spin' : ''}`} />
+                <span>{isGettingLocation
                   ? 'Checking Location...'
                   : clockIn.isPending
                   ? 'Clocking In...'
@@ -470,14 +470,14 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                   ? 'Clock In WFH'
                   : todayRecord?.clockIn
                   ? 'Clock In / Resume Shift'
-                  : 'Clock In Now'}
+                  : 'Clock In Now'}</span>
               </button>
             )}
 
             {/* Quick Status Switching Options */}
-            <div className="flex items-center justify-between text-xs pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs pt-1">
               <span className="text-muted-foreground font-semibold">Need to submit a request?</span>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAbsentModal(true)}
@@ -525,22 +525,22 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
         )}
 
         {/* Timings Summary Row */}
-        <div className="grid grid-cols-3 gap-2.5 text-center pt-2 tabular-nums">
-          <div className="p-3 rounded-2xl bg-secondary/30">
-            <span className="text-[11px] font-semibold text-muted-foreground block">First In</span>
-            <span className="text-xs font-bold text-foreground mt-1 block tabular-nums">
+        <div className="grid grid-cols-3 gap-2 sm:gap-2.5 text-center pt-2 tabular-nums">
+          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-secondary/30 min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block truncate">First In</span>
+            <span className="text-xs font-bold text-foreground mt-1 block tabular-nums truncate">
               {formatTime(todayRecord?.clockIn)}
             </span>
           </div>
-          <div className="p-3 rounded-2xl bg-secondary/30">
-            <span className="text-[11px] font-semibold text-muted-foreground block">Last Out</span>
-            <span className="text-xs font-bold text-foreground mt-1 block tabular-nums">
+          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-secondary/30 min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block truncate">Last Out</span>
+            <span className="text-xs font-bold text-foreground mt-1 block tabular-nums truncate">
               {formatTime(todayRecord?.clockOut)}
             </span>
           </div>
-          <div className="p-3 rounded-2xl bg-secondary/30">
-            <span className="text-[11px] font-semibold text-muted-foreground block">Total Hours</span>
-            <span className="text-xs font-bold text-foreground mt-1 block tabular-nums">
+          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-secondary/30 min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block truncate">Total Hours</span>
+            <span className="text-xs font-bold text-foreground mt-1 block tabular-nums truncate">
               {Number(todayRecord?.totalHours || 0).toFixed(2)} hrs
             </span>
           </div>

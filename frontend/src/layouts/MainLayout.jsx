@@ -45,9 +45,9 @@ const MainLayout = () => {
         <EnableBannerNotificationBar />
         <main
           id="main-content-scroll"
-          className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-background px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6 custom-scrollbar overscroll-contain pb-safe"
+          className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-background px-3 py-3 sm:px-6 sm:py-5 lg:px-8 lg:py-6 custom-scrollbar overscroll-contain pb-safe"
         >
-          <div className="mx-auto min-w-0 max-w-7xl pb-16">
+          <div className="mx-auto min-w-0 max-w-7xl 2xl:max-w-[1600px] pb-16">
             <GlobalDateSortBar />
             <ErrorBoundary key={location.pathname} locationKey={location.pathname}>
               <Suspense fallback={<PageLoadingFallback />}>

@@ -259,10 +259,10 @@ const Dashboard = () => {
     return (
       <div className="space-y-6">
         {/* Command Center Title Header */}
-        <div className="bg-card rounded-2xl p-5 sm:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+        <div className="bg-card rounded-2xl p-4 sm:p-6">
+          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground truncate">
                 {getGreeting()}, {user.name}
               </h1>
             </div>
@@ -273,7 +273,7 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setShowFinance((v) => !v)}
-                  className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold min-h-[38px] transition-colors cursor-pointer ${
+                  className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold min-h-[36px] sm:min-h-[38px] transition-colors cursor-pointer ${
                     showFinance
                       ? 'bg-secondary text-foreground hover:bg-secondary/80'
                       : 'bg-background text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -287,7 +287,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => setCreateTaskOpen(true)}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors min-h-[38px] cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors min-h-[36px] sm:min-h-[38px] cursor-pointer"
               >
                 <Plus size={14} />
                 <span>Create Task</span>
@@ -295,7 +295,7 @@ const Dashboard = () => {
 
               <Link
                 to="/calendar"
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-background hover:bg-secondary text-foreground text-xs font-semibold transition-colors min-h-[38px]"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-background hover:bg-secondary text-foreground text-xs font-semibold transition-colors min-h-[36px] sm:min-h-[38px]"
               >
                 <Calendar size={14} />
                 <span>Content Calendar</span>
@@ -304,8 +304,8 @@ const Dashboard = () => {
           </div>
 
           {/* Tab Navigation & Live Sync Status */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-1">
-            <div className="flex items-center gap-1 rounded-xl bg-secondary/75 p-1 overflow-x-auto custom-scrollbar">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-5 pt-1">
+            <div className="flex items-center gap-1 rounded-xl bg-secondary/75 p-1 overflow-x-auto max-w-full custom-scrollbar w-full md:w-auto">
               {[
                 { id: 'command', label: 'Command Center', icon: Activity },
                 { id: 'todos', label: 'Weekly Todos', icon: CheckSquare },
@@ -319,7 +319,7 @@ const Dashboard = () => {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 min-h-[36px] cursor-pointer ${
+                    className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0 min-h-[36px] cursor-pointer ${
                       isActive
                         ? 'bg-primary text-primary-foreground shadow-[0_3px_10px_-3px_hsl(var(--brand)/0.45)]'
                         : 'text-muted-foreground hover:text-foreground'
@@ -332,7 +332,7 @@ const Dashboard = () => {
               })}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full md:w-auto">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand/12 text-primary text-[11px] font-semibold">
                 <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
                 <span>Live Real-Time Sync</span>
@@ -354,116 +354,116 @@ const Dashboard = () => {
         {activeTab === 'command' && (
           <div className="space-y-6">
             {/* 1. TOP 5 CORE METRIC CARDS (INTERACTIVE & CLICKABLE) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
               {/* Active Clients */}
               <div
                 onClick={() => navigate('/clients')}
-                className="p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2"
+                className="p-4 sm:p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2 min-w-0"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active Clients</span>
-                  <div className="h-8 w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">Active Clients</span>
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
                     <Building2 size={15} />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground truncate">
                   {stats.activeClients || 0}
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground group-hover:text-foreground transition-colors pt-0.5">
-                  <span>Client directory</span>
-                  <ArrowRight size={11} />
+                  <span className="truncate">Client directory</span>
+                  <ArrowRight size={11} className="shrink-0" />
                 </div>
               </div>
 
               {/* Active Projects */}
               <div
                 onClick={() => navigate('/projects')}
-                className="p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2"
+                className="p-4 sm:p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2 min-w-0"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Live Projects</span>
-                  <div className="h-8 w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">Live Projects</span>
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
                     <FolderKanban size={15} />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground truncate">
                   {stats.activeProjects || 0}
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground group-hover:text-foreground transition-colors pt-0.5">
-                  <span>Project board</span>
-                  <ArrowRight size={11} />
+                  <span className="truncate">Project board</span>
+                  <ArrowRight size={11} className="shrink-0" />
                 </div>
               </div>
 
               {/* Total Tasks */}
               <div
                 onClick={() => navigate('/tasks')}
-                className="p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2"
+                className="p-4 sm:p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2 min-w-0"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active Tasks</span>
-                  <div className="h-8 w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">Active Tasks</span>
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
                     <CheckSquare size={15} />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground truncate">
                   {stats.totalTasks || 0}
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground group-hover:text-foreground transition-colors pt-0.5">
-                  <span>Task pipeline</span>
-                  <ArrowRight size={11} />
+                  <span className="truncate">Task pipeline</span>
+                  <ArrowRight size={11} className="shrink-0" />
                 </div>
               </div>
 
               {/* Overdue Tasks */}
               <div
                 onClick={() => navigate('/tasks')}
-                className={`p-5 rounded-2xl transition-colors cursor-pointer group space-y-2 ${
+                className={`p-4 sm:p-5 rounded-2xl transition-colors cursor-pointer group space-y-2 min-w-0 ${
                   stats.overdueTasks > 0
                     ? 'bg-secondary hover:bg-secondary/80 ring-1 ring-brand/35'
                     : 'bg-card hover:bg-secondary/75'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Overdue</span>
-                  <div className="h-8 w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">Overdue</span>
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
                     <Clock size={15} />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground truncate">
                   {stats.overdueTasks || 0}
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground group-hover:text-foreground transition-colors pt-0.5">
-                  <span>Action required</span>
-                  <ArrowRight size={11} />
+                  <span className="truncate">Action required</span>
+                  <ArrowRight size={11} className="shrink-0" />
                 </div>
               </div>
 
               {/* Pending Approvals */}
               <div
                 onClick={() => navigate('/tasks')}
-                className="p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2"
+                className="col-span-2 sm:col-span-1 xl:col-span-1 p-4 sm:p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer group space-y-2 min-w-0"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Approvals</span>
-                  <div className="h-8 w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">Approvals</span>
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-background text-foreground flex items-center justify-center shrink-0">
                     <ClipboardList size={15} />
                   </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight tabular-nums leading-none text-foreground truncate">
                   {stats.pendingApprovals || 0}
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground group-hover:text-foreground transition-colors pt-0.5">
-                  <span>Review queue</span>
-                  <ArrowRight size={11} />
+                  <span className="truncate">Review queue</span>
+                  <ArrowRight size={11} className="shrink-0" />
                 </div>
               </div>
             </div>
 
             {/* 2. REVENUE TREND VISUALIZER & REVENUE BY CLIENT */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Revenue Curve (Line / Area Chart) */}
-              <div className="lg:col-span-2 bg-card rounded-2xl p-5 sm:p-6 space-y-5">
+              <div className="lg:col-span-2 min-w-0 bg-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -477,7 +477,7 @@ const Dashboard = () => {
                   </Link>
                 </div>
 
-                <div className="h-64 w-full">
+                <div className="h-56 sm:h-64 w-full min-w-0">
                   {revenueTrend.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={revenueTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -524,7 +524,7 @@ const Dashboard = () => {
               </div>
 
               {/* Top Revenue by Client */}
-              <div className="lg:col-span-1 bg-card rounded-2xl p-5 sm:p-6 space-y-5">
+              <div className="lg:col-span-1 min-w-0 bg-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Building2 size={16} className="text-primary shrink-0" />
@@ -571,9 +571,9 @@ const Dashboard = () => {
             </div>
 
             {/* 3. PROJECT HEALTH & TASK STATUS (SIDE BY SIDE INTERACTIVE PANELS) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Project Health */}
-              <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="min-w-0 bg-card rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <FolderKanban size={16} className="text-primary shrink-0" />
@@ -590,7 +590,7 @@ const Dashboard = () => {
                     className="p-3 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-brand" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                       <span className="text-xs font-semibold text-foreground">On Track</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground font-bold text-xs tabular-nums">
@@ -603,7 +603,7 @@ const Dashboard = () => {
                     className="p-3 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
                       <span className="text-xs font-semibold text-foreground">At Risk</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground font-bold text-xs tabular-nums">
@@ -616,7 +616,7 @@ const Dashboard = () => {
                     className="p-3 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-zinc-400 dark:bg-zinc-600" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
                       <span className="text-xs font-semibold text-foreground">Delayed</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground font-bold text-xs tabular-nums">
@@ -627,7 +627,7 @@ const Dashboard = () => {
               </div>
 
               {/* Task Status Distribution */}
-              <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="min-w-0 bg-card rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <CheckSquare size={16} className="text-foreground shrink-0" />
@@ -638,42 +638,42 @@ const Dashboard = () => {
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                   <div
                     onClick={() => navigate('/tasks')}
-                    className="p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
+                    className="p-3 sm:p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
                   >
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">To Do</span>
-                    <div className="text-xl font-bold text-foreground mt-1 tabular-nums">{taskDist['To Do'] || 0}</div>
+                    <div className="text-lg sm:text-xl font-bold text-foreground mt-1 tabular-nums">{taskDist['To Do'] || 0}</div>
                   </div>
                   <div
                     onClick={() => navigate('/tasks')}
-                    className="p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
+                    className="p-3 sm:p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
                   >
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">On Process</span>
-                    <div className="text-xl font-bold text-foreground mt-1 tabular-nums">{taskDist['On Process'] || 0}</div>
+                    <div className="text-lg sm:text-xl font-bold text-foreground mt-1 tabular-nums">{taskDist['On Process'] || 0}</div>
                   </div>
                   <div
                     onClick={() => navigate('/tasks')}
-                    className="p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
+                    className="p-3 sm:p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
                   >
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Review</span>
-                    <div className="text-xl font-bold text-foreground mt-1 tabular-nums">
+                    <div className="text-lg sm:text-xl font-bold text-foreground mt-1 tabular-nums">
                       {(taskDist['Review Required'] || 0) + (taskDist['Waiting for Client'] || 0)}
                     </div>
                   </div>
                   <div
                     onClick={() => navigate('/tasks')}
-                    className="p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
+                    className="p-3 sm:p-3.5 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer"
                   >
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Done</span>
-                    <div className="text-xl font-bold text-foreground mt-1 tabular-nums">{taskDist['Completed'] || 0}</div>
+                    <div className="text-lg sm:text-xl font-bold text-foreground mt-1 tabular-nums">{taskDist['Completed'] || 0}</div>
                   </div>
                 </div>
               </div>
 
               {/* Client Health */}
-              <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-4">
+              <div className="min-w-0 bg-card rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4 sm:col-span-2 lg:col-span-1">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <ShieldCheck size={16} className="text-foreground shrink-0" />
@@ -690,7 +690,7 @@ const Dashboard = () => {
                     className="p-3 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-foreground" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                       <span className="text-xs font-semibold text-foreground">Healthy</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground font-bold text-xs tabular-nums">
@@ -703,7 +703,7 @@ const Dashboard = () => {
                     className="p-3 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
                       <span className="text-xs font-semibold text-foreground">Needs Attention</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground font-bold text-xs tabular-nums">
@@ -716,7 +716,7 @@ const Dashboard = () => {
                     className="p-3 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-zinc-400 dark:bg-zinc-600" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
                       <span className="text-xs font-semibold text-foreground">At Risk</span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-secondary text-foreground font-bold text-xs tabular-nums">
@@ -728,7 +728,7 @@ const Dashboard = () => {
             </div>
 
             {/* 4. CONTENT PRODUCTION PIPELINE FLOW (MONOCHROME STAGE FLOW) */}
-            <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-5">
+            <div className="bg-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 min-w-0">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -743,7 +743,7 @@ const Dashboard = () => {
               </div>
 
               {/* Stage Flow Nodes */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
                 {[
                   { label: 'Ideas & Briefs', count: contentPipeline.ideas, link: '/tasks', icon: Sparkles },
                   { label: 'Shoots & Footage', count: contentPipeline.shoot, link: '/tasks', icon: Video },
@@ -757,18 +757,18 @@ const Dashboard = () => {
                     <div
                       key={stage.label}
                       onClick={() => navigate(stage.link)}
-                      className="p-4 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer space-y-2.5 group"
+                      className="p-3 sm:p-4 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer space-y-2 sm:space-y-2.5 group min-w-0"
                     >
                       <div className="flex items-center justify-between gap-1.5">
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{stage.label}</span>
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">{stage.label}</span>
                         <div className="h-6 w-6 rounded-lg bg-secondary text-foreground flex items-center justify-center shrink-0">
                           <Icon size={13} />
                         </div>
                       </div>
-                      <div className="text-2xl font-bold tracking-tight tabular-nums leading-none text-foreground">{stage.count}</div>
+                      <div className="text-xl sm:text-2xl font-bold tracking-tight tabular-nums leading-none text-foreground truncate">{stage.count}</div>
                       <div className="text-[11px] text-muted-foreground group-hover:text-foreground transition-colors flex items-center gap-1">
-                        <span>Open stage</span>
-                        <ArrowRight size={10} />
+                        <span className="truncate">Open stage</span>
+                        <ArrowRight size={10} className="shrink-0" />
                       </div>
                     </div>
                   );
@@ -777,9 +777,9 @@ const Dashboard = () => {
             </div>
 
             {/* 5. TEAM WORKLOAD & SALES PIPELINE (TWO-COLUMN OPERATIONAL VIEW) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Team Workload */}
-              <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-5">
+              <div className="min-w-0 bg-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Users size={16} className="text-foreground shrink-0" />
@@ -829,7 +829,7 @@ const Dashboard = () => {
               </div>
 
               {/* Sales & CRM Pipeline */}
-              <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-5">
+              <div className="min-w-0 bg-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <TrendingUp size={16} className="text-foreground shrink-0" />
@@ -847,10 +847,10 @@ const Dashboard = () => {
                       onClick={() => navigate('/crm/leads')}
                       className="p-3 rounded-xl bg-background hover:bg-secondary/60 transition-colors cursor-pointer flex items-center justify-between group text-xs"
                     >
-                      <span className="font-semibold text-foreground transition-colors">
+                      <span className="font-semibold text-foreground transition-colors truncate min-w-0">
                         {step.label}
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-secondary font-bold text-foreground text-xs tabular-nums">
+                      <span className="px-2.5 py-0.5 rounded-full bg-secondary font-bold text-foreground text-xs tabular-nums shrink-0 ml-2">
                         {step.count}
                       </span>
                     </div>
@@ -865,42 +865,42 @@ const Dashboard = () => {
         {activeTab === 'metrics' && (
           <div className="space-y-6">
             {/* 1. All Metrics Summary KPIs Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="p-5 rounded-2xl bg-card space-y-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Projects</span>
-                <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{stats.totalProjects || 0}</div>
-                <div className="text-[11px] text-muted-foreground font-medium tabular-nums">{stats.activeProjects || 0} Active</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+              <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1.5 min-w-0">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Total Projects</span>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{stats.totalProjects || 0}</div>
+                <div className="text-[11px] text-muted-foreground font-medium tabular-nums truncate">{stats.activeProjects || 0} Active</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-card space-y-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active Tasks</span>
-                <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{stats.totalTasks || 0}</div>
-                <div className="text-[11px] text-muted-foreground font-medium tabular-nums">{taskDist['On Process'] || 0} In Process</div>
+              <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1.5 min-w-0">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Active Tasks</span>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{stats.totalTasks || 0}</div>
+                <div className="text-[11px] text-muted-foreground font-medium tabular-nums truncate">{taskDist['On Process'] || 0} In Process</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-card space-y-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Over-Target Tasks</span>
-                <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{stats.totalOverTargetTasks || 0}</div>
+              <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1.5 min-w-0">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Over-Target Tasks</span>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{stats.totalOverTargetTasks || 0}</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-card space-y-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Overdue Deliverables</span>
-                <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{stats.overdueTasks || 0}</div>
+              <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1.5 min-w-0">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Overdue Deliverables</span>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{stats.overdueTasks || 0}</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-card space-y-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Completed Deliverables</span>
-                <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{taskDist['Completed'] || 0}</div>
+              <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1.5 min-w-0">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Completed Deliverables</span>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{taskDist['Completed'] || 0}</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-card space-y-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active Team</span>
-                <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{stats.totalUsers || (viz.allUserMetrics || []).length}</div>
+              <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1.5 min-w-0">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Active Team</span>
+                <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{stats.totalUsers || (viz.allUserMetrics || []).length}</div>
               </div>
             </div>
 
             {/* 2. All Users Live Performance & Workload Matrix */}
-            <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-5">
+            <div className="bg-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -910,7 +910,7 @@ const Dashboard = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                  <div className="relative flex-1 sm:flex-initial min-w-[160px]">
+                  <div className="relative flex-1 sm:flex-initial min-w-[160px] w-full sm:w-auto">
                     <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                       type="text"
@@ -921,7 +921,7 @@ const Dashboard = () => {
                     />
                   </div>
 
-                  <div className="w-36">
+                  <div className="w-full sm:w-36">
                     <SelectDropdown
                       value={userMetricRoleFilter}
                       onChange={(val) => setUserMetricRoleFilter(val || 'all')}
@@ -933,7 +933,7 @@ const Dashboard = () => {
                       ]}
                       allowCustom={false}
                       allowDeselect={false}
-                      className="w-36 text-xs"
+                      className="w-full sm:w-36 text-xs"
                       buttonClassName="h-8.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-background border border-border/40"
                     />
                   </div>
@@ -941,7 +941,7 @@ const Dashboard = () => {
               </div>
 
               {/* User Metric Rows / Table */}
-              <div className="responsive-table-container custom-scrollbar">
+              <div className="w-full overflow-x-auto responsive-table-container custom-scrollbar">
                 <table className="w-full min-w-[640px] text-left text-xs border-collapse">
                   <thead>
                     <tr className="text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
@@ -1158,7 +1158,7 @@ const Dashboard = () => {
         {/* - TAB 3: TEAM WORKLOAD & EOD - */}
         {activeTab === 'team' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-5 rounded-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-4 sm:p-5 rounded-2xl">
               <div>
                 <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <Users size={16} className="text-foreground shrink-0" />
@@ -1166,22 +1166,22 @@ const Dashboard = () => {
                 </h2>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="relative">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative w-full sm:w-64">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="text"
                     placeholder="Filter by name or dept..."
                     value={eodSearch}
                     onChange={(e) => setEodSearch(e.target.value)}
-                    className="pl-8 pr-3 py-2 rounded-xl bg-background text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-brand/40 outline-none"
+                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-background text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-brand/40 outline-none transition-colors"
                   />
                 </div>
               </div>
             </div>
 
             {eodReports.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {eodReports.map((report) => (
                   <div
                     key={report._id}
@@ -1189,10 +1189,10 @@ const Dashboard = () => {
                       setSelectedEodRecord(report);
                       setShowEodDetailModal(true);
                     }}
-                    className="p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer space-y-3"
+                    className="p-4 sm:p-5 rounded-2xl bg-card hover:bg-secondary/75 transition-colors cursor-pointer space-y-3 min-w-0"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div className="h-8 w-8 rounded-full bg-background text-foreground flex items-center justify-center font-bold text-xs shrink-0">
                           {report.user?.avatar ? (
                             <img src={getAssetUrl(report.user.avatar)} alt="" className="h-full w-full rounded-full object-cover" />
@@ -1200,12 +1200,12 @@ const Dashboard = () => {
                             report.user?.name?.charAt(0) || 'U'
                           )}
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-foreground leading-none">{report.user?.name}</p>
-                          <p className="text-[11px] text-muted-foreground capitalize mt-0.5">{report.user?.department || report.user?.role}</p>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-foreground leading-none truncate">{report.user?.name}</p>
+                          <p className="text-[11px] text-muted-foreground capitalize mt-0.5 truncate">{report.user?.department || report.user?.role}</p>
                         </div>
                       </div>
-                      <span className="text-[11px] font-medium text-muted-foreground tabular-nums">
+                      <span className="text-[11px] font-medium text-muted-foreground tabular-nums shrink-0">
                         {new Date(report.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
@@ -1217,9 +1217,9 @@ const Dashboard = () => {
                     {report.eodReport?.tasksCompleted?.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {report.eodReport.tasksCompleted.slice(0, 2).map((t, idx) => (
-                          <span key={idx} className="inline-flex items-center gap-1 text-[10px] bg-background px-2.5 py-0.5 rounded-full text-foreground font-medium">
+                          <span key={idx} className="inline-flex items-center gap-1 text-[10px] bg-background px-2.5 py-0.5 rounded-full text-foreground font-medium truncate max-w-full">
                             <Check size={10} className="shrink-0" />
-                            <span>{t}</span>
+                            <span className="truncate">{t}</span>
                           </span>
                         ))}
                       </div>
@@ -1261,9 +1261,9 @@ const Dashboard = () => {
 
     return (
       <div className="space-y-6">
-        <div className="bg-card rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{getGreeting()}, {user.name}</h1>
+        <div className="bg-card rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">{getGreeting()}, {user.name}</h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -1271,7 +1271,7 @@ const Dashboard = () => {
               type="button"
               onClick={() => fetchStats(false)}
               title={`Last synced: ${lastSynced.toLocaleTimeString()}`}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-background hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-semibold transition-colors min-h-[38px] cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-background hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-semibold transition-colors min-h-[36px] sm:min-h-[38px] cursor-pointer"
             >
               <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-foreground' : ''} />
               <span>Sync</span>
@@ -1281,7 +1281,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => setShowEodModal(true)}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors min-h-[38px] cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors min-h-[36px] sm:min-h-[38px] cursor-pointer"
               >
                 <CheckCircle2 size={15} />
                 <span>Submit Daily EOD</span>
@@ -1291,86 +1291,86 @@ const Dashboard = () => {
         </div>
 
         {/* Live Employee Metric Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-card space-y-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">My Active Tasks</span>
-            <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{pendingTasks.length}</div>
-            <div className="text-[11px] text-muted-foreground font-medium">Priority Queue</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1 sm:space-y-1.5 min-w-0">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">My Active Tasks</span>
+            <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{pendingTasks.length}</div>
+            <div className="text-[11px] text-muted-foreground font-medium truncate">Priority Queue</div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-card space-y-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">In Progress</span>
-            <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{data?.inProgressTasks || 0}</div>
-            <div className="text-[11px] text-muted-foreground">Currently Producing</div>
+          <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1 sm:space-y-1.5 min-w-0">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">In Progress</span>
+            <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{data?.inProgressTasks || 0}</div>
+            <div className="text-[11px] text-muted-foreground truncate">Currently Producing</div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-card space-y-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Completed (Week)</span>
-            <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{data?.completedThisWeek || 0}</div>
-            <div className="text-[11px] text-muted-foreground font-medium inline-flex items-center gap-1">
-              <Check size={10} />
-              <span>Delivered</span>
+          <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1 sm:space-y-1.5 min-w-0">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Completed (Week)</span>
+            <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{data?.completedThisWeek || 0}</div>
+            <div className="text-[11px] text-muted-foreground font-medium inline-flex items-center gap-1 truncate">
+              <Check size={10} className="shrink-0" />
+              <span className="truncate">Delivered</span>
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-card space-y-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Over-Target Tasks</span>
-            <div className="text-2xl font-bold text-foreground tabular-nums leading-none">{data?.overTargetTasks || 0}</div>
-            <div className="text-[11px] text-muted-foreground font-semibold">Over Quota</div>
+          <div className="p-4 sm:p-5 rounded-2xl bg-card space-y-1 sm:space-y-1.5 min-w-0">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate block">Over-Target Tasks</span>
+            <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums leading-none truncate">{data?.overTargetTasks || 0}</div>
+            <div className="text-[11px] text-muted-foreground font-semibold truncate">Over Quota</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-1 min-w-0">
             <AttendanceWidget todayRecord={data?.todayAttendance} user={user} />
           </div>
 
-          <div className="lg:col-span-2 bg-card rounded-2xl p-5 sm:p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="lg:col-span-2 bg-card rounded-2xl p-4 sm:p-6 space-y-4 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <CheckSquare size={16} className="text-foreground shrink-0" />
-                <h2 className="text-sm font-bold text-foreground">My Assigned Tasks ({pendingTasks.length})</h2>
+                <h2 className="text-sm font-bold text-foreground truncate">My Assigned Tasks ({pendingTasks.length})</h2>
               </div>
-              <Link to="/tasks" className="text-xs font-semibold text-foreground hover:underline">View All Tasks →</Link>
+              <Link to="/tasks" className="text-xs font-semibold text-foreground hover:underline shrink-0">View All Tasks →</Link>
             </div>
 
             <div className="space-y-2">
               {pendingTasks.length > 0 ? (
                 pendingTasks.slice(0, 10).map((task) => (
-                  <div key={task._id} className="p-3.5 rounded-xl bg-background hover:bg-secondary/60 flex items-center justify-between gap-3 transition-colors">
-                    <div className="space-y-1.5 min-w-0">
+                  <div key={task._id} className="p-3 sm:p-3.5 rounded-xl bg-background hover:bg-secondary/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 transition-colors min-w-0">
+                    <div className="space-y-1.5 min-w-0 flex-1">
                       <p
                         onClick={() => navigate('/tasks')}
                         className="text-xs font-bold text-foreground hover:underline transition-colors cursor-pointer truncate"
                       >
                         {task.title || task.taskTitle}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground tabular-nums">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] text-muted-foreground tabular-nums">
                         {(task.client?.company || task.client?.name || task.clientName) && (
-                          <span className="inline-flex items-center gap-1 font-medium text-foreground/80">
+                          <span className="inline-flex items-center gap-1 font-medium text-foreground/80 truncate">
                             <Building2 size={11} className="shrink-0 text-muted-foreground" />
-                            <span>{task.client?.company || task.client?.name || task.clientName}</span>
+                            <span className="truncate">{task.client?.company || task.client?.name || task.clientName}</span>
                           </span>
                         )}
                         {(task.project?.name || task.projectName) && (
-                          <span className="inline-flex items-center gap-1 font-medium text-foreground/80">
+                          <span className="inline-flex items-center gap-1 font-medium text-foreground/80 truncate">
                             <FolderOpen size={11} className="shrink-0 text-muted-foreground" />
-                            <span>{task.project?.name || task.projectName}</span>
+                            <span className="truncate">{task.project?.name || task.projectName}</span>
                           </span>
                         )}
                         {task.createdAt && (
-                          <span className="inline-flex items-center gap-1 text-foreground font-medium bg-secondary px-2 py-0.5 rounded-md">
+                          <span className="inline-flex items-center gap-1 text-foreground font-medium bg-secondary px-2 py-0.5 rounded-md shrink-0">
                             <Calendar size={10} className="shrink-0" />
                             <span>Created: {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                           </span>
                         )}
-                        <span className="inline-flex items-center gap-1 font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md shrink-0">
                           <Clock size={10} className="shrink-0" />
                           <span>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing / TBD'}</span>
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1.5 shrink-0 pt-1 sm:pt-0 border-t border-border/30 sm:border-none">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold capitalize ${
                         task.status === 'completed' || task.status === 'done'
                           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'

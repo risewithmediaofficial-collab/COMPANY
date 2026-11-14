@@ -372,19 +372,19 @@ export default function DevelopmentBoard() {
             <button
               onClick={fetchData}
               disabled={loading}
-              className="flex items-center gap-2 h-10 px-3.5 bg-secondary text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all cursor-pointer"
+              className="flex items-center gap-2 h-9 sm:h-10 px-3 sm:px-3.5 bg-secondary text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all cursor-pointer"
             >
               <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
-              Refresh
+              <span>Refresh</span>
             </button>
             {/* ── RULE: Uses existing task creation modal ─────────── */}
             <button
               id="dev-create-task-btn"
               onClick={() => setShowAddTaskModal(true)}
-              className="flex items-center gap-2 h-10 px-4 bg-primary text-primary-foreground font-bold rounded-xl text-xs hover:opacity-90 transition-colors cursor-pointer"
+              className="flex items-center gap-2 h-9 sm:h-10 px-3.5 sm:px-4 bg-primary text-primary-foreground font-bold rounded-xl text-xs hover:opacity-90 transition-colors cursor-pointer"
             >
               <PlusCircle size={14} />
-              Add Task
+              <span>Add Task</span>
             </button>
           </div>
         }
@@ -393,7 +393,7 @@ export default function DevelopmentBoard() {
       <DevelopmentSubNav />
 
       {/* ── Filter Bar ───────────────────────────────────────────────── */}
-      <div className="bg-card rounded-2xl p-4 space-y-3">
+      <div className="bg-card rounded-2xl p-3 sm:p-4 space-y-2.5 sm:space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5 items-center">
           {/* Search */}
           <div className="relative">

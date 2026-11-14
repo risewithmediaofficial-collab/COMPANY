@@ -339,9 +339,9 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between bg-background/95 px-4 sm:px-6 lg:px-8 select-none">
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between bg-background/95 px-3 sm:px-6 lg:px-8 select-none">
         {/* Left: Mobile Toggle & Dynamic Interactive Breadcrumbs */}
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-3">
           <button
             onClick={() => dispatch(toggleSidebar())}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground md:hidden flex-shrink-0"
