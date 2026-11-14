@@ -155,11 +155,11 @@ export default function MyDevTasks() {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary px-2 py-0.5 rounded">
                         {task.project?.name || 'CRM Task'}
                       </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground ">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30">
                         {dev.stage?.replace(/_/g, ' ') || 'backlog'}
                       </span>
                       {isBlocked && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary text-primary-foreground ">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                           Blocked: {dev.blockedReason}
                         </span>
                       )}

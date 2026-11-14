@@ -34,12 +34,12 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const statusTone = {
-  draft: 'bg-secondary text-muted-foreground ',
-  sent: 'bg-secondary text-foreground ',
-  viewed: 'bg-muted text-foreground ',
-  accepted: 'bg-primary text-primary-foreground ',
-  rejected: 'bg-secondary text-muted-foreground line-through',
-  expired: 'bg-muted text-muted-foreground ',
+  draft: 'bg-secondary text-muted-foreground border border-border',
+  sent: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
+  viewed: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
+  accepted: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold',
+  rejected: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 line-through',
+  expired: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
 };
 
 const Proposals = () => {

@@ -2,13 +2,13 @@ import { Inbox, Search } from '@/components/ui/muiIcons';
 import { cn } from '../../utils/cn';
 
 const toneStyles = {
-  primary: 'bg-brand/12 text-primary',
-  success: 'bg-secondary text-zinc-800 dark:text-zinc-200',
-  info: 'bg-brand/10 text-primary',
-  warning: 'bg-secondary text-zinc-800 dark:text-zinc-200',
-  danger: 'bg-zinc-900 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900',
-  violet: 'bg-secondary text-zinc-800 dark:text-zinc-200',
-  neutral: 'bg-secondary text-muted-foreground',
+  primary: 'bg-primary/15 text-primary border border-primary/25',
+  success: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+  info: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
+  warning: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+  danger: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
+  violet: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30',
+  neutral: 'bg-secondary text-muted-foreground border border-border',
 };
 
 export const PageHeader = ({

@@ -194,10 +194,10 @@ export default function DevelopmentSprints() {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           sprint.status === 'active'
-                            ? 'bg-primary text-primary-foreground '
+                            ? 'bg-primary/15 text-primary border border-primary/30'
                             : sprint.status === 'completed'
-                            ? 'bg-secondary text-foreground '
-                            : 'bg-muted text-muted-foreground '
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                            : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'
                         }`}
                       >
                         {sprint.status}

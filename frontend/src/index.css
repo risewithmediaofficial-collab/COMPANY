@@ -7,7 +7,7 @@
     --background: 0 0% 100%;
     --foreground: 240 10% 6%;
 
-    --card: 240 5% 96.5%;
+    --card: 240 5% 97.5%;
     --card-foreground: 240 10% 6%;
 
     --popover: 0 0% 100%;
@@ -30,27 +30,27 @@
     --accent: 189 48% 93%;
     --accent-foreground: 191 78% 18%;
 
-    --destructive: 0 0% 18%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 5% 91%;
-    --input: 240 5% 91%;
+    --border: 240 5% 88%;
+    --input: 240 5% 88%;
     --ring: 189 84% 45%;
 
     --radius: 0.75rem;
-    --tracker-status-sticky: #f5f5f7;
+    --tracker-status-sticky: #f8fafc;
   }
 
   .dark {
     color-scheme: dark;
-    --tracker-status-sticky: #17171a;
-    --background: 240 6% 5%;
+    --tracker-status-sticky: #1c1c22;
+    --background: 240 10% 4%;
     --foreground: 0 0% 96%;
 
-    --card: 240 5% 9.5%;
+    --card: 240 5% 12%;
     --card-foreground: 0 0% 96%;
 
-    --popover: 240 5% 11.5%;
+    --popover: 240 5% 13.5%;
     --popover-foreground: 0 0% 96%;
 
     /* Exact RiseWithMedia Logo Blue (#12B7D4) pops cleanly on dark surfaces */
@@ -60,20 +60,20 @@
     --primary: 189 84% 45%;
     --primary-foreground: 194 78% 7%;
 
-    --secondary: 240 4.5% 15%;
+    --secondary: 240 5% 17%;
     --secondary-foreground: 0 0% 95%;
 
-    --muted: 240 4.5% 12.5%;
-    --muted-foreground: 240 4% 63%;
+    --muted: 240 5% 14.5%;
+    --muted-foreground: 240 4% 65%;
 
-    --accent: 189 45% 16%;
+    --accent: 189 45% 18%;
     --accent-foreground: 189 85% 78%;
 
-    --destructive: 0 0% 85%;
-    --destructive-foreground: 240 6% 9%;
+    --destructive: 0 78% 54%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 4% 16%;
-    --input: 240 4% 18%;
+    --border: 240 5% 22%;
+    --input: 240 5% 24%;
     --ring: 189 84% 45%;
   }
 }

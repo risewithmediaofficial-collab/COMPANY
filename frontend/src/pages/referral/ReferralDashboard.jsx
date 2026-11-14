@@ -36,11 +36,11 @@ import { useProjects } from '../../hooks/useProjects';
 import { useUsers } from '../../hooks/useUsers';
 
 const statusTone = {
-  submitted: 'bg-secondary text-muted-foreground ',
-  contacted: 'bg-secondary text-foreground ',
-  qualified: 'bg-muted text-foreground ',
-  closed_won: 'bg-primary text-primary-foreground ',
-  closed_lost: 'bg-secondary text-muted-foreground line-through',
+  submitted: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
+  contacted: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
+  qualified: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+  closed_won: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold',
+  closed_lost: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 line-through',
 };
 
 const ReferralDashboard = () => {

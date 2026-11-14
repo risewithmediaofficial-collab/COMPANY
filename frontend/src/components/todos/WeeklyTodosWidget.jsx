@@ -60,10 +60,10 @@ const DAYS = [
 ];
 
 const PRIORITY_BADGES = {
-  urgent: 'bg-primary text-primary-foreground font-black',
-  high: 'bg-secondary text-foreground font-bold',
-  medium: 'bg-secondary/70 text-foreground ',
-  low: 'bg-secondary/40 text-muted-foreground ',
+  urgent: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-black',
+  high: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold',
+  medium: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 font-semibold',
+  low: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-semibold',
 };
 
 const CATEGORY_ICONS = {

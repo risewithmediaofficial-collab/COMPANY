@@ -277,12 +277,12 @@ const Attendance = () => {
   };
 
   const statusStyles = {
-    present: 'bg-primary text-primary-foreground',
-    absent: 'bg-secondary/70 text-muted-foreground',
-    half_day: 'bg-secondary text-foreground',
-    leave: 'bg-secondary text-foreground',
-    holiday: 'bg-secondary text-foreground',
-    work_from_home: 'bg-secondary text-foreground',
+    present: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+    absent: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
+    half_day: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+    leave: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+    holiday: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30',
+    work_from_home: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
   };
 
   const rawRecords = useMemo(() => {
@@ -755,23 +755,23 @@ const Attendance = () => {
   const getRosterStatusBadge = (status) => {
     switch (status) {
       case 'present':
-        return { label: 'Active Now', cls: 'bg-primary text-primary-foreground' };
+        return { label: 'Active Now', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' };
       case 'completed':
-        return { label: 'Completed', cls: 'bg-secondary text-foreground' };
+        return { label: 'Completed', cls: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' };
       case 'pending_leave':
-        return { label: 'Leave Pending', cls: 'bg-secondary text-foreground' };
+        return { label: 'Leave Pending', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30' };
       case 'pending_wfh':
-        return { label: 'WFH Pending', cls: 'bg-secondary text-foreground' };
+        return { label: 'WFH Pending', cls: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30' };
       case 'work_from_home':
-        return { label: 'WFH', cls: 'bg-secondary text-foreground' };
+        return { label: 'WFH', cls: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30' };
       case 'leave':
-        return { label: 'On Leave', cls: 'bg-secondary text-foreground' };
+        return { label: 'On Leave', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30' };
       case 'holiday':
-        return { label: 'Holiday', cls: 'bg-secondary text-foreground' };
+        return { label: 'Holiday', cls: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30' };
       case 'absent':
-        return { label: 'Absent', cls: 'bg-secondary/60 text-muted-foreground' };
+        return { label: 'Absent', cls: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30' };
       default:
-        return { label: 'Not Clocked In', cls: 'bg-secondary/60 text-muted-foreground' };
+        return { label: 'Not Clocked In', cls: 'bg-secondary text-muted-foreground border border-border' };
     }
   };
 
@@ -1557,22 +1557,22 @@ const Attendance = () => {
                         <td className="px-6 py-3.5">
                           <div className="flex flex-col items-start gap-1">
                             {record.approvalStatus === 'pending' ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary text-foreground inline-flex items-center gap-1">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 inline-flex items-center gap-1">
                                 <AlertCircle size={12} className="shrink-0" />
                                 Pending {(record.requestedStatus || record.status).replace(/_/g, ' ')}
                               </span>
                             ) : isApprovedLeave ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground inline-flex items-center gap-1">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 inline-flex items-center gap-1">
                                 <CheckCircle2 size={12} className="shrink-0" />
                                 Leave Approved
                               </span>
                             ) : isApprovedWFH ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground inline-flex items-center gap-1">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 inline-flex items-center gap-1">
                                 <CheckCircle2 size={12} className="shrink-0" />
                                 WFH Approved
                               </span>
                             ) : record.approvalStatus === 'rejected' ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground inline-flex items-center gap-1">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 inline-flex items-center gap-1">
                                 <XCircle size={12} className="shrink-0" />
                                 Rejected
                               </span>
@@ -1598,14 +1598,14 @@ const Attendance = () => {
                                 <button
                                   type="button"
                                   onClick={() => approveAttendanceMutation.mutate({ id: record._id, action: 'approve' })}
-                                  className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-colors cursor-pointer"
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm shadow-emerald-600/20 transition-colors cursor-pointer"
                                 >
                                   Approve
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setRejectModalState({ open: true, id: record._id, reason: '' })}
-                                  className="px-2.5 py-1 rounded-lg bg-secondary text-foreground font-semibold text-xs hover:bg-muted transition-colors cursor-pointer"
+                                  className="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors cursor-pointer"
                                 >
                                   Reject
                                 </button>
@@ -1781,7 +1781,7 @@ const Attendance = () => {
       )}
 
       {/* ================= VIEW 3: MY ATTENDANCE (PERSONAL / EMPLOYEE) ================= */}
-      {(!isAdmin || viewTab === 'personal') && (
+      {(!isAdmin || viewTab === 'personal') && !isSuperAdmin && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column: Clock Widget + Monthly Summary */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-6">
@@ -1956,8 +1956,8 @@ const Attendance = () => {
                               <span
                                 className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                                   record.eodReport?.submittedAt
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-secondary text-muted-foreground'
+                                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                                 }`}
                               >
                                 {record.eodReport?.submittedAt ? 'Submitted' : 'Pending'}
@@ -1967,19 +1967,19 @@ const Attendance = () => {
 
                           <td className="px-5 py-3.5">
                             {record.approvalStatus === 'pending' ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary text-foreground">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                                 Pending {(record.requestedStatus || record.status).replace(/_/g, ' ')}
                               </span>
                             ) : isApprovedLeave ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                                 Leave Approved
                               </span>
                             ) : isApprovedWFH ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                                 WFH Approved
                               </span>
                             ) : record.approvalStatus === 'rejected' ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                                 Rejected
                               </span>
                             ) : (

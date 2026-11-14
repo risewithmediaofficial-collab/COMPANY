@@ -210,13 +210,13 @@ export default function DevelopmentReviews() {
                   <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
                     <button
                       onClick={() => handleOpenAction(task, 'changes_requested')}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-foreground bg-secondary hover:bg-muted text-xs font-bold transition-all min-h-[38px] cursor-pointer"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-bold transition-all min-h-[38px] cursor-pointer"
                     >
                       <XCircle size={13} /> Request Changes
                     </button>
                     <button
                       onClick={() => handleOpenAction(task, 'approved')}
-                      className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold transition-all min-h-[38px] cursor-pointer"
+                      className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/20 text-xs font-bold transition-all min-h-[38px] cursor-pointer"
                     >
                       <CheckCircle2 size={13} /> Approve Code
                     </button>

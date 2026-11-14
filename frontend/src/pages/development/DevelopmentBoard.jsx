@@ -58,10 +58,10 @@ const PIPELINE_COLUMNS = [
 ];
 
 const PRIORITY_BADGES = {
-  urgent: 'bg-primary text-primary-foreground ',
-  high: 'bg-zinc-800 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900 ',
-  medium: 'bg-secondary text-foreground ',
-  low: 'bg-muted text-muted-foreground ',
+  urgent: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold',
+  high: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold',
+  medium: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 font-semibold',
+  low: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-semibold',
 };
 
 export default function DevelopmentBoard() {

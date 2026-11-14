@@ -1000,10 +1000,10 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <span
                           className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase mt-0.5 ${
                             fin.status === 'paid'
-                              ? 'bg-primary text-primary-foreground'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold'
                               : fin.status === 'partially_paid'
-                              ? 'bg-secondary text-foreground '
-                              : 'bg-muted text-muted-foreground '
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                              : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                           }`}
                         >
                           {fin.status === 'paid' ? 'Paid' : fin.status === 'partially_paid' ? 'Partial' : 'Unpaid'}
@@ -1187,10 +1187,10 @@ export default function ExpensesSection({ onQuickAdd }) {
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tabular-nums ${
                               fin.status === 'paid'
-                                ? 'bg-primary text-primary-foreground'
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold'
                                 : fin.status === 'partially_paid'
-                                ? 'bg-secondary text-foreground '
-                                : 'bg-muted text-muted-foreground '
+                                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                             }`}
                           >
                             {fin.status === 'paid'

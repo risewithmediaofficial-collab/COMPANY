@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   BellRing,
   X,
@@ -20,6 +21,7 @@ import {
  * 2. Service Worker 'message' events (fired when Push is received)
  */
 export const BannerNotificationHost = () => {
+  const { user } = useSelector((state) => state.auth || {});
   const [banners, setBanners] = useState([]);
   const [isMuted, setIsMuted] = useState(() => {
     return localStorage.getItem('rwm_banner_sound_muted') === 'true';
@@ -40,6 +42,21 @@ export const BannerNotificationHost = () => {
     const handleBannerEvent = (event) => {
       const bannerData = event.detail;
       if (!bannerData) return;
+
+      // Super Admin & Organization Owner do not need attendance login or cutoff notifications
+      if (['superAdmin', 'organizationOwner'].includes(user?.role)) {
+        const isAttendanceOrCutoff =
+          ['attendance_reminder', 'eod_clockout_reminder', 'clockout_reminder', 'eod_reminder'].includes(bannerData.type) ||
+          bannerData.metadata?.autoAbsent ||
+          bannerData.metadata?.cutoff ||
+          bannerData.metadata?.reminderType === 'morning_attendance' ||
+          /cutoff|clock in|marked absent/i.test(String(bannerData.title || '')) ||
+          /cutoff|clock in|marked absent/i.test(String(bannerData.message || bannerData.body || ''));
+
+        if (isAttendanceOrCutoff) {
+          return;
+        }
+      }
 
       const newBanner = {
         id: bannerData.id || `banner-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,

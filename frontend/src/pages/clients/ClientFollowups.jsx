@@ -65,17 +65,17 @@ const emptyForm = {
 };
 
 const statusTone = {
-  open: 'bg-secondary text-foreground ',
-  completed: 'bg-primary text-primary-foreground ',
-  waiting: 'bg-muted text-foreground ',
-  cancelled: 'bg-background text-muted-foreground ',
+  open: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
+  completed: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold',
+  waiting: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+  cancelled: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
 };
 
 const priorityTone = {
-  low: 'bg-muted text-muted-foreground ',
-  medium: 'bg-secondary text-foreground ',
-  high: 'bg-secondary text-foreground ',
-  urgent: 'bg-primary text-primary-foreground ',
+  low: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+  medium: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
+  high: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold',
+  urgent: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold',
 };
 
 const typeIcons = {

@@ -58,6 +58,21 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('newNotification', (data) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       if (data) {
+        // Super Admin & Organization Owner do not need attendance login or cutoff notifications
+        if (['superAdmin', 'organizationOwner'].includes(user?.role)) {
+          const isAttendanceOrCutoff =
+            ['attendance_reminder', 'eod_clockout_reminder', 'clockout_reminder', 'eod_reminder'].includes(data.type) ||
+            data.metadata?.autoAbsent ||
+            data.metadata?.cutoff ||
+            data.metadata?.reminderType === 'morning_attendance' ||
+            /cutoff|clock in|marked absent/i.test(String(data.title || '')) ||
+            /cutoff|clock in|marked absent/i.test(String(data.message || ''));
+
+          if (isAttendanceOrCutoff) {
+            return;
+          }
+        }
+
         const title = data.title || '\u{1F514} RISE WITH MEDIA Notification';
         const message = data.message || '';
         const link = data.link || '/';

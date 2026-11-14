@@ -1371,12 +1371,28 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-secondary text-foreground capitalize">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold capitalize ${
+                        task.status === 'completed' || task.status === 'done'
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                          : task.status === 'in_progress' || task.status === 'in_development'
+                          ? 'bg-primary/15 text-primary border border-primary/30'
+                          : task.status === 'review' || task.status === 'code_review'
+                          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                          : task.status === 'blocked' || task.status === 'cancelled'
+                          ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                          : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'
+                      }`}>
                         {task.status?.replace(/_/g, ' ') || 'Todo'}
                       </span>
                       {task.priority && (
-                        <span className={`text-[10px] capitalize ${
-                          task.priority === 'urgent' || task.priority === 'high' ? 'text-foreground font-bold' : 'text-muted-foreground font-semibold'
+                        <span className={`text-[10px] font-bold capitalize ${
+                          task.priority === 'urgent'
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : task.priority === 'high'
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : task.priority === 'medium'
+                            ? 'text-sky-600 dark:text-sky-400'
+                            : 'text-emerald-600 dark:text-emerald-400'
                         }`}>
                           {task.priority}
                         </span>

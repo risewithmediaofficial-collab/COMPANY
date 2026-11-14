@@ -17,6 +17,14 @@ export const getNotifications = async (req, res) => {
       filter.isRead = false;
     }
 
+    // Super Admin & Organization Owner do not need attendance login or cutoff notifications
+    if (['superAdmin', 'organizationOwner'].includes(req.user?.role)) {
+      filter.type = { $nin: ['attendance_reminder', 'eod_clockout_reminder', 'clockout_reminder', 'eod_reminder'] };
+      filter['metadata.autoAbsent'] = { $ne: true };
+      filter['metadata.cutoff'] = { $exists: false };
+      filter.title = { $not: /cutoff|clock in|marked absent/i };
+    }
+
     const [notifications, unreadCount] = await Promise.all([
       Notification.find(filter)
         .populate('sender', 'name avatar')
@@ -24,7 +32,7 @@ export const getNotifications = async (req, res) => {
         .skip(skip)
         .limit(limit)
         .lean(),
-      Notification.countDocuments({ recipient: req.user._id, isRead: false }),
+      Notification.countDocuments({ ...filter, isRead: false }),
     ]);
 
     res.json({ success: true, page, limit, notifications, unreadCount });

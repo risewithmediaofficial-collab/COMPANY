@@ -314,14 +314,14 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
                           inv.displayStatus === 'paid'
-                            ? 'bg-primary text-primary-foreground'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                             : inv.displayStatus === 'overdue'
-                            ? 'bg-secondary text-foreground font-bold'
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold'
                             : inv.displayStatus === 'partially_paid'
-                            ? 'bg-secondary text-foreground '
+                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                             : inv.displayStatus === 'draft'
-                            ? 'bg-muted text-muted-foreground '
-                            : 'bg-secondary text-muted-foreground '
+                            ? 'bg-secondary text-muted-foreground border border-border'
+                            : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                         }`}
                       >
                         {inv.displayStatus || inv.status}
@@ -418,8 +418,12 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
                       selectedInvoice.status === 'paid'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground '
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                        : selectedInvoice.status === 'partially_paid'
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                        : selectedInvoice.status === 'overdue'
+                        ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold'
+                        : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                     }`}
                   >
                     {selectedInvoice.status}

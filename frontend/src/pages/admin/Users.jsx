@@ -58,9 +58,9 @@ const roles = [
 ];
 
 const statusStyles = {
-  pending: 'bg-secondary text-foreground ',
-  approved: 'bg-primary text-primary-foreground ',
-  rejected: 'bg-muted text-muted-foreground ',
+  pending: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+  approved: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold',
+  rejected: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
 };
 
 const Users = () => {

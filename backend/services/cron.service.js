@@ -34,10 +34,10 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
     const end = new Date();
     end.setHours(23, 59, 59, 999);
 
-    // 1. Find all active internal team members (all internal roles except client/referral)
+    // 1. Find all active internal team members (excluding clients, referrals, superAdmin, organizationOwner, admin)
     const eligibleUsers = await User.find({
       isActive: true,
-      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral', 'superAdmin', 'organizationOwner', 'admin'] },
     }).select('_id name role email phone');
 
     if (!eligibleUsers.length) {
@@ -106,27 +106,29 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
       sentCount++;
     }
 
-    // 4. If options.testUser provided (manual trigger / test button), ensure caller ALWAYS receives reminder
+    // 4. If options.testUser provided (manual trigger / test button), ensure caller receives reminder if applicable
     if (options.testUser && !notifiedUserIds.has(options.testUser._id?.toString())) {
       const testUser = options.testUser;
-      await createNotification(
-        {
-          recipient: testUser._id,
-          type: 'attendance_reminder',
-          title: `${title} (Verified)`,
-          message: messageTemplate(testUser.name),
-          link: '/attendance',
-          metadata: {
-            reminderType: 'morning_attendance_test',
-            cutoff: '10:30 AM',
-            date: start.toISOString().slice(0, 10),
-            time: timeString,
-            isTest: true,
+      if (!['superAdmin', 'organizationOwner', 'admin'].includes(testUser.role)) {
+        await createNotification(
+          {
+            recipient: testUser._id,
+            type: 'attendance_reminder',
+            title: `${title} (Verified)`,
+            message: messageTemplate(testUser.name),
+            link: '/attendance',
+            metadata: {
+              reminderType: 'morning_attendance_test',
+              cutoff: '10:30 AM',
+              date: start.toISOString().slice(0, 10),
+              time: timeString,
+              isTest: true,
+            },
           },
-        },
-        io
-      );
-      sentCount++;
+          io
+        );
+        sentCount++;
+      }
     }
 
     return { sentCount, pendingCount: pendingUsers.length, totalChecked: eligibleUsers.length };
@@ -157,10 +159,10 @@ export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
     const end = new Date();
     end.setHours(23, 59, 59, 999);
 
-    // 1. Eligible active internal users
+    // 1. Eligible active internal users (excluding clients, referrals, superAdmin, organizationOwner, admin)
     const eligibleUsers = await User.find({
       isActive: true,
-      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral', 'superAdmin', 'organizationOwner', 'admin'] },
     }).select('_id name role email phone');
 
     if (!eligibleUsers.length) {
@@ -254,10 +256,10 @@ export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
       );
     }
 
-    // 4. Notify managers and admins if any staff were marked absent
+    // 4. Notify operational managers and admins if any staff were marked absent (superAdmin excluded from cutoff alerts)
     if (markedCount > 0) {
       const managers = await User.find({
-        role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner'] },
+        role: { $in: ['admin', 'manager'] },
         isActive: true,
       }).select('_id');
 
@@ -311,7 +313,7 @@ export const autoMarkSundayHolidays = async (io, options = {}) => {
 
     const eligibleUsers = await User.find({
       isActive: true,
-      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral', 'superAdmin', 'organizationOwner', 'admin'] },
     }).select('_id name');
 
     let markedCount = 0;
@@ -371,10 +373,10 @@ export const checkAndSendEveningReminders = async (io, options = {}) => {
     const end = new Date();
     end.setHours(23, 59, 59, 999);
 
-    // 1. Find all active internal team members (all internal roles except client/referral)
+    // 1. Find all active internal team members (excluding clients, referrals, superAdmin, organizationOwner, admin)
     const eligibleUsers = await User.find({
       isActive: true,
-      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral', 'superAdmin', 'organizationOwner', 'admin'] },
     }).select('_id name role email phone');
 
     if (!eligibleUsers.length) {

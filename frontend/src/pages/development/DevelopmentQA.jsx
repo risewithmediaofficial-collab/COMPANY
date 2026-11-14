@@ -239,10 +239,10 @@ export default function DevelopmentQA() {
                   <button
                     type="button"
                     onClick={() => setQaStatus('passed')}
-                    className={`h-11 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`h-11 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       qaStatus === 'passed'
-                        ? 'bg-primary text-primary-foreground '
-                        : 'bg-secondary text-muted-foreground '
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/25'
+                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
                     }`}
                   >
                     <CheckCircle2 size={15} /> Passed
@@ -250,10 +250,10 @@ export default function DevelopmentQA() {
                   <button
                     type="button"
                     onClick={() => setQaStatus('failed')}
-                    className={`h-11 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`h-11 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       qaStatus === 'failed'
-                        ? 'bg-primary text-primary-foreground '
-                        : 'bg-secondary text-muted-foreground '
+                        ? 'bg-rose-600 text-white shadow-sm shadow-rose-600/25'
+                        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20'
                     }`}
                   >
                     <XCircle size={15} /> Failed
@@ -261,10 +261,10 @@ export default function DevelopmentQA() {
                   <button
                     type="button"
                     onClick={() => setQaStatus('blocked')}
-                    className={`h-11 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`h-11 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       qaStatus === 'blocked'
-                        ? 'bg-primary text-primary-foreground '
-                        : 'bg-secondary text-muted-foreground '
+                        ? 'bg-amber-600 text-white shadow-sm shadow-amber-600/25'
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20'
                     }`}
                   >
                     <ShieldAlert size={15} /> Blocked

@@ -207,8 +207,8 @@ export default function DevelopmentReleases() {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           release.environment === 'production'
-                            ? 'bg-primary text-primary-foreground '
-                            : 'bg-secondary text-foreground '
+                            ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30'
+                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                         }`}
                       >
                         {release.environment}
@@ -216,8 +216,8 @@ export default function DevelopmentReleases() {
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           isDeployed
-                            ? 'bg-primary text-primary-foreground '
-                            : 'bg-muted text-muted-foreground '
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                            : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'
                         }`}
                       >
                         {release.status}

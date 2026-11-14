@@ -212,10 +212,10 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
     userSelect: 'none',
   };
   const styles = {
-    todo:    { ...baseStyle, background: 'hsl(var(--secondary))', color: 'hsl(var(--foreground))' },
-    pending: { ...baseStyle, background: 'hsl(var(--muted))', color: 'hsl(var(--foreground))' },
-    done:    { ...baseStyle, background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' },
-    skip:    { ...baseStyle, background: 'hsl(var(--muted) / 0.6)', color: 'hsl(var(--muted-foreground))' },
+    todo:    { ...baseStyle, background: 'rgba(56, 189, 248, 0.15)', color: '#0284c7', border: '1px solid rgba(56, 189, 248, 0.3)' },
+    pending: { ...baseStyle, background: 'rgba(245, 158, 11, 0.15)', color: '#d97706', border: '1px solid rgba(245, 158, 11, 0.3)' },
+    done:    { ...baseStyle, background: 'rgba(16, 185, 129, 0.18)', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.35)' },
+    skip:    { ...baseStyle, background: 'rgba(244, 63, 94, 0.15)', color: '#e11d48', border: '1px solid rgba(244, 63, 94, 0.3)' },
   };
 
   const handleContextMenu = (e) => {

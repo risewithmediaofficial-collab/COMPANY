@@ -45,11 +45,11 @@ const onboardingStepLabels = {
 };
 
 const statusStyles = {
-  Active: 'bg-primary text-primary-foreground ',
-  Prospect: 'bg-secondary text-foreground ',
-  Churned: 'bg-muted text-muted-foreground ',
-  Inactive: 'bg-secondary text-muted-foreground ',
-  Renew: 'bg-secondary text-foreground font-bold',
+  Active: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold',
+  Prospect: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
+  Churned: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
+  Inactive: 'bg-secondary text-muted-foreground border border-border',
+  Renew: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold',
 };
 
 const ClientDetails = () => {

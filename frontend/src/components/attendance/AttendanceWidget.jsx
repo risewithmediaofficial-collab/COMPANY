@@ -41,10 +41,7 @@ const formatTime = (isoString) => {
 export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser }) => {
   const { user: authUser } = useSelector((state) => state.auth || {});
   const user = propUser || authUser;
-
-  if (['superAdmin', 'organizationOwner', 'admin'].includes(user?.role)) {
-    return null;
-  }
+  const isExcludedRole = ['superAdmin', 'organizationOwner', 'admin'].includes(user?.role);
 
   const [time, setTime] = useState(new Date());
   const [presentSelected, setPresentSelected] = useState(false);
@@ -61,7 +58,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
 
   // Fetch monthly records for current user so widget always has reactive live data
   const { data: attendanceData } = useAttendance({
-    userId: user?._id,
+    userId: isExcludedRole ? undefined : user?._id,
     month: currentMonth,
     year: currentYear,
     limit: 31,
@@ -304,6 +301,10 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
     );
   };
 
+  if (isExcludedRole) {
+    return null;
+  }
+
   return (
     <div className="bg-card p-6 rounded-3xl relative overflow-hidden space-y-6">
       {/* Header Info */}
@@ -385,13 +386,14 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
       <div className="space-y-4">
         {/* Active Session Timer Indicator if Clocked In */}
         {isClockedIn && (
-          <div className="p-3.5 rounded-2xl bg-secondary/60 flex items-center justify-between">
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-foreground" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
               </span>
               <div>
-                <span className="text-xs font-black text-foreground uppercase tracking-wider block">
+                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
                   Active Shift in Progress
                 </span>
                 <span className="text-[11px] text-muted-foreground tabular-nums">
@@ -400,7 +402,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               </div>
             </div>
             <div className="text-right">
-              <span className="text-lg font-bold text-foreground tabular-nums">
+              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                 {liveElapsedStr}
               </span>
             </div>
@@ -414,7 +416,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               <button
                 type="button"
                 onClick={handleSelectPresent}
-                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
               >
                 <CheckCircle2 size={17} />
                 Present
@@ -422,7 +424,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               <button
                 type="button"
                 onClick={() => setShowAbsentModal(true)}
-                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-secondary text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-sm transition-all cursor-pointer"
               >
                 <XCircle size={17} />
                 Absent
@@ -430,7 +432,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               <button
                 type="button"
                 onClick={() => setShowLeaveModal(true)}
-                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-secondary text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-sm transition-all cursor-pointer"
               >
                 <Calendar size={17} />
                 Leave
@@ -447,7 +449,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 type="button"
                 onClick={handleClockOutClick}
                 disabled={clockOut.isPending}
-                className="w-full py-4 rounded-2xl bg-secondary text-foreground hover:bg-muted font-black text-base hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-4 rounded-2xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-black text-base shadow-lg shadow-rose-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Timer size={20} className={clockOut.isPending ? 'animate-spin' : ''} />
                 {clockOut.isPending ? 'Clocking Out...' : 'Clock Out (End Shift / Take Break)'}
@@ -457,7 +459,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 type="button"
                 onClick={handleClockInClick}
                 disabled={clockIn.isPending || isGettingLocation}
-                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-black text-base hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-base shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Timer size={20} className={clockIn.isPending || isGettingLocation ? 'animate-spin' : ''} />
                 {isGettingLocation
@@ -479,7 +481,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 <button
                   type="button"
                   onClick={() => setShowAbsentModal(true)}
-                  className="text-foreground font-bold hover:underline cursor-pointer"
+                  className="text-rose-600 dark:text-rose-400 font-bold hover:underline cursor-pointer"
                 >
                   Mark Absent
                 </button>
@@ -487,7 +489,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 <button
                   type="button"
                   onClick={() => setShowLeaveModal(true)}
-                  className="text-foreground font-bold hover:underline cursor-pointer"
+                  className="text-amber-600 dark:text-amber-400 font-bold hover:underline cursor-pointer"
                 >
                   Apply for Leave
                 </button>
