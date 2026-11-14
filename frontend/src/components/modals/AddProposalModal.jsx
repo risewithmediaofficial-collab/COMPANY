@@ -61,7 +61,7 @@ const Field = ({ label, required, children }) => (
   </label>
 );
 
-export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
+export const AddProposalModal = ({ open, onOpenChange, proposal = null, defaultClientId = null, onSuccess }) => {
   const [form, setForm] = useState(emptyForm);
   const { data: clients = [] } = useClients();
   const { data: leads = [] } = useLeads();
@@ -95,9 +95,13 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
         status: proposal.status || 'draft',
       });
     } else if (!proposal && open) {
-      setForm(emptyForm);
+      setForm({
+        ...emptyForm,
+        client: defaultClientId || '',
+        recipientType: 'client',
+      });
     }
-  }, [proposal, open]);
+  }, [proposal, open, defaultClientId]);
 
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
@@ -137,6 +141,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
 
     setForm(emptyForm);
     onOpenChange(false);
+    if (onSuccess) onSuccess();
   };
 
   return (

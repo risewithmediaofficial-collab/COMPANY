@@ -42,7 +42,13 @@ import api from '../../../api';
 import DuplicateConfirmDialog from '../../../components/modals/DuplicateConfirmDialog';
 import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
-export default function FinanceQuickAddModal({ open, onOpenChange, initialAction = 'invoice' }) {
+export default function FinanceQuickAddModal({
+  open,
+  onOpenChange,
+  initialAction = 'invoice',
+  defaultClientId = '',
+  onSuccess,
+}) {
   const [activeAction, setActiveAction] = useState(initialAction);
   const [duplicateDialog, setDuplicateDialog] = useState({
     open: false,
@@ -58,7 +64,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         setActiveAction(initialAction);
       }
       setInvForm({
-        client: '',
+        client: defaultClientId || '',
         invoiceDate: new Date().toISOString().slice(0, 10),
         dueDate: new Date(Date.now() + 15 * 86400000).toISOString().slice(0, 10),
         servicePeriod: '',
@@ -71,8 +77,17 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
           { serviceName: '', description: '', quantity: '', rate: '', itemType: 'service' },
         ],
       });
+      setReceiptForm({
+        client: defaultClientId || '',
+        invoice: '',
+        amount: '',
+        receivedDate: new Date().toISOString().slice(0, 10),
+        paymentMode: 'Bank',
+        reference: '',
+        notes: '',
+      });
     }
-  }, [initialAction, open]);
+  }, [initialAction, open, defaultClientId]);
 
   const { data: clients = [] } = useClients({}, { enabled: open });
   const { data: accounts = [] } = useFinanceAccounts({ enabled: open });
@@ -250,6 +265,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         taxRate: invForm.taxType === 'exempt' ? 0 : Number(invForm.taxRate || 18),
       });
       onOpenChange(false);
+      if (onSuccess) onSuccess();
     } catch (err) {}
   };
 
@@ -302,6 +318,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         invoice: receiptForm.invoice || undefined,
       });
       onOpenChange(false);
+      if (onSuccess) onSuccess();
     } catch (err) {}
   };
 

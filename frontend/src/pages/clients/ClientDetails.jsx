@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link, Navigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import api from '../../api';
@@ -8,10 +8,20 @@ import {
   Building2, Phone, Mail, ListChecks, ArrowRight,
   Briefcase, CheckCircle2, Clock, AlertCircle, Users,
   FileText, TrendingUp, Edit2, FolderOpen, Calendar,
-  LockKeyhole, KeyRound, Eye, EyeOff, Copy, Check, ExternalLink, Plus, ChevronDown, ChevronUp, AtSign
+  LockKeyhole, KeyRound, Eye, EyeOff, Copy, Check, ExternalLink, Plus, ChevronDown, ChevronUp, AtSign, DollarSign, X
 } from '@/components/ui/muiIcons';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
+import { AddProposalModal } from '../../components/modals/AddProposalModal';
+import FinanceQuickAddModal from '../finance/components/FinanceQuickAddModal';
+import { CredentialFormDialog } from './ClientVault';
 import ClientProjectsPanel from '../../components/ui/ClientProjectsPanel';
 import {
   NotionDetailPage,
@@ -19,7 +29,7 @@ import {
 } from '../../components/ui/NotionDetailTemplate';
 import { formatINR } from '../../utils/currency';
 import { getProjectCategoryMeta } from '../../utils/projectCategories';
-import { useCredential } from '../../hooks/useClientCredentials';
+import { useCredential, useCreateCredential } from '../../hooks/useClientCredentials';
 import { useClientProposals } from '../../hooks/useProposals';
 
 const PLATFORM_MAP = {
@@ -64,10 +74,19 @@ const ClientDetails = () => {
     return <Navigate to={`/clients/${myClientId}`} replace />;
   }
 
+  const queryClient = useQueryClient();
+  const createCredentialMutation = useCreateCredential();
+
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || (isClientUser ? 'vault' : 'overview'));
   const [showEditModal, setShowEditModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showProposalModal, setShowProposalModal] = useState(false);
+  const [showPaymentNoteModal, setShowPaymentNoteModal] = useState(false);
+  const [showVaultModal, setShowVaultModal] = useState(false);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
   const [activePasswordId, setActivePasswordId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [expandedCards, setExpandedCards] = useState({});
@@ -119,6 +138,7 @@ const ClientDetails = () => {
       let financeRes = null;
       let callRes = null;
       let referralRes = null;
+      let receiptsRes = null;
 
       try {
         const results = await Promise.allSettled([
@@ -128,8 +148,9 @@ const ClientDetails = () => {
           api.get(`/finance?client=${id}`),
           api.get(`/finance/call-history?clientId=${id}`),
           api.get(`/referrals?client=${id}`),
+          api.get(`/finance/receipts?client=${id}`),
         ]);
-        [clientRes, projectsRes, invoicesRes, financeRes, callRes, referralRes] = results;
+        [clientRes, projectsRes, invoicesRes, financeRes, callRes, referralRes, receiptsRes] = results;
       } catch (err) {
         console.error('Failed to load client 360 bundle', err);
       }
@@ -182,17 +203,20 @@ const ClientDetails = () => {
       let financeRecords = financeRes?.status === 'fulfilled' ? financeRes.value.data.records || [] : [];
       let callHistory = callRes?.status === 'fulfilled' ? callRes.value.data.calls || [] : [];
       let referrals = referralRes?.status === 'fulfilled' ? referralRes.value.data.referrals || [] : [];
+      let receipts = receiptsRes?.status === 'fulfilled' ? (receiptsRes.value.data?.receipts || receiptsRes.value.data?.data || receiptsRes.value.data || []) : [];
 
       if (client?._id && String(client._id) !== String(id) && projects.length === 0) {
         try {
-          const [subP, subI, subF] = await Promise.allSettled([
+          const [subP, subI, subF, subR] = await Promise.allSettled([
             api.get(`/projects?client=${client._id}`),
             api.get(`/finance/invoices?client=${client._id}`),
             api.get(`/finance?client=${client._id}`),
+            api.get(`/finance/receipts?client=${client._id}`),
           ]);
           if (subP.status === 'fulfilled') projects = subP.value.data?.projects || subP.value.data || [];
           if (subI.status === 'fulfilled') invoices = subI.value.data?.invoices || [];
           if (subF.status === 'fulfilled') financeRecords = subF.value.data?.records || [];
+          if (subR.status === 'fulfilled') receipts = subR.value.data?.receipts || subR.value.data?.data || subR.value.data || [];
         } catch (_) {}
       }
 
@@ -203,6 +227,7 @@ const ClientDetails = () => {
         financeRecords,
         callHistory,
         referrals,
+        receipts,
       };
     },
     enabled: Boolean(id) && id !== 'undefined',
@@ -251,7 +276,7 @@ const ClientDetails = () => {
     );
   }
 
-  const { client, projects, invoices, financeRecords = [], callHistory = [], referrals = [] } = data;
+  const { client, projects, invoices, financeRecords = [], callHistory = [], referrals = [], receipts = [] } = data;
 
   const onboardingSteps = client.onboardingSteps || {};
   const completedSteps = Object.values(onboardingSteps).filter(Boolean).length;
@@ -265,7 +290,34 @@ const ClientDetails = () => {
     (sum, p) => sum + (p.pendingTasks ?? Math.max(0, (p.totalTasks || 0) - (p.ongoingTasks || 0) - (p.completedTasks ?? p.doneTasks ?? 0))),
     0
   );
-  const paymentNotes = financeRecords.flatMap((record) => record.paymentHistory || []);
+
+  const paymentNotes = [
+    ...receipts.map((r) => ({
+      _id: r._id,
+      noteTitle: r.invoice?.invoiceNumber ? `Payment on ${r.invoice.invoiceNumber}` : 'Payment Receipt',
+      noteDescription: r.notes || (r.reference ? `Ref: ${r.reference}` : 'Client payment receipt recorded'),
+      amountPaid: r.amount || 0,
+      paymentDate: r.receivedDate || r.paidAt || r.createdAt,
+      paymentMode: r.paymentMode || 'Bank',
+      reference: r.reference || '',
+    })),
+    ...financeRecords.flatMap((record) => record.paymentHistory || []),
+  ];
+
+  const handleSaveCredential = async ({ data: credPayload }) => {
+    try {
+      await createCredentialMutation.mutateAsync({
+        ...credPayload,
+        clientId: client._id,
+      });
+      setShowVaultModal(false);
+      queryClient.invalidateQueries({ queryKey: ['client-credentials', id] });
+      refetch();
+      toast.success('Credential added to client vault');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save credential');
+    }
+  };
 
   const isFinanceVisible = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager' || !!user?.permissions?.canManageFinance;
 
@@ -276,7 +328,7 @@ const ClientDetails = () => {
     { id: 'vault', label: `Client Vault (${credentials.length})`, icon: LockKeyhole },
     ...(isFinanceVisible ? [
       { id: 'invoices', label: `Invoices (${invoices.length})`, icon: FileText },
-      { id: 'paymentNotes', label: 'Payment Notes', icon: AlertCircle },
+      { id: 'paymentNotes', label: `Payment Notes (${paymentNotes.length})`, icon: AlertCircle },
       { id: 'callHistory', label: `Call History (${callHistory.length})`, icon: Phone },
       { id: 'referrals', label: `Referrals (${referrals.length})`, icon: Users },
     ] : []),
@@ -302,23 +354,93 @@ const ClientDetails = () => {
         statusClassName={` ${statusStyles[client.status] || statusStyles.Active}`}
         actions={(
           <>
+            {user?.role !== 'client' && (
+              <div className="relative group">
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shadow-xs"
+                >
+                  <Plus size={15} />
+                  <span>+ Add New</span>
+                  <ChevronDown size={13} />
+                </button>
+                <div className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl bg-card border border-border/60 shadow-xl p-1.5 hidden group-hover:flex group-focus-within:flex flex-col z-50 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setShowInvoiceModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-foreground hover:bg-secondary transition-colors text-left font-semibold cursor-pointer"
+                  >
+                    <FileText size={14} className="text-primary shrink-0" />
+                    <span>Create Invoice</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowProposalModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-foreground hover:bg-secondary transition-colors text-left font-semibold cursor-pointer"
+                  >
+                    <FileText size={14} className="text-sky-500 shrink-0" />
+                    <span>Create Proposal</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentNoteModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-foreground hover:bg-secondary transition-colors text-left font-semibold cursor-pointer"
+                  >
+                    <AlertCircle size={14} className="text-emerald-500 shrink-0" />
+                    <span>Record Payment</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowProjectModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-foreground hover:bg-secondary transition-colors text-left font-semibold cursor-pointer"
+                  >
+                    <Briefcase size={14} className="text-amber-500 shrink-0" />
+                    <span>New Project</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowVaultModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-foreground hover:bg-secondary transition-colors text-left font-semibold cursor-pointer"
+                  >
+                    <LockKeyhole size={14} className="text-indigo-500 shrink-0" />
+                    <span>Add Credential</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCallModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-foreground hover:bg-secondary transition-colors text-left font-semibold cursor-pointer"
+                  >
+                    <Phone size={14} className="text-purple-500 shrink-0" />
+                    <span>Log Call</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowReferralModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-foreground hover:bg-secondary transition-colors text-left font-semibold cursor-pointer"
+                  >
+                    <Users size={14} className="text-rose-500 shrink-0" />
+                    <span>Add Referral</span>
+                  </button>
+                </div>
+              </div>
+            )}
             <button
               type="button"
               onClick={() => handleTabChange('vault')}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'vault'
                   ? ' bg-primary text-primary-foreground '
                   : ' bg-secondary text-foreground hover:bg-muted'
               }`}
             >
-              <LockKeyhole size={16} className="shrink-0" /> Client Vault
+              <LockKeyhole size={15} className="shrink-0" /> Client Vault
             </button>
             {client.email && (
               <a
                 href={`mailto:${client.email}`}
-                className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+                className="flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold bg-secondary text-foreground transition-colors hover:bg-muted"
               >
-                <Mail size={16} className="shrink-0" /> Email Client
+                <Mail size={15} className="shrink-0" /> Email Client
               </a>
             )}
             {client.driveLink && (
@@ -326,17 +448,17 @@ const ClientDetails = () => {
                 href={client.driveLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                className="flex items-center gap-2 rounded-xl bg-secondary px-3.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
               >
-                <FolderOpen size={16} className="shrink-0" /> Drive Folder
+                <FolderOpen size={15} className="shrink-0" /> Drive Folder
               </a>
             )}
             {user?.role !== 'client' && (
               <button
                 onClick={() => setShowEditModal(true)}
-                className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:opacity-90"
+                className="flex items-center gap-2 rounded-xl bg-secondary px-3.5 py-2 text-xs font-bold text-foreground transition-all hover:bg-muted cursor-pointer"
               >
-                <Edit2 size={16} className="shrink-0" /> Edit Client
+                <Edit2 size={15} className="shrink-0" /> Edit Client
               </button>
             )}
           </>
@@ -612,13 +734,14 @@ const ClientDetails = () => {
               </div>
             </div>
             {user?.role !== 'client' && (
-              <Link
-                to="/proposals"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
+              <button
+                type="button"
+                onClick={() => setShowProposalModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shrink-0"
               >
                 <Plus size={14} />
                 <span>Create Proposal</span>
-              </Link>
+              </button>
             )}
           </div>
 
@@ -631,6 +754,16 @@ const ClientDetails = () => {
               <p className="text-xs text-muted-foreground">
                 No formal proposals have been generated or sent to this client yet.
               </p>
+              {user?.role !== 'client' && (
+                <button
+                  type="button"
+                  onClick={() => setShowProposalModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer mt-2"
+                >
+                  <Plus size={14} />
+                  <span>Create First Proposal</span>
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -689,12 +822,21 @@ const ClientDetails = () => {
             </div>
 
             {!isClientUser && (
-              <Link
-                to="/client-vault"
-                className="inline-flex items-center gap-2 text-xs font-bold text-foreground bg-secondary hover:bg-muted px-3.5 py-2 rounded-xl transition-all "
-              >
-                <KeyRound size={14} className="shrink-0" /> Open Full Vault Manager
-              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowVaultModal(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
+                >
+                  <Plus size={14} className="shrink-0" /> Add Credential
+                </button>
+                <Link
+                  to="/client-vault"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-foreground bg-secondary hover:bg-muted px-3.5 py-2 rounded-xl transition-all"
+                >
+                  <KeyRound size={14} className="shrink-0" /> Open Full Vault Manager
+                </Link>
+              </div>
             )}
           </div>
 
@@ -706,12 +848,13 @@ const ClientDetails = () => {
               </div>
               <h3 className="font-bold text-base">No Vault Credentials Added</h3>
               {!isClientUser && (
-                <Link
-                  to="/client-vault"
-                  className="inline-flex items-center gap-2 text-xs font-bold bg-primary text-primary-foreground px-4 py-2 rounded-xl shadow hover:opacity-90 transition-all mt-2"
+                <button
+                  type="button"
+                  onClick={() => setShowVaultModal(true)}
+                  className="inline-flex items-center gap-2 text-xs font-bold bg-primary text-primary-foreground px-4 py-2 rounded-xl shadow hover:opacity-90 transition-all mt-2 cursor-pointer"
                 >
-                  <Plus size={14} className="shrink-0" /> Add Credential in Vault
-                </Link>
+                  <Plus size={14} className="shrink-0" /> Add Credential
+                </button>
               )}
             </div>
           ) : (
@@ -1086,8 +1229,31 @@ const ClientDetails = () => {
 
       {activeTab === 'invoices' && (
         <div className="bg-card rounded-3xl overflow-hidden">
-          <div className="p-5 bg-secondary/10">
-            <h2 className="font-bold flex items-center gap-2"><FileText size={18} className="text-foreground shrink-0"/>Invoices</h2>
+          <div className="p-5 bg-secondary/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center shrink-0">
+                <FileText size={18} className="text-foreground shrink-0"/>
+              </div>
+              <div>
+                <h2 className="font-bold text-base flex items-center gap-2">
+                  Invoices
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary text-foreground tabular-nums">
+                    {invoices.length}
+                  </span>
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Manage and track billing invoices for this client</p>
+              </div>
+            </div>
+            {user?.role !== 'client' && (
+              <button
+                type="button"
+                onClick={() => setShowInvoiceModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shrink-0"
+              >
+                <Plus size={14} />
+                <span>Create Invoice</span>
+              </button>
+            )}
           </div>
           <div className="overflow-x-auto responsive-table-container">
             <table className="w-full min-w-[540px] text-sm">
@@ -1114,7 +1280,23 @@ const ClientDetails = () => {
                     <td className="px-6 py-4 text-muted-foreground tabular-nums">{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}</td>
                   </tr>
                 )) : (
-                  <tr><td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">No invoices yet.</td></tr>
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                      <div className="space-y-3">
+                        <p>No invoices yet for this client.</p>
+                        {user?.role !== 'client' && (
+                          <button
+                            type="button"
+                            onClick={() => setShowInvoiceModal(true)}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
+                          >
+                            <Plus size={13} />
+                            <span>Create First Invoice</span>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -1166,25 +1348,70 @@ const ClientDetails = () => {
 
       {activeTab === 'paymentNotes' && (
         <div className="bg-card rounded-3xl overflow-hidden">
-          <div className="p-5 bg-secondary/10">
-            <h2 className="font-bold flex items-center gap-2"><AlertCircle size={18} className="text-foreground shrink-0"/>Payment Notes</h2>
+          <div className="p-5 bg-secondary/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center shrink-0">
+                <AlertCircle size={18} className="text-foreground shrink-0"/>
+              </div>
+              <div>
+                <h2 className="font-bold text-base flex items-center gap-2">
+                  Payment Notes & Receipts
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary text-foreground tabular-nums">
+                    {paymentNotes.length}
+                  </span>
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Recorded payments, payment history, and receipts from this client</p>
+              </div>
+            </div>
+            {user?.role !== 'client' && (
+              <button
+                type="button"
+                onClick={() => setShowPaymentNoteModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shrink-0"
+              >
+                <Plus size={14} />
+                <span>Add Payment Note</span>
+              </button>
+            )}
           </div>
           <div className="divide-y divide-foreground/[0.05]">
             {paymentNotes.length > 0 ? paymentNotes.map((note, index) => (
-              <div key={note._id || index} className="p-5">
+              <div key={note._id || index} className="p-5 hover:bg-secondary/20 transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold">{note.noteTitle || 'Payment note'}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{note.noteDescription || 'No description added'}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{note.noteTitle || (note.paymentMode ? `Payment Receipt (${note.paymentMode})` : 'Payment Note')}</p>
+                      {note.paymentMode && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground">
+                          {note.paymentMode}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">{note.noteDescription || note.remarks || 'No description added'}</p>
+                    {note.receiptNumber && (
+                      <p className="text-xs text-muted-foreground font-mono mt-1">Receipt #: {note.receiptNumber}</p>
+                    )}
                   </div>
-                  <div className="text-right tabular-nums">
-                    <p className="font-bold text-foreground">₹{Number(note.amountPaid || 0).toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">{note.paymentDate ? new Date(note.paymentDate).toLocaleDateString() : '—'}</p>
+                  <div className="text-right tabular-nums shrink-0">
+                    <p className="font-bold text-foreground">₹{Number(note.amountPaid || note.amount || 0).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{note.paymentDate || note.receivedDate ? new Date(note.paymentDate || note.receivedDate).toLocaleDateString() : '—'}</p>
                   </div>
                 </div>
               </div>
             )) : (
-              <div className="p-12 text-center text-muted-foreground">No payment notes yet.</div>
+              <div className="p-12 text-center text-muted-foreground space-y-3">
+                <p>No payment notes yet.</p>
+                {user?.role !== 'client' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentNoteModal(true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
+                  >
+                    <Plus size={13} />
+                    <span>Add First Payment Note</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -1192,15 +1419,38 @@ const ClientDetails = () => {
 
       {activeTab === 'callHistory' && (
         <div className="bg-card rounded-3xl overflow-hidden">
-          <div className="p-5 bg-secondary/10">
-            <h2 className="font-bold flex items-center gap-2"><Phone size={18} className="text-primary"/>Call History</h2>
+          <div className="p-5 bg-secondary/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center shrink-0">
+                <Phone size={18} className="text-primary"/>
+              </div>
+              <div>
+                <h2 className="font-bold text-base flex items-center gap-2">
+                  Call History
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary text-foreground tabular-nums">
+                    {callHistory.length}
+                  </span>
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Logged calls and discussions with this client</p>
+              </div>
+            </div>
+            {user?.role !== 'client' && (
+              <button
+                type="button"
+                onClick={() => setShowCallModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shrink-0"
+              >
+                <Plus size={14} />
+                <span>Log Call</span>
+              </button>
+            )}
           </div>
           <div className="divide-y divide-foreground/[0.05]">
             {callHistory.length > 0 ? callHistory.map((call) => (
-              <div key={call._id} className="p-5">
+              <div key={call._id} className="p-5 hover:bg-secondary/20 transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold">{call.callPurpose} • {call.callType}</p>
+                    <p className="font-semibold">{call.callPurpose} • {call.callType || 'Call'}</p>
                     <p className="text-sm text-muted-foreground mt-1">{call.callSummary || 'No summary added'}</p>
                     <p className="text-xs text-muted-foreground mt-2">Spoken with {call.spokenWith || 'N/A'} • {call.nextFollowUpDate ? `Next follow-up ${new Date(call.nextFollowUpDate).toLocaleDateString()}` : 'No follow-up set'}</p>
                   </div>
@@ -1208,7 +1458,19 @@ const ClientDetails = () => {
                 </div>
               </div>
             )) : (
-              <div className="p-12 text-center text-muted-foreground">No call history yet.</div>
+              <div className="p-12 text-center text-muted-foreground space-y-3">
+                <p>No call history yet.</p>
+                {user?.role !== 'client' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCallModal(true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
+                  >
+                    <Plus size={13} />
+                    <span>Log First Call</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -1216,12 +1478,35 @@ const ClientDetails = () => {
 
       {activeTab === 'referrals' && (
         <div className="bg-card rounded-3xl overflow-hidden">
-          <div className="p-5 bg-secondary/10">
-            <h2 className="font-bold flex items-center gap-2"><Users size={18} className="text-primary"/>Referrals</h2>
+          <div className="p-5 bg-secondary/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center shrink-0">
+                <Users size={18} className="text-primary"/>
+              </div>
+              <div>
+                <h2 className="font-bold text-base flex items-center gap-2">
+                  Referrals
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary text-foreground tabular-nums">
+                    {referrals.length}
+                  </span>
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Leads and clients referred by or associated with this client</p>
+              </div>
+            </div>
+            {user?.role !== 'client' && (
+              <button
+                type="button"
+                onClick={() => setShowReferralModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer shrink-0"
+              >
+                <Plus size={14} />
+                <span>Add Referral</span>
+              </button>
+            )}
           </div>
           <div className="divide-y divide-foreground/[0.05]">
             {referrals.length > 0 ? referrals.map((referral) => (
-              <div key={referral._id} className="p-5">
+              <div key={referral._id} className="p-5 hover:bg-secondary/20 transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{referral.referralSource || 'Other'}</p>
@@ -1235,7 +1520,19 @@ const ClientDetails = () => {
                 </div>
               </div>
             )) : (
-              <div className="p-12 text-center text-muted-foreground">No referral records yet.</div>
+              <div className="p-12 text-center text-muted-foreground space-y-3">
+                <p>No referral records yet.</p>
+                {user?.role !== 'client' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReferralModal(true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
+                  >
+                    <Plus size={13} />
+                    <span>Add First Referral</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -1295,10 +1592,368 @@ const ClientDetails = () => {
             }}
             defaultClientId={client._id}
           />
+          <AddProposalModal
+            open={showProposalModal}
+            onOpenChange={setShowProposalModal}
+            defaultClientId={client._id}
+            onSuccess={refetch}
+          />
+          <FinanceQuickAddModal
+            open={showInvoiceModal}
+            onOpenChange={setShowInvoiceModal}
+            initialAction="invoice"
+            defaultClientId={client._id}
+            onSuccess={refetch}
+          />
+          <FinanceQuickAddModal
+            open={showPaymentNoteModal}
+            onOpenChange={setShowPaymentNoteModal}
+            initialAction="receipt"
+            defaultClientId={client._id}
+            onSuccess={refetch}
+          />
+          <CredentialFormDialog
+            open={showVaultModal}
+            onOpenChange={setShowVaultModal}
+            credential={{ clientId: client._id }}
+            clients={[client]}
+            onSave={handleSaveCredential}
+            saving={createCredentialMutation.isPending}
+          />
+          <LogCallDialog
+            open={showCallModal}
+            onOpenChange={setShowCallModal}
+            clientId={client._id}
+            clientName={client.name || client.company}
+            onSuccess={refetch}
+          />
+          <AddReferralDialog
+            open={showReferralModal}
+            onOpenChange={setShowReferralModal}
+            clientId={client._id}
+            clientName={client.name || client.company}
+            onSuccess={refetch}
+          />
         </>
       )}
     </div>
   );
 };
+
+function LogCallDialog({ open, onOpenChange, clientId, clientName, onSuccess }) {
+  const [form, setForm] = useState({
+    callType: 'Outgoing',
+    callPurpose: 'General Update',
+    spokenWith: '',
+    callSummary: '',
+    clientResponse: '',
+    nextAction: '',
+    nextFollowUpDate: '',
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        callType: 'Outgoing',
+        callPurpose: 'General Update',
+        spokenWith: clientName || '',
+        callSummary: '',
+        clientResponse: '',
+        nextAction: '',
+        nextFollowUpDate: '',
+      });
+    }
+  }, [open, clientName]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.callSummary.trim()) {
+      toast.error('Please enter a call summary or notes');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post('/finance/call-history', {
+        clientId,
+        callDate: new Date(),
+        ...form,
+        nextFollowUpDate: form.nextFollowUpDate || undefined,
+      });
+      toast.success('Call logged successfully');
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to log call');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md w-full p-6 rounded-3xl bg-card border border-border">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            <Phone size={18} className="text-primary" />
+            <span>Log Call</span>
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Record a call discussion with {clientName || 'this client'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Call Type</label>
+              <select
+                value={form.callType}
+                onChange={(e) => setForm({ ...form, callType: e.target.value })}
+                className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="Outgoing">Outgoing</option>
+                <option value="Incoming">Incoming</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Call Purpose</label>
+              <select
+                value={form.callPurpose}
+                onChange={(e) => setForm({ ...form, callPurpose: e.target.value })}
+                className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="General Update">General Update</option>
+                <option value="Payment Follow-up">Payment Follow-up</option>
+                <option value="Task Discussion">Task Discussion</option>
+                <option value="Requirement Collection">Requirement Collection</option>
+                <option value="Approval Follow-up">Approval Follow-up</option>
+                <option value="Rework Discussion">Rework Discussion</option>
+                <option value="Complaint">Complaint</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Spoken With</label>
+            <input
+              type="text"
+              placeholder="Client / Contact Person Name"
+              value={form.spokenWith}
+              onChange={(e) => setForm({ ...form, spokenWith: e.target.value })}
+              className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+              Call Summary / Notes <span className="text-destructive">*</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder="What was discussed in this call?"
+              value={form.callSummary}
+              onChange={(e) => setForm({ ...form, callSummary: e.target.value })}
+              className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Next Follow-up Date</label>
+              <input
+                type="date"
+                value={form.nextFollowUpDate}
+                onChange={(e) => setForm({ ...form, nextFollowUpDate: e.target.value })}
+                className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Next Action</label>
+              <input
+                type="text"
+                placeholder="e.g. Send revised quote"
+                value={form.nextAction}
+                onChange={(e) => setForm({ ...form, nextAction: e.target.value })}
+                className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-secondary text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : 'Save Call Log'}
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddReferralDialog({ open, onOpenChange, clientId, clientName, onSuccess }) {
+  const [form, setForm] = useState({
+    referralSource: 'Existing Client Referral',
+    referralPersonName: '',
+    referralPersonContact: '',
+    conversionStatus: 'Lead',
+    notes: '',
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        referralSource: 'Existing Client Referral',
+        referralPersonName: '',
+        referralPersonContact: '',
+        conversionStatus: 'Lead',
+        notes: '',
+      });
+    }
+  }, [open]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.referralPersonName.trim()) {
+      toast.error('Please enter the referred person or company name');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post('/referrals', {
+        clientId,
+        client: clientId,
+        referrerType: 'outside',
+        outsideReferrerName: clientName || '',
+        ...form,
+      });
+      toast.success('Referral created successfully');
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create referral');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md w-full p-6 rounded-3xl bg-card border border-border">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            <Users size={18} className="text-primary" />
+            <span>Add Referral</span>
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Record a lead or contact referred by or linked to {clientName || 'this client'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Referral Source</label>
+              <select
+                value={form.referralSource}
+                onChange={(e) => setForm({ ...form, referralSource: e.target.value })}
+                className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="Existing Client Referral">Client Referral</option>
+                <option value="Friend Referral">Friend Referral</option>
+                <option value="Partner Referral">Partner Referral</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Website">Website</option>
+                <option value="Direct Call">Direct Call</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Status</label>
+              <select
+                value={form.conversionStatus}
+                onChange={(e) => setForm({ ...form, conversionStatus: e.target.value })}
+                className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="Lead">Lead</option>
+                <option value="In Discussion">In Discussion</option>
+                <option value="Converted">Converted</option>
+                <option value="Lost">Lost</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+              Referred Person / Business <span className="text-destructive">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. John Doe / ABC Enterprises"
+              value={form.referralPersonName}
+              onChange={(e) => setForm({ ...form, referralPersonName: e.target.value })}
+              className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Contact Number / Email</label>
+            <input
+              type="text"
+              placeholder="Phone or email"
+              value={form.referralPersonContact}
+              onChange={(e) => setForm({ ...form, referralPersonContact: e.target.value })}
+              className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Notes / Details</label>
+            <textarea
+              rows={3}
+              placeholder="Project requirements, budget, or other notes..."
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              className="w-full text-xs rounded-xl bg-secondary/50 border border-border px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-secondary text-foreground hover:bg-muted transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : 'Add Referral'}
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default ClientDetails;

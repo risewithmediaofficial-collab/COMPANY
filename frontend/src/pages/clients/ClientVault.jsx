@@ -498,7 +498,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
   );
 };
 
-const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave, saving }) => {
+export const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave, saving }) => {
   const [form, setForm] = useState(emptyForm);
   const [showPrimaryPassword, setShowPrimaryPassword] = useState(false);
   const isEditing = Boolean(credential?._id);
