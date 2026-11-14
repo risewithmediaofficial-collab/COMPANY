@@ -34,6 +34,7 @@ import {
   Megaphone,
   ShieldCheck,
   Trash2,
+  ArrowUpRight,
 } from '@/components/ui/muiIcons';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/uiSlice';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
@@ -193,7 +194,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           {
             title: 'BUSINESS & FINANCE',
             items: [
-              { name: 'Finance Hub', icon: IndianRupee, path: '/finance' },
+              { name: 'Finance Hub', icon: IndianRupee, path: '/finance', openInNewTab: true },
             ],
           },
         ] : []),
@@ -244,7 +245,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
       {
         title: 'BUSINESS & FINANCE',
         items: [
-          { name: 'Finance Hub', icon: IndianRupee, path: '/finance' },
+          { name: 'Finance Hub', icon: IndianRupee, path: '/finance', openInNewTab: true },
           { name: 'Domain Renewals', icon: Globe2, path: '/domain-renewals' },
         ],
       },
@@ -404,6 +405,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                   >
                     <Link
                       to={item.path}
+                      target={item.openInNewTab || item.path === '/finance' ? '_blank' : undefined}
+                      rel={item.openInNewTab || item.path === '/finance' ? 'noopener noreferrer' : undefined}
                       onMouseEnter={() => preloadRoute(item.path)}
                       onFocus={() => preloadRoute(item.path)}
                       onTouchStart={() => preloadRoute(item.path)}
@@ -412,6 +415,9 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                     >
                       <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}`} />
                       <span className="ml-2.5 truncate font-sans">{item.name}</span>
+                      {(item.openInNewTab || item.path === '/finance') && (
+                        <ArrowUpRight size={11} className="ml-1 text-muted-foreground/60" />
+                      )}
                     </Link>
                     <button
                       type="button"
@@ -467,6 +473,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                       >
                         <Link
                           to={item.path}
+                          target={item.openInNewTab || item.path === '/finance' ? '_blank' : undefined}
+                          rel={item.openInNewTab || item.path === '/finance' ? 'noopener noreferrer' : undefined}
                           onMouseEnter={() => preloadRoute(item.path)}
                           onFocus={() => preloadRoute(item.path)}
                           onTouchStart={() => preloadRoute(item.path)}
@@ -483,6 +491,9 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                           </div>
 
                           <span className="ml-2.5 truncate font-sans">{item.name}</span>
+                          {(item.openInNewTab || item.path === '/finance') && (
+                            <ArrowUpRight size={11} className="ml-1 text-muted-foreground/60" />
+                          )}
 
                           {/* Badge count if pending */}
                           {count > 0 && (

@@ -15,7 +15,6 @@ import {
   FileText,
   Sparkles,
   Flag,
-  AlignLeft,
   ArrowUpRight,
   Plus,
   Edit3,
@@ -454,7 +453,7 @@ export const ProjectNotionPropertiesView = ({
       </NotionPropertyRow>
 
       {/* 20. Project Description */}
-      <NotionPropertyRow icon={AlignLeft} label="Project Description">
+      <NotionPropertyRow icon={FileText} label="Project Description">
         {project.description ? (
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap max-w-xl">
             {project.description}

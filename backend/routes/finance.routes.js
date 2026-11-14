@@ -113,11 +113,31 @@ import {
   triggerLoanRemindersManually,
 } from '../controllers/loan.controller.js';
 
+import {
+  verifyFinancePassword,
+  getFinanceSecurityStatus,
+  changeFinancePassword,
+} from '../controllers/financeSecurity.controller.js';
+
+import {
+  getCompanyAssets,
+  createCompanyAsset,
+  updateCompanyAsset,
+  deleteCompanyAsset,
+} from '../controllers/companyAsset.controller.js';
+
 import { authorize, protect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 router.get('/invoices/public/:publicLink', getInvoiceByPublicLink);
 router.use(protect);
+
+// =============================================
+// FINANCE SECURITY & AUTHENTICATION GATE
+// =============================================
+router.post('/auth/verify', verifyFinancePassword);
+router.get('/auth/status', getFinanceSecurityStatus);
+router.post('/auth/change-password', authorize('superAdmin', 'admin'), changeFinancePassword);
 
 // =============================================
 // ADVANCED FINANCE MODULE ROUTES
@@ -211,6 +231,12 @@ router.put('/loans/:id', authorize('superAdmin', 'admin', 'manager', 'financeMan
 router.post('/loans/:id/payments', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'), recordLoanPayment);
 router.delete('/loans/:id', authorize('superAdmin', 'admin', 'financeManager', 'organizationOwner'), deleteLoan);
 router.post('/loans/trigger-reminders', authorize('superAdmin', 'admin', 'financeManager', 'organizationOwner'), triggerLoanRemindersManually);
+
+// 15. Assets & Equipment Tracker (Computers, Cameras, Mics, Studio Gear)
+router.get('/company-assets', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getCompanyAssets);
+router.post('/company-assets', authorize('superAdmin', 'admin', 'financeManager'), createCompanyAsset);
+router.put('/company-assets/:id', authorize('superAdmin', 'admin', 'financeManager'), updateCompanyAsset);
+router.delete('/company-assets/:id', authorize('superAdmin', 'admin'), deleteCompanyAsset);
 
 // =============================================
 // LEGACY CRM COMPATIBILITY ROUTES

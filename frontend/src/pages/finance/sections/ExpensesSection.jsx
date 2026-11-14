@@ -95,6 +95,7 @@ export default function ExpensesSection({ onQuickAdd }) {
   const { startDate: fromDate, endDate: toDate, period: globalPeriod, isDateInRange, resetDateFilter } = useDateFilter();
   const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions' | 'payment_reminders'
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [costTypeFilter, setCostTypeFilter] = useState('all'); // 'all' | 'client_project' | 'agency_overhead'
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
@@ -344,6 +345,7 @@ export default function ExpensesSection({ onQuickAdd }) {
     return expenses.filter((e) => {
       const expDate = e.date || e.createdAt;
       if (!isDateInRange(expDate)) return false;
+      if (costTypeFilter !== 'all' && (e.costType || 'agency_overhead') !== costTypeFilter) return false;
       if (!deferredSearch.trim()) return true;
       const q = deferredSearch.toLowerCase();
       const title = (e.title || '').toLowerCase();
@@ -910,6 +912,28 @@ export default function ExpensesSection({ onQuickAdd }) {
                 className="w-full sm:w-48"
                 buttonClassName="h-9 px-3 rounded-lg text-xs bg-background text-foreground border border-border/50"
               />
+
+              {/* Client Project Costs vs Company Overheads Toggle */}
+              <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl text-xs font-semibold">
+                {[
+                  { id: 'all', label: 'All Costs' },
+                  { id: 'client_project', label: 'Client / Project' },
+                  { id: 'agency_overhead', label: 'Company Overhead' },
+                ].map((ct) => (
+                  <button
+                    key={ct.id}
+                    type="button"
+                    onClick={() => setCostTypeFilter(ct.id)}
+                    className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                      costTypeFilter === ct.id
+                        ? 'bg-card text-foreground font-bold shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {ct.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
