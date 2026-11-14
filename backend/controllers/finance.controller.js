@@ -859,6 +859,7 @@ export const getInvoices = async (req, res) => {
 
     if (status) filter.status = normalizeStatus(status);
     if (client) filter.client = client;
+    if (req.query.project) filter.project = req.query.project;
     if (search) {
       filter.$or = [
         { invoiceNumber: { $regex: search, $options: 'i' } },

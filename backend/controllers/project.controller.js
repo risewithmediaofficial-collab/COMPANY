@@ -573,7 +573,7 @@ export const getProject = async (req, res) => {
 
     res.json({
       success: true,
-      project: serializeProject({ ...project.toObject(), progress }),
+      project: serializeProject({ ...project.toObject(), progress, totalTasks, doneTasks }),
       progress,
       recentActivity,
       recentTasks: recentTasks.map(serializeProjectTask),

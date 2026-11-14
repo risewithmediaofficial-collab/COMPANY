@@ -24,11 +24,16 @@ import {
   Edit3,
   Trash2,
   X,
+  SlidersHorizontal,
+  LayoutList,
+  ChevronDown,
+  ChevronUp,
 } from '@/components/ui/muiIcons';
 import { formatINR } from '../../utils/currency';
 import { useUpdateProject, useDeleteProject } from '../../hooks/useProjects';
 import { useUpdateTaskStatus, useDeleteTask } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
+import { useProjectMonthlyDeliverables } from '../../hooks/useMonthlyDeliverables';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../api';
 import { toast } from 'sonner';
@@ -38,6 +43,7 @@ import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { Button } from '../../components/ui/button';
 import ProjectMonthlyDeliverablesCard from '../../components/projects/ProjectMonthlyDeliverablesCard';
+import ProjectNotionPropertiesView from '../../components/projects/ProjectNotionPropertiesView';
 import {
   NotionDetailPage,
   NotionTabs,
@@ -102,6 +108,14 @@ const ProjectDetails = () => {
   const [hasRequested, setHasRequested] = useState(false);
   const [editingBudget, setEditingBudget] = useState(false);
   const [budgetForm, setBudgetForm] = useState({});
+  const [projectInvoices, setProjectInvoices] = useState([]);
+  const [showHeaderProperties, setShowHeaderProperties] = useState(false);
+
+  // Deliverables query for metadata overview
+  const { data: deliverablesData } = useProjectMonthlyDeliverables(project?._id);
+  const deliverablesList = useMemo(() => {
+    return deliverablesData?.deliverables || (Array.isArray(deliverablesData) ? deliverablesData : []);
+  }, [deliverablesData]);
 
   // Drag & drop state
   const [draggingTaskId, setDraggingTaskId] = useState(null);
@@ -148,9 +162,10 @@ const ProjectDetails = () => {
   const fetchProjectData = async (showLoading = true) => {
     try {
       if (showLoading && !project) setLoading(true);
-      const [projectSettled, kanbanSettled] = await Promise.allSettled([
+      const [projectSettled, kanbanSettled, invoicesSettled] = await Promise.allSettled([
         api.get(`/projects/${id}`),
         api.get(`/projects/${id}/kanban`),
+        api.get(`/finance/invoices?project=${id}`),
       ]);
 
       if (projectSettled.status === 'fulfilled' && projectSettled.value.data?.project) {
@@ -163,6 +178,10 @@ const ProjectDetails = () => {
 
       if (kanbanSettled.status === 'fulfilled' && kanbanSettled.value.data?.kanban) {
         setKanban(kanbanSettled.value.data.kanban);
+      }
+
+      if (invoicesSettled.status === 'fulfilled' && invoicesSettled.value.data?.invoices) {
+        setProjectInvoices(invoicesSettled.value.data.invoices);
       }
 
       if (user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') {
@@ -1230,6 +1249,19 @@ const ProjectDetails = () => {
               )}
             </div>
             <button
+              onClick={() => setShowHeaderProperties((v) => !v)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                showHeaderProperties
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-background text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
+              title={showHeaderProperties ? 'Hide properties panel' : 'Show properties panel'}
+            >
+              <SlidersHorizontal size={14} />
+              <span>Properties</span>
+              {showHeaderProperties ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
+            <button
               onClick={handleShare}
               className="rounded-xl bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               title="Share project"
@@ -1270,6 +1302,7 @@ const ProjectDetails = () => {
       >
         <NotionTabs
           tabs={[
+            { id: 'overview', label: 'Overview', icon: LayoutList },
             { id: 'board', label: 'Task Board', icon: LayoutGrid },
             { id: 'list', label: 'List View', icon: List },
             { id: 'files', label: 'Files', icon: Paperclip },
@@ -1284,6 +1317,42 @@ const ProjectDetails = () => {
         />
       </NotionDetailPage>
 
+      {/* Collapsible Notion Properties Sheet (when toggled from header while viewing another tab) */}
+      {showHeaderProperties && activeTab !== 'overview' && (
+        <div className="rounded-3xl bg-card p-4 sm:p-6 shadow-sm border border-border/40 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center justify-between pb-3 mb-2 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <LayoutList size={16} className="text-primary" />
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Project Properties</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+              >
+                Open in Overview tab
+              </button>
+              <button
+                onClick={() => setShowHeaderProperties(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground cursor-pointer"
+                title="Close properties panel"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+          <ProjectNotionPropertiesView
+            project={project}
+            kanban={kanban}
+            deliverables={deliverablesList}
+            invoices={projectInvoices}
+            onEdit={() => setShowProjectModal(true)}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            canEdit={user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager'}
+          />
+        </div>
+      )}
+
       {/* Monthly Deliverables & Targets Overview (Shown on task views) */}
       {(activeTab === 'board' || activeTab === 'list') && (
         <ProjectMonthlyDeliverablesCard
@@ -1294,6 +1363,39 @@ const ProjectDetails = () => {
 
       {/* Tab Content */}
       <div key={activeTab} className="animate-in fade-in duration-150">
+        {activeTab === 'overview' && (
+          <div className="rounded-3xl bg-card p-4 sm:p-6 shadow-sm border border-border/40">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-border/40">
+              <div>
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <LayoutList size={18} className="text-primary" />
+                  Project Overview & Properties
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Notion-style property list displaying all project metadata, status, deliverables, budget & timeline
+                </p>
+              </div>
+              {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
+                <button
+                  onClick={() => setShowProjectModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-all cursor-pointer"
+                >
+                  <Edit3 size={13} />
+                  <span>Edit Properties</span>
+                </button>
+              )}
+            </div>
+            <ProjectNotionPropertiesView
+              project={project}
+              kanban={kanban}
+              deliverables={deliverablesList}
+              invoices={projectInvoices}
+              onEdit={() => setShowProjectModal(true)}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              canEdit={user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager'}
+            />
+          </div>
+        )}
         {activeTab === 'board' && renderBoard()}
         {activeTab === 'list' && renderList()}
         {activeTab === 'files' && renderFiles()}
