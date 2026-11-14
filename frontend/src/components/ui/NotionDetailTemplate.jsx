@@ -16,8 +16,8 @@ export const NotionDetailPage = ({
   children,
   className,
 }) => (
-  <div className={cn('mx-auto max-w-6xl space-y-6 pb-16', className)}>
-    <div className="flex flex-wrap items-center justify-between gap-3 py-1">
+  <div className={cn('w-full space-y-4', className)}>
+    <div className="flex flex-wrap items-center justify-between gap-3 py-0.5">
       <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-muted-foreground">
         {backTo ? (
           <Link to={backTo} className="flex items-center gap-1 transition-colors hover:text-foreground">
@@ -31,10 +31,10 @@ export const NotionDetailPage = ({
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
 
-    <section className="rounded-3xl bg-card p-5 sm:p-6 md:p-8">
+    <section className="rounded-3xl bg-card p-4 sm:p-5 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-background text-primary">
+          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground">
             {Icon ? <Icon size={22} /> : <span className="text-lg font-black">{iconContent}</span>}
           </div>
           <div className="min-w-0">
@@ -44,7 +44,7 @@ export const NotionDetailPage = ({
                 <span
                   className={cn(
                     'inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest',
-                    statusClassName || 'bg-primary/10 text-primary',
+                    statusClassName || 'bg-primary text-primary-foreground',
                   )}
                 >
                   {status}
@@ -56,7 +56,7 @@ export const NotionDetailPage = ({
         </div>
       </div>
 
-      {children ? <div className="mt-6 pt-4">{children}</div> : null}
+      {children ? <div className="mt-4 pt-3 border-t border-border/30">{children}</div> : null}
     </section>
   </div>
 );

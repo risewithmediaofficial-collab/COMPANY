@@ -24,7 +24,7 @@ export const DevelopmentSubNav = () => {
   const location = useLocation();
 
   return (
-    <div className="bg-card rounded-2xl p-1.5 sm:p-2 mb-4 sm:mb-6 responsive-table-container overflow-x-auto max-w-full custom-scrollbar">
+    <div className="bg-card rounded-2xl p-1.5 sm:p-2 responsive-table-container overflow-x-auto max-w-full custom-scrollbar">
       <div className="flex items-center gap-1 sm:gap-1.5 min-w-max">
         {DEV_NAV_ITEMS.map((item) => {
           const Icon = item.icon;

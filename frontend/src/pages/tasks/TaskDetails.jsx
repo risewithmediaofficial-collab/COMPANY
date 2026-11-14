@@ -179,7 +179,7 @@ export const TaskDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-6xl mx-auto py-6 animate-pulse">
+      <div className="space-y-4 w-full py-6 animate-pulse">
         <div className="h-8 w-64 rounded-xl bg-secondary/70" />
         <div className="h-40 rounded-3xl bg-secondary/50 " />
         <div className="grid gap-6 md:grid-cols-3">
@@ -223,7 +223,7 @@ export const TaskDetails = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto pb-20 space-y-6">
+    <div className="w-full pb-16 space-y-4">
       {/* ── Top Notion Breadcrumb & Actions Bar ── */}
       <div className="flex flex-wrap items-center justify-between gap-4 py-2 ">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">

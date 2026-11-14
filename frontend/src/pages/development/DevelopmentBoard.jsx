@@ -364,7 +364,7 @@ export default function DevelopmentBoard() {
   }, [displayedTasks]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Development Board"
         actions={

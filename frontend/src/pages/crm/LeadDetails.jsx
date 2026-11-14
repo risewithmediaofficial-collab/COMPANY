@@ -93,7 +93,6 @@ const LeadDetails = () => {
           Edit Lead
         </Button>
       )}
-      className="max-w-7xl"
     >
       <div className="space-y-6">
         <NotionSection title="Contact">

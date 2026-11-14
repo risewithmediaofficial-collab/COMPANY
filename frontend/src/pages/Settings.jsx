@@ -369,7 +369,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="w-full space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Account Settings</h1>
       </div>

@@ -336,10 +336,9 @@ const ClientDetails = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-4 animate-in fade-in duration-300">
 
       <NotionDetailPage
-        className="pb-0"
         backTo={isClientUser ? null : '/clients'}
         backLabel={isClientUser ? null : 'Clients'}
         title={client.company || client.name}

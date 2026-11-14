@@ -72,7 +72,7 @@ export default function PortalInvoices() {
   }), [invoices]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 p-4 sm:p-6">
+    <div className="w-full space-y-5 p-4 sm:p-6">
       <div>
         <h2 className="text-xl font-black text-foreground">Finance & Invoices</h2>
       </div>

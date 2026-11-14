@@ -83,7 +83,7 @@ export default function DevelopmentDashboard() {
   const stages = Object.keys(STAGE_LABELS);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Development Management"
         actions={

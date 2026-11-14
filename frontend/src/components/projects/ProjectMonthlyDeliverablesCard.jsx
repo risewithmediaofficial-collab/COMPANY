@@ -3,6 +3,8 @@ import {
   Target,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Plus,
   Edit2,
   Video,
@@ -56,6 +58,15 @@ export const ProjectMonthlyDeliverablesCard = ({
 
   const deliverables = deliverablesData?.deliverables || [];
   const monthName = MONTH_NAMES[selectedMonth - 1] || '';
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const gridColsClass = React.useMemo(() => {
+    const count = deliverables.length;
+    if (count <= 1) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+    if (count === 2) return 'grid-cols-1 sm:grid-cols-2';
+    if (count === 3) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+    return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
+  }, [deliverables.length]);
 
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
@@ -110,24 +121,38 @@ export const ProjectMonthlyDeliverablesCard = ({
   return (
     <>
       <div
-        className={`rounded-3xl bg-card p-5 sm:p-6 space-y-4 transition-all ${className}`}
+        className={`rounded-3xl bg-card p-4 sm:p-5 space-y-3 transition-all ${className}`}
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
-              <Target size={20} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
+              <Target size={18} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-foreground">Monthly Deliverables</h2>
+                <h2 className="text-sm sm:text-base font-bold text-foreground">Monthly Deliverables</h2>
                 <span className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground">
                   {monthName} {selectedYear}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Track content deliverables and over-task quotas for this project
-              </p>
+              {isCollapsed && deliverables.length > 0 ? (
+                <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                  {deliverables.map((d) => (
+                    <span
+                      key={d._id || d.contentType}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-secondary text-foreground tabular-nums"
+                    >
+                      <span className="font-semibold">{d.contentType}:</span>
+                      <span className="font-bold text-foreground">{d.currentCount}/{d.targetQuantity}</span>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Track content deliverables and over-task quotas for this project
+                </p>
+              )}
             </div>
           </div>
 
@@ -137,7 +162,7 @@ export const ProjectMonthlyDeliverablesCard = ({
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="rounded-lg p-1.5 text-muted-foreground hover:bg-card hover:text-foreground transition-colors"
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-card hover:text-foreground transition-colors cursor-pointer"
                 title="Previous Month"
               >
                 <ChevronLeft size={14} />
@@ -148,7 +173,7 @@ export const ProjectMonthlyDeliverablesCard = ({
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="rounded-lg p-1.5 text-muted-foreground hover:bg-card hover:text-foreground transition-colors"
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-card hover:text-foreground transition-colors cursor-pointer"
                 title="Next Month"
               >
                 <ChevronRight size={14} />
@@ -161,40 +186,53 @@ export const ProjectMonthlyDeliverablesCard = ({
                 onClick={handleOpenManageModal}
                 size="sm"
                 variant="outline"
-                className="h-8 rounded-xl text-xs font-bold hover:bg-secondary"
+                className="h-8 rounded-xl text-xs font-bold hover:bg-secondary cursor-pointer"
               >
                 <Edit2 size={13} className="mr-1.5" />
                 {deliverables.length === 0 ? 'Set Targets' : 'Manage Targets'}
               </Button>
             )}
+
+            {deliverables.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="h-8 w-8 rounded-xl bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                title={isCollapsed ? 'Expand deliverables' : 'Collapse deliverables'}
+              >
+                {isCollapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Deliverables Grid */}
-        {isLoading ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">
-            Loading monthly deliverables...
-          </div>
-        ) : deliverables.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-secondary/15 py-8 px-4 text-center">
-            <Target size={28} className="text-muted-foreground/50 mb-2" />
-            <p className="text-sm font-semibold text-foreground">No Deliverable Targets Set</p>
-            <p className="text-xs text-muted-foreground max-w-sm mt-0.5">
-              No monthly deliverables have been configured for {monthName} {selectedYear}.
-            </p>
-            {canManage && (
-              <Button
-                type="button"
-                onClick={handleOpenManageModal}
-                size="sm"
-                className="mt-3.5 h-8 rounded-xl bg-primary text-xs font-bold text-primary-foreground hover:bg-primary/90"
-              >
-                <Plus size={14} className="mr-1" /> Configure {monthName} Targets
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Deliverables Grid (Hidden when collapsed) */}
+        {!isCollapsed && (
+          <>
+            {isLoading ? (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                Loading monthly deliverables...
+              </div>
+            ) : deliverables.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl bg-secondary/15 py-6 px-4 text-center">
+                <Target size={26} className="text-muted-foreground/50 mb-2" />
+                <p className="text-sm font-semibold text-foreground">No Deliverable Targets Set</p>
+                <p className="text-xs text-muted-foreground max-w-sm mt-0.5">
+                  No monthly deliverables have been configured for {monthName} {selectedYear}.
+                </p>
+                {canManage && (
+                  <Button
+                    type="button"
+                    onClick={handleOpenManageModal}
+                    size="sm"
+                    className="mt-3.5 h-8 rounded-xl bg-primary text-xs font-bold text-primary-foreground hover:bg-primary/90"
+                  >
+                    <Plus size={14} className="mr-1" /> Configure {monthName} Targets
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className={`grid ${gridColsClass} gap-3 pt-1`}>
             {deliverables.map((item) => {
               const matchedType = STANDARD_DELIVERABLE_TYPES.find(
                 (t) => t.value.toLowerCase() === item.contentType.toLowerCase()
@@ -284,7 +322,9 @@ export const ProjectMonthlyDeliverablesCard = ({
             })}
           </div>
         )}
-      </div>
+      </>
+    )}
+  </div>
 
       {/* Manage Targets Modal */}
       {showManageModal && (

@@ -219,7 +219,7 @@ const ProposalDetails = () => {
   ] : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <NotionDetailPage
         backTo={isClient ? '/client/proposals' : '/proposals'}
         backLabel="Proposals"

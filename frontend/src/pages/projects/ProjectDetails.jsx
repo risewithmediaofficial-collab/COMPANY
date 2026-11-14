@@ -510,7 +510,7 @@ const ProjectDetails = () => {
         </DialogContent>
       </Dialog>
 
-      <div ref={projectDetailsBoardRef} className="flex h-[calc(100vh-300px)] gap-4 sm:gap-6 overflow-x-auto pb-6 custom-scrollbar responsive-table-container">
+      <div ref={projectDetailsBoardRef} className="flex min-h-[500px] h-[calc(100vh-270px)] gap-4 sm:gap-6 overflow-x-auto pb-6 custom-scrollbar responsive-table-container">
         {statuses.map((status) => {
           const isDragOver = dragOverStatus === status;
           const columnDotColor =
@@ -1098,7 +1098,7 @@ const ProjectDetails = () => {
 
   // ─── Main Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <NotionDetailPage
         backTo="/projects"
         backLabel="Projects"
@@ -1193,11 +1193,13 @@ const ProjectDetails = () => {
         />
       </NotionDetailPage>
 
-      {/* Monthly Deliverables & Targets Overview */}
-      <ProjectMonthlyDeliverablesCard
-        project={project}
-        canManage={user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager'}
-      />
+      {/* Monthly Deliverables & Targets Overview (Shown on task views) */}
+      {(activeTab === 'board' || activeTab === 'list') && (
+        <ProjectMonthlyDeliverablesCard
+          project={project}
+          canManage={user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager'}
+        />
+      )}
 
       {/* Tab Content */}
       <div key={activeTab} className="animate-in fade-in duration-150">
