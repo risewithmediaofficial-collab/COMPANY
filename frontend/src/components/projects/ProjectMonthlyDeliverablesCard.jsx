@@ -234,8 +234,9 @@ export const ProjectMonthlyDeliverablesCard = ({
             ) : (
               <div className={`grid ${gridColsClass} gap-3 pt-1`}>
             {deliverables.map((item) => {
+              const itemTypeStr = (item.contentType || item.deliverableType || item.type || '').toLowerCase();
               const matchedType = STANDARD_DELIVERABLE_TYPES.find(
-                (t) => t.value.toLowerCase() === item.contentType.toLowerCase()
+                (t) => (t.value || '').toLowerCase() === itemTypeStr
               );
               const IconComponent = matchedType?.icon || Target;
 
@@ -278,7 +279,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                       >
                         <IconComponent size={16} />
                       </div>
-                      <h4 className="text-sm font-bold text-foreground truncate">{item.contentType}</h4>
+                      <h4 className="text-sm font-bold text-foreground truncate">{item.contentType || item.deliverableType || item.type || matchedType?.label || 'Deliverable'}</h4>
                     </div>
 
                     <span

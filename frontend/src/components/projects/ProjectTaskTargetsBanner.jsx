@@ -86,15 +86,16 @@ export const ProjectTaskTargetsBanner = ({
       {/* Deliverable Target Chips / Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
         {deliverables.map((item) => {
+          const itemTypeStr = (item.contentType || item.deliverableType || item.type || '').toLowerCase();
           const matchedType = STANDARD_DELIVERABLE_TYPES.find(
-            (t) => t.value.toLowerCase() === item.contentType.toLowerCase()
+            (t) => (t.value || '').toLowerCase() === itemTypeStr
           );
           const Icon = matchedType?.icon || Target;
           const isOver = item.status === 'OVER_TASK';
           const isReached = item.status === 'TARGET_REACHED';
           const isSelected =
             activeDeliverableType &&
-            item.contentType.toLowerCase().includes(activeDeliverableType.toLowerCase());
+            itemTypeStr.includes(activeDeliverableType.toLowerCase());
 
           return (
             <div

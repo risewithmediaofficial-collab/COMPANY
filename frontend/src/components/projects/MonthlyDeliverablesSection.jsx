@@ -53,7 +53,7 @@ export const MonthlyDeliverablesSection = ({
 
     // Check duplicate
     const isDuplicate = deliverables.some(
-      (d) => d.contentType.trim().toLowerCase() === typeToAdd.toLowerCase()
+      (d) => (d.contentType || d.type || '').trim().toLowerCase() === typeToAdd.toLowerCase()
     );
 
     if (isDuplicate) {
@@ -218,8 +218,9 @@ export const MonthlyDeliverablesSection = ({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {deliverables.map((item, index) => {
+              const itemTypeStr = (item.contentType || item.deliverableType || item.type || '').toLowerCase();
               const matchedType = STANDARD_DELIVERABLE_TYPES.find(
-                (t) => t.value.toLowerCase() === item.contentType.toLowerCase()
+                (t) => (t.value || '').toLowerCase() === itemTypeStr
               );
               const IconComponent = matchedType?.icon || Target;
 

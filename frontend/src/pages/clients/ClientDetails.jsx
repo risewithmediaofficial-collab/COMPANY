@@ -265,12 +265,13 @@ const ClientDetails = () => {
       }
 
       // If client was resolved and has a different _id than raw id param, ensure sub-resources load
-      let projects = projectsRes?.status === 'fulfilled' ? (projectsRes.value.data.projects || projectsRes.value.data || []) : [];
-      let invoices = invoicesRes?.status === 'fulfilled' ? invoicesRes.value.data.invoices || [] : [];
-      let financeRecords = financeRes?.status === 'fulfilled' ? financeRes.value.data.records || [] : [];
-      let callHistory = callRes?.status === 'fulfilled' ? callRes.value.data.calls || [] : [];
-      let referrals = referralRes?.status === 'fulfilled' ? referralRes.value.data.referrals || [] : [];
-      let receipts = receiptsRes?.status === 'fulfilled' ? (receiptsRes.value.data?.receipts || receiptsRes.value.data?.data || receiptsRes.value.data || []) : [];
+      const toArray = (val) => (Array.isArray(val) ? val : []);
+      let projects = projectsRes?.status === 'fulfilled' ? toArray(projectsRes.value.data?.projects || projectsRes.value.data) : [];
+      let invoices = invoicesRes?.status === 'fulfilled' ? toArray(invoicesRes.value.data?.invoices || invoicesRes.value.data) : [];
+      let financeRecords = financeRes?.status === 'fulfilled' ? toArray(financeRes.value.data?.records || financeRes.value.data) : [];
+      let callHistory = callRes?.status === 'fulfilled' ? toArray(callRes.value.data?.calls || callRes.value.data?.callHistory || callRes.value.data) : [];
+      let referrals = referralRes?.status === 'fulfilled' ? toArray(referralRes.value.data?.referrals || referralRes.value.data) : [];
+      let receipts = receiptsRes?.status === 'fulfilled' ? toArray(receiptsRes.value.data?.receipts || receiptsRes.value.data?.data || receiptsRes.value.data) : [];
 
       if (client?._id && String(client._id) !== String(id) && projects.length === 0) {
         try {
@@ -343,7 +344,13 @@ const ClientDetails = () => {
     );
   }
 
-  const { client, projects, invoices, financeRecords = [], callHistory = [], referrals = [], receipts = [] } = data;
+  const client = data?.client || {};
+  const projects = Array.isArray(data?.projects) ? data.projects : [];
+  const invoices = Array.isArray(data?.invoices) ? data.invoices : [];
+  const financeRecords = Array.isArray(data?.financeRecords) ? data.financeRecords : [];
+  const callHistory = Array.isArray(data?.callHistory) ? data.callHistory : [];
+  const referrals = Array.isArray(data?.referrals) ? data.referrals : [];
+  const receipts = Array.isArray(data?.receipts) ? data.receipts : [];
 
   const onboardingSteps = client.onboardingSteps || {};
   const completedSteps = Object.values(onboardingSteps).filter(Boolean).length;
