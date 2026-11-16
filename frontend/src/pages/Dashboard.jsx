@@ -21,8 +21,6 @@ import {
   Copy,
   FileText,
   AlertCircle,
-  Eye,
-  EyeOff,
   Search,
   Filter,
   Receipt,
@@ -98,7 +96,6 @@ const Dashboard = () => {
   const [createClientOpen, setCreateClientOpen] = useState(false);
 
   const [eodSearch, setEodSearch] = useState('');
-  const [showFinance, setShowFinance] = useState(false);
   const [userMetricSearch, setUserMetricSearch] = useState('');
   const [userMetricRoleFilter, setUserMetricRoleFilter] = useState('all');
 
@@ -270,21 +267,6 @@ const Dashboard = () => {
 
             {/* Top Quick Actions */}
             <div className="flex flex-wrap items-center gap-2 shrink-0">
-              {user.role !== 'manager' && (
-                <button
-                  type="button"
-                  onClick={() => setShowFinance((v) => !v)}
-                  className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold min-h-[36px] sm:min-h-[38px] transition-colors cursor-pointer ${
-                    showFinance
-                      ? 'bg-secondary text-foreground hover:bg-secondary/80'
-                      : 'bg-background text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  {showFinance ? <EyeOff size={14} /> : <Eye size={14} />}
-                  <span>{showFinance ? 'Hide Revenue' : 'Unhide Revenue'}</span>
-                </button>
-              )}
-
               <button
                 type="button"
                 onClick={() => setCreateTaskOpen(true)}
@@ -503,7 +485,7 @@ const Dashboard = () => {
                           }}
                         />
                         <RechartsTooltip
-                          formatter={(value) => [showFinance ? formatINR(value) : '*****', 'Revenue']}
+                          formatter={(value) => [formatINR(value), 'Revenue']}
                           contentStyle={{
                             backgroundColor: 'hsl(var(--popover))',
                             border: 'none',
@@ -550,7 +532,7 @@ const Dashboard = () => {
                             {client.name}
                           </span>
                           <span className="font-bold text-foreground tabular-nums shrink-0">
-                            {!showFinance ? '*****' : formatINR(client.revenue)}
+                            {formatINR(client.revenue)}
                           </span>
                         </div>
                         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
