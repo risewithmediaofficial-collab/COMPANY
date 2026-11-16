@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/muiIcons';
 import api from '../../api';
 import { useSocket } from '../../context/SocketContext';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'sonner';
 
 const MODULE_OPTIONS = [
@@ -57,6 +58,7 @@ export default function AuditLogs() {
   const currentUser = useSelector((state) => state.auth?.user);
   const currentUserId = currentUser?._id;
   const socket = useSocket();
+  const { startDate, endDate, resetDateFilter } = useDateFilter();
 
   const [logs, setLogs] = useState([]);
   const [total, setTotal] = useState(0);
@@ -91,6 +93,8 @@ export default function AuditLogs() {
           entityType: selectedModule !== 'all' ? selectedModule : undefined,
           actionType: selectedActionGroup !== 'all' ? selectedActionGroup : undefined,
           actor: filterMyActionsOnly ? 'me' : undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
         };
 
         const res = await api.get('/reports/audit-logs', { params });

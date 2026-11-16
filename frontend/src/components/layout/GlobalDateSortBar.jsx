@@ -39,6 +39,7 @@ export const ALLOWED_DATE_FILTER_ROUTES = [
   '/development/reviews',
   '/development/qa',
   '/development/releases',
+  '/audit-logs',
 ];
 
 export const shouldShowGlobalDateFilter = (rawPathname) => {
