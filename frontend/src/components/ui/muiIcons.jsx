@@ -303,6 +303,7 @@ export const Download = createMuiIcon(FileDownloadOutlined, 'Download');
 export const Edit = createMuiIcon(EditNoteOutlined, 'Edit');
 export const Edit2 = createMuiIcon(EditOutlined, 'Edit2');
 export const Edit3 = createMuiIcon(CreateOutlined, 'Edit3');
+export const NotebookPen = createMuiIcon(EditNoteOutlined, 'NotebookPen');
 export const ExternalLink = createMuiIcon(OpenInNewOutlined, 'ExternalLink');
 export const Eye = createMuiIcon(VisibilityOutlined, 'Eye');
 export const EyeOff = createMuiIcon(VisibilityOffOutlined, 'EyeOff');

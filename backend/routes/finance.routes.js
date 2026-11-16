@@ -126,6 +126,13 @@ import {
   deleteCompanyAsset,
 } from '../controllers/companyAsset.controller.js';
 
+import {
+  getOtherExpenses,
+  createOtherExpense,
+  updateOtherExpense,
+  deleteOtherExpense,
+} from '../controllers/otherExpense.controller.js';
+
 import { authorize, protect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -237,6 +244,12 @@ router.get('/company-assets', authorize('superAdmin', 'admin', 'manager', 'finan
 router.post('/company-assets', authorize('superAdmin', 'admin', 'financeManager'), createCompanyAsset);
 router.put('/company-assets/:id', authorize('superAdmin', 'admin', 'financeManager'), updateCompanyAsset);
 router.delete('/company-assets/:id', authorize('superAdmin', 'admin'), deleteCompanyAsset);
+
+// 16. Other / Unbound Memo Expenses (Notes Tracker - strictly unbound from official finance calculations)
+router.get('/other-expenses', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'accountManager', 'employee'), getOtherExpenses);
+router.post('/other-expenses', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'accountManager', 'employee'), createOtherExpense);
+router.put('/other-expenses/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'accountManager', 'employee'), updateOtherExpense);
+router.delete('/other-expenses/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'accountManager', 'employee'), deleteOtherExpense);
 
 // =============================================
 // LEGACY CRM COMPATIBILITY ROUTES

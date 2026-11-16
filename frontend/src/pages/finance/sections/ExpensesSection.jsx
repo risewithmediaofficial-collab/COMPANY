@@ -29,6 +29,7 @@ import {
   ArrowLeft,
   Printer,
   ChevronDown,
+  FileEdit,
 } from '@/components/ui/muiIcons';
 import {
   Dialog,
@@ -58,6 +59,7 @@ import { useClients } from '../../../hooks/useClients';
 import { useVendors } from '../../../hooks/useVendors';
 
 const PaymentRemindersTab = lazy(() => import('./PaymentRemindersTab'));
+const OtherExpensesSection = lazy(() => import('./OtherExpensesSection'));
 
 export const calculateExpenseFinancials = (e) => {
   if (!e) return { total: 0, paid: 0, balance: 0, status: 'unpaid' };
@@ -869,6 +871,17 @@ export default function ExpensesSection({ onQuickAdd }) {
         >
           <BellRing className="h-3.5 w-3.5 shrink-0" />
           <span>Payment Reminders</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('other_expenses')}
+          className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 ${
+            activeTab === 'other_expenses'
+              ? 'bg-background text-foreground font-bold shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <FileEdit className="h-3.5 w-3.5 shrink-0" />
+          <span>Other Expenses (Notes)</span>
         </button>
       </div>
 
@@ -1682,6 +1695,18 @@ export default function ExpensesSection({ onQuickAdd }) {
           </div>
         }>
           <PaymentRemindersTab />
+        </Suspense>
+      )}
+
+      {/* 5. OTHER / UNBOUND MEMO EXPENSES (NOTES TRACKER) */}
+      {activeTab === 'other_expenses' && (
+        <Suspense fallback={
+          <div className="w-full py-12 flex flex-col items-center justify-center space-y-3">
+            <div className="h-7 w-7 rounded-full border-2 border-border border-t-foreground animate-spin" />
+            <span className="text-[11px] font-medium text-muted-foreground">Loading expense notes...</span>
+          </div>
+        }>
+          <OtherExpensesSection />
         </Suspense>
       )}
 

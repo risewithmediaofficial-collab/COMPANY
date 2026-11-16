@@ -26,6 +26,7 @@ import {
   Percent,
   Package,
   Settings,
+  FileEdit,
 } from '@/components/ui/muiIcons';
 
 const OverviewSection = lazy(() => import('./sections/OverviewSection'));
@@ -35,6 +36,7 @@ const PaymentsSection = lazy(() => import('./sections/PaymentsSection'));
 const ClientsSection = lazy(() => import('./sections/ClientsSection'));
 const ProjectsFinanceSection = lazy(() => import('./sections/ProjectsFinanceSection'));
 const ExpensesSection = lazy(() => import('./sections/ExpensesSection'));
+const OtherExpensesSection = lazy(() => import('./sections/OtherExpensesSection'));
 const PayrollSection = lazy(() => import('./sections/PayrollSection'));
 const SubscriptionsSection = lazy(() => import('./sections/SubscriptionsSection'));
 const VendorsSection = lazy(() => import('./sections/VendorsSection'));
@@ -67,6 +69,7 @@ const TABS = [
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'projects', label: 'Projects', icon: Briefcase },
   { id: 'expenses', label: 'Expenses', icon: ArrowUpRight },
+  { id: 'other-expenses', label: 'Other Expenses', icon: FileEdit },
   { id: 'payroll', label: 'Payroll', icon: Landmark },
   { id: 'subscriptions', label: 'Subscriptions', icon: RefreshCw },
   { id: 'vendors', label: 'Vendors', icon: Building },
@@ -86,6 +89,7 @@ const VALID_TABS = [
   'clients',
   'projects',
   'expenses',
+  'other-expenses',
   'payroll',
   'subscriptions',
   'vendors',
@@ -349,6 +353,10 @@ export default function Finance() {
 
           {activeTab === 'expenses' && (
             <ExpensesSection onQuickAdd={openQuickAdd} />
+          )}
+
+          {activeTab === 'other-expenses' && (
+            <OtherExpensesSection />
           )}
 
           {activeTab === 'payroll' && (

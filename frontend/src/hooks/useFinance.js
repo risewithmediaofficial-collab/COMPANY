@@ -1721,4 +1721,71 @@ export const useDeleteLoan = () => {
   });
 };
 
+// =============================================
+// OTHER EXPENSES / MEMO NOTES (UNBOUND FROM FINANCE)
+// =============================================
+
+export const useOtherExpenses = (filters = {}, options = {}) => {
+  return useQuery({
+    queryKey: ['other-expenses', filters],
+    queryFn: async () => {
+      const response = await api.get('/finance/other-expenses', { params: filters });
+      return response.data || { otherExpenses: [], count: 0, totalAmount: 0, thisMonthAmount: 0 };
+    },
+    staleTime: 60 * 1000,
+    ...options,
+  });
+};
+
+export const useCreateOtherExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await api.post('/finance/other-expenses', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['other-expenses'] });
+      toast.success('Expense note recorded');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to save expense note');
+    },
+  });
+};
+
+export const useUpdateOtherExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/other-expenses/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['other-expenses'] });
+      toast.success('Expense note updated');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update expense note');
+    },
+  });
+};
+
+export const useDeleteOtherExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const response = await api.delete(`/finance/other-expenses/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['other-expenses'] });
+      toast.success('Expense note deleted');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete expense note');
+    },
+  });
+};
+
 
