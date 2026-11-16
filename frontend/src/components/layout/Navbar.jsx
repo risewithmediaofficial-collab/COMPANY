@@ -339,12 +339,12 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between bg-background/95 px-3 sm:px-6 lg:px-8 select-none">
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 w-full max-w-full min-w-0 items-center justify-between bg-background/95 px-3 sm:px-6 lg:px-8 select-none">
         {/* Left: Mobile Toggle & Dynamic Interactive Breadcrumbs */}
         <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-3">
           <button
             onClick={() => dispatch(toggleSidebar())}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground md:hidden flex-shrink-0"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground md:hidden flex-shrink-0 cursor-pointer"
             title="Toggle Navigation"
             aria-label="Toggle Navigation"
           >
@@ -361,11 +361,10 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
             </Link>
             {breadcrumbs.map((crumb, idx) => {
               const isLast = idx === breadcrumbs.length - 1;
-              const isIntermediate = !isLast && idx < breadcrumbs.length - 1;
               return (
                 <span
                   key={idx}
-                  className={`flex items-center gap-1 min-w-0 ${isIntermediate && idx === 0 && breadcrumbs.length > 2 ? 'hidden sm:flex' : ''}`}
+                  className={`items-center gap-1 min-w-0 ${!isLast ? 'hidden sm:flex' : 'flex'}`}
                 >
                   <ChevronRight size={12} className="text-muted-foreground/60 shrink-0" />
                   {crumb.path && !isLast ? (
@@ -377,7 +376,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                     </Link>
                   ) : (
                     <span
-                      className={`truncate max-w-[120px] sm:max-w-[200px] ${
+                      className={`truncate max-w-[130px] sm:max-w-[200px] ${
                         isLast ? 'font-semibold text-foreground' : 'text-muted-foreground hover:text-foreground transition-colors'
                       }`}
                     >
@@ -391,7 +390,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
         </div>
 
         {/* Center/Right: Quick Search Bar */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <AppTooltip content="Search Workspace (Ctrl+K / Cmd+K)">
             <button
               onClick={() => onOpenSearch ? onOpenSearch() : setSearchOpen(true)}
@@ -438,8 +437,10 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
             </DropdownMenu>
           )}
 
-          {/* Favorites Panel */}
-          <FavoritesPanel />
+          {/* Favorites Panel (Desktop & Tablet) */}
+          <div className="hidden sm:flex">
+            <FavoritesPanel />
+          </div>
 
           {/* Theme Toggle */}
           <AppTooltip content={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}>

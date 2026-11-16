@@ -40,14 +40,14 @@ const MainLayout = () => {
       <Sidebar onOpenSearch={handleOpenSearch} currentPath={location.pathname} />
 
       {/* Main Content Area */}
-      <div className="flex min-w-0 flex-1 flex-col h-full min-h-0 max-h-screen overflow-hidden transition-all duration-250 md:ml-[260px]">
+      <div className="flex min-w-0 flex-1 flex-col h-full min-h-0 max-h-screen overflow-hidden transition-all duration-250 md:ml-[260px] w-full max-w-full">
         <Navbar onOpenSearch={handleOpenSearch} currentPath={location.pathname} />
         <EnableBannerNotificationBar />
         <main
           id="main-content-scroll"
-          className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-background px-3 py-3 sm:px-6 sm:py-5 lg:px-8 lg:py-6 custom-scrollbar overscroll-contain pb-safe"
+          className="min-w-0 min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-background px-3 py-3 sm:px-6 sm:py-5 lg:px-8 lg:py-6 custom-scrollbar overscroll-contain pb-safe"
         >
-          <div className="mx-auto min-w-0 max-w-7xl 2xl:max-w-[1600px] pb-16">
+          <div className="mx-auto min-w-0 max-w-7xl 2xl:max-w-[1600px] pb-16 w-full">
             <GlobalDateSortBar />
             <ErrorBoundary key={location.pathname} locationKey={location.pathname}>
               <Suspense fallback={<PageLoadingFallback />}>

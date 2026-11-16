@@ -36,7 +36,7 @@ import {
   Trash2,
   ArrowUpRight,
 } from '@/components/ui/muiIcons';
-import { toggleSidebar, setSidebarOpen } from '../../store/slices/uiSlice';
+import { setSidebarOpen } from '../../store/slices/uiSlice';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
 import { AppTooltip } from '../ui/tooltip';
 import { preloadRoute } from '../../utils/routePreload';
@@ -59,7 +59,6 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
   const userPermissions = user?.permissions;
   const myClientId = user?.clientId?._id || user?.clientId || user?.client?._id || user?.client;
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [pinnedPaths, setPinnedPaths] = useState(() => {
     try {
       const saved = localStorage.getItem(PINNED_STORAGE_KEY);
@@ -81,14 +80,6 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
 
   const canViewBadges = ['superAdmin', 'admin', 'manager'].includes(userRole);
   const { data: badgeCounts } = useSidebarBadges(canViewBadges);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const toggleSection = (sectionTitle) => {
     setOpenSections((prev) => {
@@ -293,11 +284,28 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
     return false;
   };
 
-  // Auto-expand section containing the currently active route and close drawer on mobile navigation
+  // Close mobile drawer on route change
   useEffect(() => {
-    if (isMobile && sidebarOpen) {
-      dispatch(setSidebarOpen(false));
+    dispatch(setSidebarOpen(false));
+  }, [pathname, dispatch]);
+
+  // Lock body scroll on mobile when sidebar drawer is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      const isMobileView = typeof window !== 'undefined' && window.innerWidth < 768;
+      if (isMobileView) {
+        document.body.style.overflow = 'hidden';
+      }
+    } else {
+      document.body.style.removeProperty('overflow');
     }
+    return () => {
+      document.body.style.removeProperty('overflow');
+    };
+  }, [sidebarOpen]);
+
+  // Auto-expand section containing the currently active route
+  useEffect(() => {
     const activeSection = navSections.find((s) =>
       s.items.some((item) => isItemActive(item.path))
     );
@@ -313,7 +321,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         return updated;
       });
     }
-  }, [pathname, navSections, isMobile, dispatch]);
+  }, [pathname, navSections]);
 
   // Extract all available items for pinned lookup with memoization
   const pinnedItems = useMemo(() => {
@@ -324,16 +332,16 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
   return (
     <>
       {/* Mobile Backdrop */}
-      {isMobile && sidebarOpen && (
+      {sidebarOpen && (
         <div
-          onClick={() => dispatch(toggleSidebar())}
-          className="fixed inset-0 bg-black/60 z-40 transition-opacity duration-200"
+          onClick={() => dispatch(setSidebarOpen(false))}
+          className="fixed inset-0 bg-black/60 z-40 transition-opacity duration-200 md:hidden"
         />
       )}
 
       <aside
-        className={`fixed left-0 top-0 h-screen w-[min(270px,calc(100vw-32px))] md:w-[260px] bg-card z-50 flex flex-col select-none transition-transform duration-200 ease-out ${
-          isMobile && !sidebarOpen ? '-translate-x-full pointer-events-none' : 'translate-x-0'
+        className={`fixed left-0 top-0 h-screen w-[min(270px,calc(100vw-32px))] md:w-[260px] bg-card z-50 flex flex-col select-none transition-transform duration-200 ease-out md:translate-x-0 md:pointer-events-auto ${
+          sidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'
         }`}
       >
         {/* Workspace Brand / Header */}
@@ -355,16 +363,14 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
               </span>
             </div>
           </div>
-          {isMobile && (
-            <button
-              onClick={() => dispatch(toggleSidebar())}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-              title="Close Navigation"
-              aria-label="Close Navigation"
-            >
-              <X size={20} />
-            </button>
-          )}
+          <button
+            onClick={() => dispatch(setSidebarOpen(false))}
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors md:hidden"
+            title="Close Navigation"
+            aria-label="Close Navigation"
+          >
+            <X size={20} />
+          </button>
         </div>
 
 
@@ -410,7 +416,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                       onMouseEnter={() => preloadRoute(item.path)}
                       onFocus={() => preloadRoute(item.path)}
                       onTouchStart={() => preloadRoute(item.path)}
-                      onClick={() => isMobile && dispatch(toggleSidebar())}
+                      onClick={() => dispatch(setSidebarOpen(false))}
                       className="flex-1 min-w-0 flex items-center px-3 py-2"
                     >
                       <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}`} />
@@ -478,7 +484,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                           onMouseEnter={() => preloadRoute(item.path)}
                           onFocus={() => preloadRoute(item.path)}
                           onTouchStart={() => preloadRoute(item.path)}
-                          onClick={() => isMobile && dispatch(toggleSidebar())}
+                          onClick={() => dispatch(setSidebarOpen(false))}
                           className="flex-1 min-w-0 flex items-center px-3 py-2 min-h-[44px]"
                         >
                           <div className="relative shrink-0 flex items-center justify-center">
@@ -539,7 +545,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
             onMouseEnter={() => preloadRoute('/settings')}
             onFocus={() => preloadRoute('/settings')}
             onTouchStart={() => preloadRoute('/settings')}
-            onClick={() => isMobile && dispatch(toggleSidebar())}
+            onClick={() => dispatch(setSidebarOpen(false))}
             className={`flex items-center px-3 py-2 min-h-[44px] rounded-xl text-xs font-semibold transition-colors ${
               pathname === '/settings'
                 ? 'bg-primary text-primary-foreground font-bold'
