@@ -54,6 +54,8 @@ import {
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { useDateFilter } from '../../../context/DateFilterContext';
 import { SelectDropdown } from '../../../components/ui/SelectDropdown';
+import { useClients } from '../../../hooks/useClients';
+import { useVendors } from '../../../hooks/useVendors';
 
 const PaymentRemindersTab = lazy(() => import('./PaymentRemindersTab'));
 
@@ -140,10 +142,14 @@ export default function ExpensesSection({ onQuickAdd }) {
     category: 'office',
     vendor: '',
     costType: 'agency_overhead',
+    client: '',
     paymentStatus: 'paid',
     date: '',
     notes: '',
   });
+
+  const { data: clients = [] } = useClients();
+  const { vendorOptions, recordVendor } = useVendors();
 
   // Edit Subscription State
   const [editingSubscription, setEditingSubscription] = useState(null);
@@ -274,6 +280,7 @@ export default function ExpensesSection({ onQuickAdd }) {
       category: exp.category || 'office',
       vendor: exp.vendor || '',
       costType: exp.costType || 'agency_overhead',
+      client: exp.client?._id || (typeof exp.client === 'string' ? exp.client : '') || '',
       paymentStatus: exp.paymentStatus || 'paid',
       date: exp.date ? new Date(exp.date).toISOString().slice(0, 10) : '',
       notes: exp.notes || '',
@@ -285,11 +292,15 @@ export default function ExpensesSection({ onQuickAdd }) {
     const targetId = editingExpense?._id || currentSelectedExpense?._id || selectedExpenseForSidebar?._id;
     if (!targetId) return;
     try {
+      if (expenseForm.vendor) {
+        recordVendor(expenseForm.vendor);
+      }
       await updateExpense.mutateAsync({
         id: targetId,
         data: {
           ...expenseForm,
           amount: Number(expenseForm.amount),
+          client: expenseForm.client || undefined,
         },
       });
       setIsEditingExpenseInSidebar(false);
@@ -322,6 +333,9 @@ export default function ExpensesSection({ onQuickAdd }) {
     e.preventDefault();
     if (!editingSubscription) return;
     try {
+      if (subscriptionForm.vendor) {
+        recordVendor(subscriptionForm.vendor);
+      }
       await updateSubscription.mutateAsync({
         id: editingSubscription._id,
         data: {
@@ -1704,13 +1718,30 @@ export default function ExpensesSection({ onQuickAdd }) {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Vendor / Provider</label>
-                <input
-                  type="text"
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-semibold text-foreground">Vendor / Provider</label>
+                  {subscriptionForm.vendor && (
+                    <button
+                      type="button"
+                      onClick={() => setSubscriptionForm((prev) => ({ ...prev, vendor: '' }))}
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline font-semibold cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <SelectDropdown
                   value={subscriptionForm.vendor}
-                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, vendor: e.target.value })}
-                  placeholder="e.g. Adobe, AWS, Figma..."
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
+                  onChange={(val) => {
+                    setSubscriptionForm((prev) => ({ ...prev, vendor: val || '' }));
+                    if (val) recordVendor(val);
+                  }}
+                  options={vendorOptions}
+                  placeholder="Select or type vendor (e.g. Adobe, AWS, Google)..."
+                  searchPlaceholder="Search vendors or type new name..."
+                  allowCustom={true}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
                 />
               </div>
 
@@ -1948,23 +1979,29 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </button>
                       )}
                     </div>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
-                      <input
-                        type="text"
-                        placeholder="e.g. Saran, VJ, Office Landlord, Videographer..."
-                        value={expenseForm.vendor}
-                        onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
-                        className="h-11 w-full pl-10 pr-4 rounded-xl bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
-                      />
-                    </div>
+                    <SelectDropdown
+                      value={expenseForm.vendor}
+                      onChange={(val) => {
+                        setExpenseForm((prev) => ({ ...prev, vendor: val || '' }));
+                        if (val) recordVendor(val);
+                      }}
+                      options={vendorOptions}
+                      placeholder="Select or type vendor (e.g. Videographer, VJ, Saran)..."
+                      searchPlaceholder="Search vendors or type new name..."
+                      allowCustom={true}
+                      className="w-full"
+                      buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                    />
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
                       <span className="text-xs text-muted-foreground font-medium">1-Click Presets:</span>
                       {['RJ', 'VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
                         <button
                           key={sug}
                           type="button"
-                          onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: sug }))}
+                          onClick={() => {
+                            setExpenseForm((prev) => ({ ...prev, vendor: sug }));
+                            recordVendor(sug);
+                          }}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                             expenseForm.vendor === sug
                               ? 'bg-primary text-primary-foreground font-bold '
@@ -2031,6 +2068,41 @@ export default function ExpensesSection({ onQuickAdd }) {
                         Client Direct
                       </button>
                     </div>
+                  </div>
+
+                  {/* Client Selection */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-semibold text-foreground">
+                        Client {expenseForm.costType === 'client_project' ? <span className="text-primary">*</span> : <span className="text-muted-foreground text-xs font-normal">(Optional)</span>}
+                      </label>
+                      {expenseForm.client && (
+                        <button
+                          type="button"
+                          onClick={() => setExpenseForm((prev) => ({ ...prev, client: '' }))}
+                          className="text-xs text-muted-foreground hover:text-foreground hover:underline font-semibold cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <SelectDropdown
+                      value={expenseForm.client}
+                      onChange={(val) => setExpenseForm((prev) => ({ ...prev, client: val || '', costType: val ? 'client_project' : prev.costType }))}
+                      options={[
+                        { value: '', label: '-- General Agency (No Client) --' },
+                        ...clients.map((c) => ({
+                          value: c._id,
+                          label: c.company || c.name,
+                          subLabel: c.monthlyPlanFee ? `Retainer: ₹${c.monthlyPlanFee}/mo` : undefined,
+                        })),
+                      ]}
+                      placeholder="-- Select Client --"
+                      searchPlaceholder="Search clients by name, company..."
+                      allowCustom={false}
+                      className="w-full"
+                      buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                    />
                   </div>
 
                   {/* Clearance & Payment Status */}
@@ -2254,6 +2326,9 @@ export default function ExpensesSection({ onQuickAdd }) {
                     </div>
                     <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
                       {currentSelectedExpense.costType === 'client_project' ? 'Client Direct' : 'Overhead'}
+                      {currentSelectedExpense.client && (
+                        <span className="font-semibold text-foreground"> • {currentSelectedExpense.client?.company || currentSelectedExpense.client?.name}</span>
+                      )}
                     </div>
                   </div>
                 </div>

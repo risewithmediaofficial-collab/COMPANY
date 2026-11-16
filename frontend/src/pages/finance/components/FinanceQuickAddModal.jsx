@@ -36,6 +36,7 @@ import {
   useCreatePayrollRecord,
 } from '../../../hooks/useFinance';
 import { useClients, useCreateClient } from '../../../hooks/useClients';
+import { useVendors } from '../../../hooks/useVendors';
 import { formatINR } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
 import api from '../../../api';
@@ -47,6 +48,7 @@ export default function FinanceQuickAddModal({
   onOpenChange,
   initialAction = 'invoice',
   defaultClientId = '',
+  defaultVendor = '',
   onSuccess,
 }) {
   const [activeAction, setActiveAction] = useState(initialAction);
@@ -86,10 +88,35 @@ export default function FinanceQuickAddModal({
         reference: '',
         notes: '',
       });
+      setExpForm({
+        title: '',
+        vendor: defaultVendor || '',
+        amount: '',
+        advanceAmount: '',
+        category: 'production_shoot',
+        costType: 'agency_overhead',
+        client: defaultClientId || '',
+        paymentStatus: 'paid',
+        paymentMode: 'Bank',
+        fundingAccount: '',
+        date: new Date().toISOString().slice(0, 10),
+        notes: '',
+      });
+      setSubForm({
+        serviceName: '',
+        vendor: defaultVendor || '',
+        frequency: 'monthly',
+        expectedAmount: '',
+        nextRenewalDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+        paymentAccount: '',
+        costClassification: 'software',
+        notes: '',
+      });
     }
-  }, [initialAction, open, defaultClientId]);
+  }, [initialAction, open, defaultClientId, defaultVendor]);
 
   const { data: clients = [] } = useClients({}, { enabled: open });
+  const { vendorOptions, recordVendor } = useVendors({ enabled: open });
   const { data: accounts = [] } = useFinanceAccounts({ enabled: open });
   const { data: unpaidInvoices = [] } = useModuleInvoices({ status: 'unpaid' }, { enabled: open });
   const { data: employees = [] } = usePayrollEmployees({ enabled: open });
@@ -324,12 +351,15 @@ export default function FinanceQuickAddModal({
 
   const executeExpenseSubmit = async () => {
     try {
+      if (expForm.vendor) {
+        recordVendor(expForm.vendor);
+      }
       await createExpense.mutateAsync({
         ...expForm,
         amount: Number(expForm.amount),
         advanceAmount: expForm.paymentStatus === 'partially_paid' ? Number(expForm.advanceAmount || 0) : undefined,
         fundingAccount: expForm.fundingAccount || undefined,
-        client: expForm.costType === 'client_project' ? expForm.client : undefined,
+        client: expForm.client || undefined,
       });
       onOpenChange(false);
     } catch (err) {}
@@ -442,6 +472,9 @@ export default function FinanceQuickAddModal({
     e.preventDefault();
     if (!subForm.serviceName || !subForm.expectedAmount) return toast.error('Fill subscription details');
     try {
+      if (subForm.vendor) {
+        recordVendor(subForm.vendor);
+      }
       await createSubscription.mutateAsync({
         ...subForm,
         expectedAmount: Number(subForm.expectedAmount),
@@ -871,13 +904,30 @@ export default function FinanceQuickAddModal({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Vendor / Payee</label>
-                <input
-                  type="text"
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-semibold text-foreground">Vendor / Payee</label>
+                  {expForm.vendor && (
+                    <button
+                      type="button"
+                      onClick={() => setExpForm({ ...expForm, vendor: '' })}
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline font-semibold cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <SelectDropdown
                   value={expForm.vendor}
-                  onChange={(e) => setExpForm({ ...expForm, vendor: e.target.value })}
-                  placeholder="e.g. VJ, Videographer, Ramesh"
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
+                  onChange={(val) => {
+                    setExpForm({ ...expForm, vendor: val || '' });
+                    if (val) recordVendor(val);
+                  }}
+                  options={vendorOptions}
+                  placeholder="Select or type vendor (e.g. Videographer, VJ, Saran)..."
+                  searchPlaceholder="Search vendors or type new name..."
+                  allowCustom={true}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
                 />
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
                   <span className="text-xs text-muted-foreground font-medium">Quick suggestions:</span>
@@ -885,7 +935,10 @@ export default function FinanceQuickAddModal({
                     <button
                       key={sug}
                       type="button"
-                      onClick={() => setExpForm({ ...expForm, vendor: sug })}
+                      onClick={() => {
+                        setExpForm({ ...expForm, vendor: sug });
+                        recordVendor(sug);
+                      }}
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                         expForm.vendor === sug 
                           ? 'bg-primary text-primary-foreground font-semibold' 
@@ -948,6 +1001,41 @@ export default function FinanceQuickAddModal({
                   placeholder="Cost Classification"
                   allowCustom={false}
                   allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
+                />
+              </div>
+
+              {/* Client Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-semibold text-foreground">
+                    Client {expForm.costType === 'client_project' ? <span className="text-primary">*</span> : <span className="text-muted-foreground text-xs font-normal">(Optional)</span>}
+                  </label>
+                  {expForm.client && (
+                    <button
+                      type="button"
+                      onClick={() => setExpForm({ ...expForm, client: '' })}
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline font-semibold cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <SelectDropdown
+                  value={expForm.client}
+                  onChange={(val) => setExpForm({ ...expForm, client: val || '', costType: val ? 'client_project' : expForm.costType })}
+                  options={[
+                    { value: '', label: '-- General Agency (No Client) --' },
+                    ...clients.map((c) => ({
+                      value: c._id,
+                      label: c.company || c.name,
+                      subLabel: c.monthlyPlanFee ? `Retainer: ₹${c.monthlyPlanFee}/mo` : undefined,
+                    })),
+                  ]}
+                  placeholder="-- Select Client --"
+                  searchPlaceholder="Search clients by name, company..."
+                  allowCustom={false}
                   className="w-full"
                   buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
                 />
@@ -1426,13 +1514,30 @@ export default function FinanceQuickAddModal({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Vendor</label>
-                <input
-                  type="text"
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-semibold text-foreground">Vendor / Service Provider</label>
+                  {subForm.vendor && (
+                    <button
+                      type="button"
+                      onClick={() => setSubForm({ ...subForm, vendor: '' })}
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline font-semibold cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <SelectDropdown
                   value={subForm.vendor}
-                  onChange={(e) => setSubForm({ ...subForm, vendor: e.target.value })}
-                  placeholder="e.g. Adobe Inc."
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
+                  onChange={(val) => {
+                    setSubForm({ ...subForm, vendor: val || '' });
+                    if (val) recordVendor(val);
+                  }}
+                  options={vendorOptions}
+                  placeholder="Select or type vendor (e.g. Adobe, AWS, Google)..."
+                  searchPlaceholder="Search vendors or type new name..."
+                  allowCustom={true}
+                  className="w-full"
+                  buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
                 />
               </div>
 

@@ -102,6 +102,22 @@ export default function LoansSection({ onQuickAdd }) {
     upcomingEmiAmount: 0,
   };
 
+  const lenderOptions = useMemo(() => {
+    const set = new Set([
+      'HDFC Bank',
+      'ICICI Bank',
+      'State Bank of India',
+      'Axis Bank',
+      'Kotak Mahindra Bank',
+      'Bajaj Finserv',
+      'Dinesh M (Founder)',
+    ]);
+    loans.forEach((l) => {
+      if (l.lender?.trim()) set.add(l.lender.trim());
+    });
+    return Array.from(set).map((name) => ({ value: name, label: name }));
+  }, [loans]);
+
   const createLoan = useCreateLoan();
   const updateLoan = useUpdateLoan();
   const recordPayment = useRecordLoanPayment();
@@ -722,16 +738,29 @@ export default function LoansSection({ onQuickAdd }) {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
-                    Lender / Bank Name <span className="text-foreground">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. HDFC Bank, ICICI Bank, SBI, Partner"
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-semibold text-foreground">
+                      Lender / Bank Name <span className="text-foreground">*</span>
+                    </label>
+                    {formData.lender && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, lender: '' })}
+                        className="text-xs text-muted-foreground hover:text-foreground hover:underline font-semibold cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <SelectDropdown
                     value={formData.lender}
-                    onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
+                    onChange={(val) => setFormData({ ...formData, lender: val || '' })}
+                    options={lenderOptions}
+                    placeholder="Select or type lender / bank..."
+                    searchPlaceholder="Search banks or type new name..."
+                    allowCustom={true}
+                    className="w-full"
+                    buttonClassName="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground border border-border/50"
                   />
                 </div>
 

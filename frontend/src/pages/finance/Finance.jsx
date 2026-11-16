@@ -128,6 +128,7 @@ export default function Finance() {
   // Quick Add Modal state
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddAction, setQuickAddAction] = useState('invoice');
+  const [quickAddExtra, setQuickAddExtra] = useState({});
 
   // Global Date Filter state
   const { startDate, endDate } = useDateFilter();
@@ -167,8 +168,9 @@ export default function Finance() {
     enabled: isUnlocked && activeTab === 'overview',
   });
 
-  const openQuickAdd = (action = 'invoice') => {
+  const openQuickAdd = (action = 'invoice', extra = {}) => {
     setQuickAddAction(action);
+    setQuickAddExtra(extra || {});
     setQuickAddOpen(true);
   };
 
@@ -390,6 +392,8 @@ export default function Finance() {
             open={quickAddOpen}
             onOpenChange={setQuickAddOpen}
             initialAction={quickAddAction}
+            defaultClientId={quickAddExtra?.clientId || ''}
+            defaultVendor={quickAddExtra?.vendor || ''}
           />
         </Suspense>
       )}

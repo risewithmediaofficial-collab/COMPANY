@@ -19,6 +19,7 @@ import {
 } from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
 import { formatINR } from '../../../utils/financeFormatters';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
 export default function PaymentsSection({ onQuickAdd }) {
   const [search, setSearch] = useState('');
@@ -119,31 +120,43 @@ export default function PaymentsSection({ onQuickAdd }) {
 
         <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
           {/* Method Filter */}
-          <select
-            value={methodFilter}
-            onChange={(e) => setMethodFilter(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground focus:outline-none flex-1 sm:flex-initial"
-          >
-            <option value="all">All Modes</option>
-            <option value="bank">Bank / NEFT</option>
-            <option value="upi">UPI / GPay</option>
-            <option value="cash">Cash</option>
-            <option value="cheque">Cheque</option>
-          </select>
+          <div className="w-[140px] flex-1 sm:flex-initial">
+            <SelectDropdown
+              value={methodFilter}
+              onChange={(val) => setMethodFilter(val || 'all')}
+              options={[
+                { value: 'all', label: 'All Modes' },
+                { value: 'bank', label: 'Bank / NEFT' },
+                { value: 'upi', label: 'UPI / GPay' },
+                { value: 'cash', label: 'Cash' },
+                { value: 'cheque', label: 'Cheque' },
+              ]}
+              placeholder="All Modes"
+              allowCustom={false}
+              allowDeselect={false}
+              buttonClassName="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground"
+            />
+          </div>
 
           {/* Client Filter */}
-          <select
-            value={clientFilter}
-            onChange={(e) => setClientFilter(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground focus:outline-none max-w-[180px] flex-1 sm:flex-initial"
-          >
-            <option value="all">All Clients</option>
-            {clients.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.company || c.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-[180px] flex-1 sm:flex-initial">
+            <SelectDropdown
+              value={clientFilter}
+              onChange={(val) => setClientFilter(val || 'all')}
+              options={[
+                { value: 'all', label: 'All Clients' },
+                ...clients.map((c) => ({
+                  value: c._id,
+                  label: c.company || c.name,
+                })),
+              ]}
+              placeholder="All Clients"
+              searchPlaceholder="Search clients..."
+              allowCustom={false}
+              allowDeselect={false}
+              buttonClassName="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground"
+            />
+          </div>
 
           <button
             type="button"

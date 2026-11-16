@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/muiIcons';
 import { useModuleExpenses, usePayeeOverallPay } from '../../../hooks/useFinance';
 import { formatINR } from '../../../utils/financeFormatters';
+import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
 export default function VendorsSection({ onQuickAdd }) {
   const [search, setSearch] = useState('');
@@ -151,11 +152,31 @@ export default function VendorsSection({ onQuickAdd }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center gap-2 justify-end flex-wrap sm:flex-nowrap">
+          <div className="w-[170px]">
+            <SelectDropdown
+              value={categoryFilter}
+              onChange={(val) => setCategoryFilter(val || 'all')}
+              options={[
+                { value: 'all', label: 'All Categories' },
+                { value: 'production_shoot', label: 'Production / Shoot' },
+                { value: 'rj', label: 'RJ Voice Talent' },
+                { value: 'vj', label: 'VJ Presenter' },
+                { value: 'freelancers', label: 'Freelancers' },
+                { value: 'travel', label: 'Travel & Logistics' },
+                { value: 'software_subscriptions', label: 'Software / SaaS' },
+              ]}
+              placeholder="All Categories"
+              allowCustom={false}
+              allowDeselect={false}
+              buttonClassName="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground"
+            />
+          </div>
+
           <button
             type="button"
             onClick={() => onQuickAdd ? onQuickAdd('expense') : null}
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer shadow-xs min-h-[36px] w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer shadow-xs min-h-[36px] w-full sm:w-auto shrink-0"
           >
             <Plus size={14} />
             <span>Add Vendor Bill</span>
