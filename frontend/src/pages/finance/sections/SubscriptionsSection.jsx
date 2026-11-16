@@ -4,6 +4,7 @@ import {
   Plus,
   Search,
   Calendar,
+  Clock,
   IndianRupee,
   AlertCircle,
   CheckCircle2,
@@ -43,7 +44,7 @@ export default function SubscriptionsSection({ onQuickAdd }) {
   return (
     <div className="space-y-5 animate-in fade-in duration-150">
       {/* ── METRIC STATS ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/40 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Monthly Software Run-Rate</span>
@@ -80,7 +81,7 @@ export default function SubscriptionsSection({ onQuickAdd }) {
         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/40 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Next Renewal</span>
-            <ClockIcon size={16} className="text-amber-500" />
+            <Clock size={16} className="text-amber-500" />
           </div>
           <div className="text-base sm:text-lg font-bold text-foreground truncate">
             {subscriptions.length > 0 && subscriptions[0].nextRenewalDate

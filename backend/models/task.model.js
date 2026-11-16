@@ -150,6 +150,7 @@ const taskSchema = new mongoose.Schema(
     publisherName: { type: String, default: '' },
 
     shootDate: { type: Date },
+    shootEndDate: { type: Date },
     shootLocation: { type: String, default: '' },
     rawFootageLink: { type: String, default: '' },
 

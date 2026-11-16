@@ -290,6 +290,7 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.pagesNeeded !== undefined) payload.pagesNeeded = normalizeStringArray(payload.pagesNeeded);
   if (payload.attachments !== undefined) payload.attachments = normalizeFiles(payload.attachments);
   if (payload.shootDate !== undefined) payload.shootDate = payload.shootDate ? new Date(payload.shootDate) : undefined;
+  if (payload.shootEndDate !== undefined) payload.shootEndDate = payload.shootEndDate ? new Date(payload.shootEndDate) : undefined;
   if (payload.shootLocation !== undefined) payload.shootLocation = payload.shootLocation ? payload.shootLocation.trim() : '';
   if (payload.rawFootageLink !== undefined) payload.rawFootageLink = normalizeLink(payload.rawFootageLink);
   if (payload.editDueDate !== undefined) payload.editDueDate = payload.editDueDate ? new Date(payload.editDueDate) : undefined;

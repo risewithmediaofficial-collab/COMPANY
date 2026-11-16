@@ -537,10 +537,10 @@ export default function FinanceQuickAddModal({
         </div>
 
         {/* ── SCROLLABLE FORM BODY ─────────────────────────────────────── */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-7 space-y-6 custom-scrollbar overscroll-contain text-left">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-7 space-y-5 sm:space-y-6 custom-scrollbar overscroll-contain text-left">
           {/* 1. INVOICE FORM */}
           {activeAction === 'invoice' && (
-            <form id="finance-modal-form" onSubmit={handleInvoiceSubmit} className="space-y-6">
+            <form id="finance-modal-form" onSubmit={handleInvoiceSubmit} className="space-y-5 sm:space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Select Client *</label>
                 <SelectDropdown
@@ -569,26 +569,28 @@ export default function FinanceQuickAddModal({
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Invoice Date</label>
-                <input
-                  type="date"
-                  value={invForm.invoiceDate}
-                  onChange={(e) => setInvForm({ ...invForm, invoiceDate: e.target.value })}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Invoice Date</label>
+                  <input
+                    type="date"
+                    value={invForm.invoiceDate}
+                    onChange={(e) => setInvForm({ ...invForm, invoiceDate: e.target.value })}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Due Date</label>
-                <input
-                  type="date"
-                  value={invForm.dueDate}
-                  onChange={(e) => setInvForm({ ...invForm, dueDate: e.target.value })}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Due Date</label>
+                  <input
+                    type="date"
+                    value={invForm.dueDate}
+                    onChange={(e) => setInvForm({ ...invForm, dueDate: e.target.value })}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
+                  />
+                </div>
               </div>
 
               <div>
@@ -1484,12 +1486,12 @@ export default function FinanceQuickAddModal({
             <span className="truncate">Double-Entry Verified · Asia/Kolkata</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 ml-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 ml-auto w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
-              className="h-11 px-5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial h-11 px-5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
@@ -1497,7 +1499,7 @@ export default function FinanceQuickAddModal({
               type="submit"
               form="finance-modal-form"
               disabled={isSubmitting}
-              className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

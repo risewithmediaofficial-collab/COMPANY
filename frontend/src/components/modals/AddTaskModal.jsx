@@ -157,6 +157,7 @@ const BLANK_TASK_TEMPLATE = {
   editorAssigned: '',
   publisherAssigned: '',
   shootDate: '',
+  shootEndDate: '',
   shootLocation: '',
   rawFootageLink: '',
   postingPlatforms: [],
@@ -245,6 +246,7 @@ const buildDefaultValues = (initialValues = {}) => ({
   editorAssigned: '',
   publisherAssigned: '',
   shootDate: '',
+  shootEndDate: '',
   shootLocation: '',
   rawFootageLink: '',
   postingPlatforms: [],
@@ -1719,14 +1721,28 @@ export const AddTaskModal = ({
 
                 {/* Shoot & Footage Details (if Video) */}
                 {isVideoReel && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 ">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 ">
                     <FormField
                       control={form.control}
                       name="shootDate"
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
                           <FormLabel className="text-sm font-semibold text-foreground">
-                            Shoot Date
+                            From Date (Shoot Start)
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="date" className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="shootEndDate"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">
+                            To Date (Shoot End)
                           </FormLabel>
                           <FormControl>
                             <Input type="date" className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background" {...field} />

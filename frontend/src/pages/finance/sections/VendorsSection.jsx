@@ -90,7 +90,7 @@ export default function VendorsSection({ onQuickAdd }) {
   return (
     <div className="space-y-5 animate-in fade-in duration-150">
       {/* ── METRICS OVERVIEW ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/40 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Total Vendor Bills</span>
@@ -137,7 +137,7 @@ export default function VendorsSection({ onQuickAdd }) {
       </div>
 
       {/* ── TOOLBAR ─────────────────────────────────────────────────── */}
-      <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-[220px] max-w-md">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -151,11 +151,11 @@ export default function VendorsSection({ onQuickAdd }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-end">
           <button
             type="button"
             onClick={() => onQuickAdd ? onQuickAdd('expense') : null}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer shadow-xs min-h-[36px]"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer shadow-xs min-h-[36px] w-full sm:w-auto"
           >
             <Plus size={14} />
             <span>Add Vendor Bill</span>

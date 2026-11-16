@@ -523,9 +523,10 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                 )}
 
                 {task.shootDate && (
-                  <NotionPropertyRow icon={Camera} label="Shoot Date">
+                  <NotionPropertyRow icon={Camera} label="Shoot Schedule">
                     <span className="text-foreground font-semibold text-xs tabular-nums">
                       {new Date(task.shootDate).toLocaleDateString([], { dateStyle: 'medium' })}
+                      {task.shootEndDate && ` – ${new Date(task.shootEndDate).toLocaleDateString([], { dateStyle: 'medium' })}`}
                     </span>
                   </NotionPropertyRow>
                 )}
@@ -862,7 +863,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                               <Calendar size={10} /> Shoot Schedule
                             </span>
                             <span className="text-foreground font-bold text-xs tabular-nums">
-                              {task.shootDate ? new Date(task.shootDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBD'}
+                              {task.shootDate ? (
+                                <>
+                                  {new Date(task.shootDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  {task.shootEndDate && ` – ${new Date(task.shootEndDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                                </>
+                              ) : 'Date TBD'}
                             </span>
                           </div>
                           {task.shootTime && (

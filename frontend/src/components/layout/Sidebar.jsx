@@ -194,7 +194,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           {
             title: 'BUSINESS & FINANCE',
             items: [
-              { name: 'Finance Hub', icon: IndianRupee, path: '/finance', openInNewTab: true },
+              { name: 'Finance Hub', icon: IndianRupee, path: '/finance' },
             ],
           },
         ] : []),
@@ -245,7 +245,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
       {
         title: 'BUSINESS & FINANCE',
         items: [
-          { name: 'Finance Hub', icon: IndianRupee, path: '/finance', openInNewTab: true },
+          { name: 'Finance Hub', icon: IndianRupee, path: '/finance' },
           { name: 'Domain Renewals', icon: Globe2, path: '/domain-renewals' },
         ],
       },
@@ -405,8 +405,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                   >
                     <Link
                       to={item.path}
-                      target={item.openInNewTab || item.path === '/finance' ? '_blank' : undefined}
-                      rel={item.openInNewTab || item.path === '/finance' ? 'noopener noreferrer' : undefined}
+                      target={item.openInNewTab ? '_blank' : undefined}
+                      rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
                       onMouseEnter={() => preloadRoute(item.path)}
                       onFocus={() => preloadRoute(item.path)}
                       onTouchStart={() => preloadRoute(item.path)}
@@ -415,7 +415,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                     >
                       <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}`} />
                       <span className="ml-2.5 truncate font-sans">{item.name}</span>
-                      {(item.openInNewTab || item.path === '/finance') && (
+                      {item.openInNewTab && (
                         <ArrowUpRight size={11} className="ml-1 text-muted-foreground/60" />
                       )}
                     </Link>
@@ -473,8 +473,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                       >
                         <Link
                           to={item.path}
-                          target={item.openInNewTab || item.path === '/finance' ? '_blank' : undefined}
-                          rel={item.openInNewTab || item.path === '/finance' ? 'noopener noreferrer' : undefined}
+                          target={item.openInNewTab ? '_blank' : undefined}
+                          rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
                           onMouseEnter={() => preloadRoute(item.path)}
                           onFocus={() => preloadRoute(item.path)}
                           onTouchStart={() => preloadRoute(item.path)}
@@ -491,7 +491,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                           </div>
 
                           <span className="ml-2.5 truncate font-sans">{item.name}</span>
-                          {(item.openInNewTab || item.path === '/finance') && (
+                          {item.openInNewTab && (
                             <ArrowUpRight size={11} className="ml-1 text-muted-foreground/60" />
                           )}
 

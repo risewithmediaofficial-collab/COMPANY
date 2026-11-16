@@ -17,6 +17,10 @@ import {
   CheckCircle2,
   Clock,
   X,
+  User,
+  ExternalLink,
+  ListFilter,
+  Calendar,
 } from '@/components/ui/muiIcons';
 import {
   useProjectMonthlyDeliverables,
@@ -38,15 +42,94 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
+export const getDeliverableDemoTitles = (contentType, targetQuantity = 10) => {
+  const norm = (contentType || '').toLowerCase().trim();
+  const count = Math.max(1, targetQuantity);
+
+  const reelThemes = [
+    'Hook & Brand Introduction',
+    'Trending Audio & Visuals',
+    'Product / Service Showcase',
+    'Problem & Solution Story',
+    'Behind the Scenes / Day in Life',
+    'Client Review & Social Proof',
+    'Quick How-To / Educational Tips',
+    'Industry Myth Buster & FAQs',
+    'Special Offer / Promotion Reel',
+    'Final Call To Action & Growth',
+  ];
+
+  const storyThemes = [
+    'Morning Check-in & Poll',
+    'Behind The Scenes Sneak Peek',
+    'Interactive Q&A / Ask Me Anything',
+    'Client Spotlight / Success Story',
+    'Quick Tip / Value Drop',
+    'Product Highlight & Feature',
+    'User Testimonial & Review',
+    'Countdown / Event Announcement',
+    'Interactive Quiz / Trivia',
+    'Direct Message (DM) Call to Action',
+    'Special Promo / Limited Deal',
+    'Link Sticker / Blog / Site Traffic',
+    'User-Generated Content Repost',
+    'Industry News & Trending Take',
+    'Weekend Wrap-up & Reflections',
+  ];
+
+  const posterThemes = [
+    'Brand Identity & Mission Creative',
+    'Core Service / Feature Poster',
+    'Client Case Study & Social Proof',
+    'Motivational Quote & Mindset',
+    'New Launch / Feature Announcement',
+    'Infographic / Key Industry Statistics',
+    'Before & After Comparison Graphic',
+    'Festive / Seasonal Greeting Creative',
+    'Exclusive Limited Time Offer Poster',
+    'Inquiry / Contact Us Call To Action',
+  ];
+
+  const carouselThemes = [
+    'Step-by-Step Guide: 5 Practical Tips',
+    'Mistakes to Avoid in Your Industry',
+    'Framework / Roadmap Deep Dive',
+    'Customer Journey Case Study',
+    'Tools & Resources Checklist',
+  ];
+
+  let themePool = reelThemes;
+  if (norm.includes('reel') || norm.includes('short')) themePool = reelThemes;
+  else if (norm.includes('story')) themePool = storyThemes;
+  else if (norm.includes('poster') || norm.includes('post') || norm.includes('graphic')) themePool = posterThemes;
+  else if (norm.includes('carousel')) themePool = carouselThemes;
+
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    const theme = themePool[i % themePool.length];
+    list.push({
+      slotNumber: i + 1,
+      title: `${contentType} #${i + 1}: ${theme}`,
+      shortTitle: `${contentType} #${i + 1}`,
+      theme,
+    });
+  }
+  return list;
+};
+
 export const ProjectMonthlyDeliverablesCard = ({
   project,
   canManage = false,
   className = '',
+  onAssignTask,
+  onSelectTask,
 }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showManageModal, setShowManageModal] = useState(false);
   const [editingDeliverables, setEditingDeliverables] = useState([]);
+  const [activeListTarget, setActiveListTarget] = useState('all');
+  const [showSlotsList, setShowSlotsList] = useState(true);
 
   const {
     data: deliverablesData,
@@ -59,6 +142,47 @@ export const ProjectMonthlyDeliverablesCard = ({
   const deliverables = deliverablesData?.deliverables || [];
   const monthName = MONTH_NAMES[selectedMonth - 1] || '';
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Prepare slots for each deliverable target
+  const deliverableSlots = React.useMemo(() => {
+    return deliverables.flatMap((item) => {
+      const demoList = getDeliverableDemoTitles(item.contentType, Math.max(10, item.targetQuantity || 10));
+      const existingTasks = Array.isArray(item.tasks) ? item.tasks : [];
+
+      return demoList.map((demo, idx) => {
+        const assignedTask = existingTasks[idx] || null;
+        return {
+          id: `${item._id || item.contentType}-slot-${idx + 1}`,
+          deliverable: item,
+          slotNumber: idx + 1,
+          contentType: item.contentType,
+          suggestedTitle: demo.title,
+          theme: demo.theme,
+          task: assignedTask,
+          isAssigned: Boolean(assignedTask),
+        };
+      });
+    });
+  }, [deliverables]);
+
+  const filteredSlots = React.useMemo(() => {
+    if (activeListTarget === 'all') return deliverableSlots;
+    return deliverableSlots.filter(
+      (s) => (s.contentType || '').toLowerCase() === activeListTarget.toLowerCase()
+    );
+  }, [deliverableSlots, activeListTarget]);
+
+  const handleAssignSlot = (slot) => {
+    if (!canManage && !onAssignTask) return;
+    const projectTitlePrefix = project?.name ? ` - ${project.name}` : '';
+    const fullTitle = `${slot.suggestedTitle}${projectTitlePrefix}`;
+    onAssignTask?.({
+      deliverable: slot.deliverable,
+      slotNumber: slot.slotNumber,
+      title: fullTitle,
+      contentType: slot.contentType,
+    });
+  };
 
   const gridColsClass = React.useMemo(() => {
     const count = deliverables.length;

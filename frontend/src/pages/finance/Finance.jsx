@@ -222,27 +222,27 @@ export default function Finance() {
     <div className="space-y-5 pb-12 font-sans">
       {/* ── TOP DASHBOARD CONTROL CARD ──────────────────────────────────── */}
       <div className="bg-card rounded-2xl p-4 sm:p-5 border border-border/40 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg shrink-0 shadow-xs">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-base sm:text-lg shrink-0 shadow-xs">
               ₹
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                <h1 className="text-base sm:text-xl font-bold text-foreground tracking-tight truncate">
                   Finance Portal
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0">
                   Restricted
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
                 RiseWithMedia Financial Operating System
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end flex-wrap sm:flex-nowrap">
             {activeTab === 'overview' && (
               <button
                 type="button"
@@ -251,14 +251,14 @@ export default function Finance() {
                 title="Refresh Finance Overview"
               >
                 <RefreshCw className="h-3.5 w-3.5 shrink-0" />
-                <span>Refresh</span>
+                <span className="hidden sm:inline">Refresh</span>
               </button>
             )}
 
             {/* Central Contextual Add New Button */}
             <button
               onClick={handleAddNewForTab}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl transition-colors cursor-pointer min-h-[38px] shadow-xs"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl transition-colors cursor-pointer min-h-[38px] shadow-xs"
             >
               <Plus className="h-4 w-4 shrink-0" />
               <span>
@@ -286,7 +286,7 @@ export default function Finance() {
         </div>
 
         {/* ── 14 HORIZONTAL SECTION NAVIGATION TABS (SUGGESTED ORDER) ───── */}
-        <div className="mt-4 pt-3 border-t border-border/30 overflow-x-auto custom-scrollbar">
+        <div className="mt-4 pt-3 border-t border-border/30 overflow-x-auto custom-scrollbar touch-pan-x -mx-1 px-1 sm:mx-0 sm:px-0">
           <div className="flex items-center gap-1.5 min-w-max pb-1">
             {TABS.map((tab) => {
               const Icon = tab.icon;

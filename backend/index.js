@@ -53,6 +53,7 @@ import domainRenewalRoutes from './routes/domainRenewal.routes.js';
 import sopRoutes from './routes/sop.routes.js';
 import proposalRoutes from './routes/proposal.routes.js';
 import weeklyTodoRoutes from './routes/weeklyTodo.routes.js';
+import dailyTaskRoutes from './routes/dailyTask.routes.js';
 import influencerRoutes from './routes/influencer.routes.js';
 import smmClientRoutes from './routes/smm/smmClient.routes.js';
 import smmProjectRoutes from './routes/smm/smmProject.routes.js';
@@ -270,6 +271,7 @@ app.use('/api/domain-renewals', domainRenewalRoutes);
 app.use('/api/sop', sopRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/todos', weeklyTodoRoutes);
+app.use('/api/daily-tasks', dailyTaskRoutes);
 app.use('/api/influencers', influencerRoutes);
 
 // SMM Module Routes

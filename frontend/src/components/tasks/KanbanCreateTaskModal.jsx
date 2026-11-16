@@ -191,6 +191,7 @@ export const KanbanCreateTaskModal = ({
   const [videographerVideoType, setVideographerVideoType] = useState('Promotional');
   const [videographerVideoFormat, setVideographerVideoFormat] = useState('Vertical');
   const [shootDate, setShootDate] = useState('');
+  const [shootEndDate, setShootEndDate] = useState('');
   const [shootTime, setShootTime] = useState('');
   const [shootLocation, setShootLocation] = useState('');
   const [shootLocationLink, setShootLocationLink] = useState('');
@@ -315,6 +316,14 @@ export const KanbanCreateTaskModal = ({
       if (initialValues.priority) setPriority(initialValues.priority.toLowerCase());
       if (initialValues.title || initialValues.taskTitle) setTitle(initialValues.title || initialValues.taskTitle);
       if (initialValues.dueDate) setDueDate(new Date(initialValues.dueDate).toISOString().split('T')[0]);
+      if (initialValues.shootDate) setShootDate(new Date(initialValues.shootDate).toISOString().split('T')[0]);
+      if (initialValues.shootEndDate) setShootEndDate(new Date(initialValues.shootEndDate).toISOString().split('T')[0]);
+      if (initialValues.editDate) setEditDate(new Date(initialValues.editDate).toISOString().split('T')[0]);
+      if (initialValues.editDueDate) setEditDueDate(new Date(initialValues.editDueDate).toISOString().split('T')[0]);
+      if (initialValues.postDate || initialValues.postingScheduleDate) {
+        const pd = initialValues.postDate || initialValues.postingScheduleDate;
+        setPostDate(new Date(pd).toISOString().split('T')[0]);
+      }
       if (initialValues.allocatedHours !== undefined) setAllocatedHours(initialValues.allocatedHours ?? '');
       if (initialValues.allocatedMinutes !== undefined) setAllocatedMinutes(initialValues.allocatedMinutes ?? '');
       if (initialValues.dueTime) setDueTime(initialValues.dueTime);
@@ -536,6 +545,7 @@ export const KanbanCreateTaskModal = ({
         .map((id) => users.find((u) => u._id === id)?.name)
         .filter(Boolean);
       taskItem.shootDate = shootDate || undefined;
+      taskItem.shootEndDate = shootEndDate || undefined;
       taskItem.shootTime = shootTime || undefined;
       taskItem.shootLocation = shootLocation || undefined;
       taskItem.shootLocationLink = shootLocationLink || undefined;
@@ -902,6 +912,7 @@ export const KanbanCreateTaskModal = ({
                 month={kanbanMonth}
                 year={kanbanYear}
                 activeDeliverableType={subType}
+                selectedSlotTitle={title}
                 onSelectDeliverable={(item) => {
                   const norm = (item.contentType || '').toLowerCase().trim();
                   setTaskCategory('content');
@@ -916,6 +927,25 @@ export const KanbanCreateTaskModal = ({
                   } else {
                     setSubType('poster');
                   }
+                }}
+                onSelectDeliverableSlot={(slot) => {
+                  const projObj = projects.find((p) => p._id === singleProjectId);
+                  const projSuffix = projObj?.name ? ` - ${projObj.name}` : '';
+                  setTitle(`${slot.suggestedTitle}${projSuffix}`);
+                  setTaskCategory('content');
+                  const norm = (slot.contentType || '').toLowerCase().trim();
+                  if (norm.includes('reel') || norm.includes('short')) {
+                    setSubType('reel');
+                  } else if (norm.includes('video') || norm.includes('youtube')) {
+                    setSubType('video_content');
+                  } else if (norm.includes('story')) {
+                    setSubType('content');
+                  } else if (norm.includes('carousel')) {
+                    setSubType('carousel');
+                  } else {
+                    setSubType('poster');
+                  }
+                  toast.success(`Selected deliverable target: ${slot.shortTitle}`);
                 }}
               />
             )}
@@ -1493,16 +1523,28 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                {/* Row 3: Shoot Date & Shoot Time (Max 2 columns) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Row 3: Shoot Dates (From / To) & Shoot Time */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
-                      Shoot Date
+                      From Date (Shoot Start)
                     </label>
                     <input
                       type="date"
                       value={shootDate}
                       onChange={(e) => setShootDate(e.target.value)}
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal tabular-nums text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-1.5">
+                      To Date (Shoot End)
+                    </label>
+                    <input
+                      type="date"
+                      value={shootEndDate}
+                      onChange={(e) => setShootEndDate(e.target.value)}
                       className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal tabular-nums text-foreground focus:ring-1 focus:ring-brand/40 focus:outline-none"
                     />
                   </div>
@@ -1771,11 +1813,11 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                {/* Row 2: Edit Start Date & Edit Due Date (Max 2 columns) */}
+                {/* Row 2: From Date & To Date for Editor (Max 2 columns) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
-                      Edit Start Date
+                      From Date (Edit Start Date)
                     </label>
                     <input
                       type="date"
@@ -1787,7 +1829,7 @@ export const KanbanCreateTaskModal = ({
 
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
-                      Edit Due Date
+                      To Date (Edit Due Date)
                     </label>
                     <input
                       type="date"
@@ -2031,11 +2073,11 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                {/* Row 2: Scheduled Date & Scheduled Time (Max 2 columns) */}
+                {/* Row 2: Date of Posting (Single date) & Scheduled Time (Max 2 columns) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
-                      Scheduled Date
+                      Date of Posting
                     </label>
                     <input
                       type="date"

@@ -56,7 +56,7 @@ export default function PaymentsSection({ onQuickAdd }) {
   return (
     <div className="space-y-5 animate-in fade-in duration-150">
       {/* ── METRICS OVERVIEW ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/40 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Total Collections</span>
@@ -103,7 +103,7 @@ export default function PaymentsSection({ onQuickAdd }) {
       </div>
 
       {/* ── TOOLBAR ─────────────────────────────────────────────────── */}
-      <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-[220px] max-w-md">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -117,16 +117,16 @@ export default function PaymentsSection({ onQuickAdd }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
           {/* Method Filter */}
           <select
             value={methodFilter}
             onChange={(e) => setMethodFilter(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground focus:outline-none"
+            className="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground focus:outline-none flex-1 sm:flex-initial"
           >
-            <option value="all">All Payment Modes</option>
-            <option value="bank">Bank Transfer / NEFT / IMPS</option>
-            <option value="upi">UPI / GPay / PhonePe</option>
+            <option value="all">All Modes</option>
+            <option value="bank">Bank / NEFT</option>
+            <option value="upi">UPI / GPay</option>
             <option value="cash">Cash</option>
             <option value="cheque">Cheque</option>
           </select>
@@ -135,7 +135,7 @@ export default function PaymentsSection({ onQuickAdd }) {
           <select
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground focus:outline-none max-w-[180px]"
+            className="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-foreground focus:outline-none max-w-[180px] flex-1 sm:flex-initial"
           >
             <option value="all">All Clients</option>
             {clients.map((c) => (
@@ -148,7 +148,7 @@ export default function PaymentsSection({ onQuickAdd }) {
           <button
             type="button"
             onClick={() => onQuickAdd ? onQuickAdd('receipt') : null}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer shadow-xs min-h-[36px]"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all cursor-pointer shadow-xs min-h-[36px] w-full sm:w-auto"
           >
             <Plus size={14} />
             <span>Record Payment</span>

@@ -145,7 +145,11 @@ export const getProjectMonthlyDeliverables = async (req, res) => {
           createdAt: { $gte: start, $lte: end },
         },
       ],
-    }).select('title taskType contentType videoType status dueDate postingScheduleDate createdAt isOverTarget targetExceededBy');
+    })
+      .select('title taskTitle taskType contentType videoType status priority dueDate postingScheduleDate shootDate shootEndDate editDate editDueDate createdAt isOverTarget targetExceededBy assignedTo editorAssigned videographerAssigned assignedPersonName')
+      .populate('assignedTo', 'name email avatar')
+      .populate('editorAssigned', 'name email avatar')
+      .populate('videographerAssigned', 'name email avatar');
 
     // Calculate progress for each deliverable target
     const progressData = targets.map((target) => {
@@ -177,6 +181,22 @@ export const getProjectMonthlyDeliverables = async (req, res) => {
         isOverTarget,
         progressPercentage,
         status,
+        tasks: matchedTasks.map((t) => ({
+          _id: t._id,
+          title: t.taskTitle || t.title,
+          status: t.status,
+          priority: t.priority,
+          dueDate: t.dueDate,
+          postingScheduleDate: t.postingScheduleDate,
+          shootDate: t.shootDate,
+          shootEndDate: t.shootEndDate,
+          editDate: t.editDate,
+          editDueDate: t.editDueDate,
+          assignedPersonName: t.assignedPersonName || t.assignedTo?.name || t.editorAssigned?.name || t.videographerAssigned?.name || '',
+          assignedTo: t.assignedTo,
+          editorAssigned: t.editorAssigned,
+          videographerAssigned: t.videographerAssigned,
+        })),
         createdAt: target.createdAt,
         updatedAt: target.updatedAt,
       };

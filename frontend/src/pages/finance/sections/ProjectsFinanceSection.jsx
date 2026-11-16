@@ -84,7 +84,7 @@ export default function ProjectsFinanceSection() {
   return (
     <div className="space-y-5 animate-in fade-in duration-150">
       {/* ── SUB-TABS NAVIGATION ─────────────────────────────────────── */}
-      <div className="flex items-center gap-2 border-b border-border/40 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/40 pb-3">
         <button
           type="button"
           onClick={() => setSubTab('projects')}
@@ -115,7 +115,7 @@ export default function ProjectsFinanceSection() {
       {subTab === 'projects' ? (
         <>
           {/* ── KPI METRICS CARDS ────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/40 shadow-xs space-y-1">
               <div className="flex items-center justify-between text-muted-foreground">
                 <span className="text-xs font-semibold">Total Project Value</span>
@@ -167,7 +167,7 @@ export default function ProjectsFinanceSection() {
           </div>
 
           {/* ── TOOLBAR ─────────────────────────────────────────────────── */}
-          <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-1 min-w-[220px] max-w-md">
               <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -181,14 +181,14 @@ export default function ProjectsFinanceSection() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto">
               <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl text-xs font-semibold">
                 {['all', 'Planning', 'In Progress', 'Completed'].map((st) => (
                   <button
                     key={st}
                     type="button"
                     onClick={() => setStatusFilter(st)}
-                    className={`px-2.5 py-1 rounded-lg capitalize transition-colors cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg capitalize transition-colors cursor-pointer whitespace-nowrap ${
                       statusFilter === st
                         ? 'bg-card text-foreground font-bold shadow-xs'
                         : 'text-muted-foreground hover:text-foreground'

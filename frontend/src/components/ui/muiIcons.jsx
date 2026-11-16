@@ -315,6 +315,7 @@ export const FileSpreadsheet = createMuiIcon(TableChartOutlined, 'FileSpreadshee
 export const FileText = createMuiIcon(DescriptionOutlined, 'FileText');
 export const Film = createMuiIcon(MovieOutlined, 'Film');
 export const Filter = createMuiIcon(FilterAltOutlined, 'Filter');
+export const ListFilter = Filter;
 export const Flag = createMuiIcon(FlagOutlined, 'Flag');
 export const Flame = createMuiIcon(LocalFireDepartmentOutlined, 'Flame');
 export const FlipHorizontal = createMuiIcon(FlipOutlined, 'FlipHorizontal');

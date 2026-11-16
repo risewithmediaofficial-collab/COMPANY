@@ -43,6 +43,7 @@ import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { Button } from '../../components/ui/button';
 import ProjectMonthlyDeliverablesCard from '../../components/projects/ProjectMonthlyDeliverablesCard';
+import ProjectTodoDeliverablesCard from '../../components/projects/ProjectTodoDeliverablesCard';
 import ProjectNotionPropertiesView from '../../components/projects/ProjectNotionPropertiesView';
 import {
   NotionDetailPage,
@@ -615,6 +616,34 @@ const ProjectDetails = () => {
                     : ' bg-secondary/20'
                 }`}
               >
+                {/* Deliverable Targets Queue in TO DO column (Closed way: shows 1 item + click to view and assign more) */}
+                {status === 'todo' && deliverablesList && deliverablesList.length > 0 && (
+                  <ProjectTodoDeliverablesCard
+                    deliverables={deliverablesList}
+                    project={project}
+                    canManage={user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager'}
+                    onAssignTask={(info) => {
+                      const norm = (info?.contentType || info?.deliverable?.contentType || '').toLowerCase();
+                      let subType = 'reel';
+                      if (norm.includes('video') || norm.includes('youtube')) subType = 'video_content';
+                      else if (norm.includes('story')) subType = 'content';
+                      else if (norm.includes('carousel')) subType = 'carousel';
+                      else if (norm.includes('poster') || norm.includes('post') || norm.includes('graphic')) subType = 'poster';
+
+                      openTaskModal({
+                        title: info?.title || `${info?.contentType || 'Deliverable'} - ${project?.name || ''}`,
+                        taskCategory: 'content',
+                        subType,
+                        project: project?._id,
+                        client: project?.client?._id || project?.client,
+                      });
+                    }}
+                    onSelectTask={(taskId) => {
+                      if (taskId) setSelectedTaskId(taskId);
+                    }}
+                  />
+                )}
+
                 {(kanban[status] || []).map((task, idx) => {
                   const isBeingDragged = draggingTaskId === task._id;
                   const showDropIndicatorBefore = isDragOver && dragOverTaskIndex === idx && !isBeingDragged;
@@ -740,7 +769,7 @@ const ProjectDetails = () => {
                   <div className="h-1.5 rounded-full bg-primary/70 my-1 " />
                 )}
 
-                {(kanban[status] || []).length === 0 && (
+                {(kanban[status] || []).length === 0 && (status !== 'todo' || !deliverablesList || deliverablesList.length === 0) && (
                   <div className={`flex h-20 items-center justify-center text-xs rounded-xl transition-all ${
                     isDragOver ? ' bg-primary/10 text-primary font-semibold' : 'text-muted-foreground italic '
                   }`}>
@@ -1358,6 +1387,25 @@ const ProjectDetails = () => {
         <ProjectMonthlyDeliverablesCard
           project={project}
           canManage={user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager'}
+          onAssignTask={(info) => {
+            const norm = (info?.contentType || info?.deliverable?.contentType || '').toLowerCase();
+            let subType = 'reel';
+            if (norm.includes('video') || norm.includes('youtube')) subType = 'video_content';
+            else if (norm.includes('story')) subType = 'content';
+            else if (norm.includes('carousel')) subType = 'carousel';
+            else if (norm.includes('poster') || norm.includes('post') || norm.includes('graphic')) subType = 'poster';
+
+            openTaskModal({
+              title: info?.title || `${info?.contentType || 'Deliverable'} - ${project?.name || ''}`,
+              taskCategory: 'content',
+              subType,
+              project: project?._id,
+              client: project?.client?._id || project?.client,
+            });
+          }}
+          onSelectTask={(taskId) => {
+            if (taskId) setSelectedTaskId(taskId);
+          }}
         />
       )}
 

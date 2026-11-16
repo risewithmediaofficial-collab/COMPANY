@@ -71,6 +71,7 @@ import { AddClientModal } from '../components/modals/AddClientModal';
 import { useEodReports } from '../hooks/useEodReports';
 import { AttendanceWidget } from '../components/attendance/AttendanceWidget';
 import { WeeklyTodosWidget } from '../components/todos/WeeklyTodosWidget';
+import { DailyTasksWidget } from '../components/dashboard/DailyTasksWidget';
 import { SelectDropdown } from '../components/ui/SelectDropdown';
 import api from '../api';
 import { formatINR } from '../utils/currency';
@@ -191,7 +192,7 @@ const Dashboard = () => {
       'taskCreated', 'taskUpdated', 'taskDeleted', 'taskStatusUpdated', 'taskMoved',
       'invoicePaid', 'expenseApproved', 'leadUpdated', 'financeUpdated',
       'eodSubmitted', 'attendanceUpdated', 'deliverableTargetUpdated',
-      'activityLogged', 'metricsUpdated', 'crmLiveUpdate',
+      'dailyTaskUpdated', 'activityLogged', 'metricsUpdated', 'crmLiveUpdate',
       'contentProductionUpdated',
     ];
 
@@ -308,6 +309,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-1 rounded-xl bg-secondary/75 p-1 overflow-x-auto max-w-full custom-scrollbar w-full md:w-auto">
               {[
                 { id: 'command', label: 'Command Center', icon: Activity },
+                { id: 'daily', label: 'Daily Tasks & Timers', icon: Clock },
                 { id: 'todos', label: 'Weekly Todos', icon: CheckSquare },
                 { id: 'metrics', label: 'All Metrics & Analytics', icon: BarChart3 },
                 { id: 'team', label: 'Team Workload & EOD', icon: Users },
@@ -1235,6 +1237,13 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* - TAB: DAILY TASKS & LIVE TIMERS - */}
+        {activeTab === 'daily' && (
+          <div className="space-y-6">
+            <DailyTasksWidget currentUser={user} isManagerOrAdmin={true} />
+          </div>
+        )}
+
         {/* - TAB: WEEKLY TODOS & DELIVERABLES - */}
         {activeTab === 'todos' && (
           <div className="space-y-6">
@@ -1242,9 +1251,12 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Weekly Todos & Deliverables Hub (Overview widget) */}
+        {/* Command Center: Daily Tasks & Weekly Todos Overview */}
         {activeTab === 'command' && (
-          <WeeklyTodosWidget isManagerOrAdmin={true} user={user} />
+          <div className="space-y-6">
+            <DailyTasksWidget currentUser={user} isManagerOrAdmin={true} />
+            <WeeklyTodosWidget isManagerOrAdmin={true} user={user} />
+          </div>
         )}
       </div>
     );
@@ -1319,6 +1331,9 @@ const Dashboard = () => {
             <div className="text-[11px] text-muted-foreground font-semibold truncate">Over Quota</div>
           </div>
         </div>
+
+        {/* Employee Daily Work Tasks with Live Timers */}
+        <DailyTasksWidget currentUser={user} isManagerOrAdmin={false} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-1 min-w-0">
