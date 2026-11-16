@@ -272,9 +272,17 @@ export default function ClientsSection({ onQuickAdd }) {
                 filteredClients.map((client) => {
                   const prof = profitability.find((p) => String(p.clientId) === String(client._id)) || {};
                   const planFee = client.monthlyPlanFee || client.contractValue || 0;
+                  const effectiveRev = (prof.effectiveRevenue != null && prof.effectiveRevenue > 0)
+                    ? prof.effectiveRevenue
+                    : ((prof.serviceRevenue != null && prof.serviceRevenue > 0) ? prof.serviceRevenue : planFee);
                   const directCosts = prof.directCosts || 0;
-                  const netProfit = prof.netProfit ?? (planFee - directCosts);
-                  const margin = prof.marginPercent ?? (planFee > 0 ? Number(((netProfit / planFee) * 100).toFixed(1)) : null);
+                  const overhead = prof.allocatedOverhead || 0;
+                  const netProfit = prof.netProfit !== undefined
+                    ? prof.netProfit
+                    : (effectiveRev - directCosts - overhead);
+                  const margin = (prof.marginPercent !== undefined && prof.marginPercent !== null)
+                    ? prof.marginPercent
+                    : (effectiveRev > 0 ? Number(((netProfit / effectiveRev) * 100).toFixed(1)) : null);
 
                   return (
                     <tr
@@ -312,8 +320,16 @@ export default function ClientsSection({ onQuickAdd }) {
                         {formatINR(directCosts)}
                       </td>
                       <td className="p-3 text-right tabular-nums whitespace-nowrap">
-                        <span className={`font-bold text-sm ${netProfit >= 0 ? 'text-foreground' : 'text-muted-foreground'}`}>
-                          {formatINR(netProfit)}
+                        <span
+                          className={`font-bold text-sm ${
+                            netProfit > 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : netProfit < 0
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-foreground'
+                          }`}
+                        >
+                          {netProfit > 0 ? `+${formatINR(netProfit)}` : formatINR(netProfit)}
                         </span>
                       </td>
                       <td className="p-3 text-right tabular-nums whitespace-nowrap">
@@ -321,16 +337,18 @@ export default function ClientsSection({ onQuickAdd }) {
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                               margin >= 40
-                                ? 'bg-primary text-primary-foreground'
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                                 : margin >= 20
-                                ? 'bg-secondary text-foreground '
-                                : 'bg-muted text-muted-foreground '
+                                ? 'bg-primary/15 text-primary'
+                                : margin >= 0
+                                ? 'bg-secondary text-foreground'
+                                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
                             }`}
                           >
-                            {margin}%
+                            {margin > 0 ? `+${margin}%` : `${margin}%`}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground">N/A</span>
+                          <span className="text-muted-foreground text-[11px] font-mono">N/A</span>
                         )}
                       </td>
                       <td className="p-3 text-right">

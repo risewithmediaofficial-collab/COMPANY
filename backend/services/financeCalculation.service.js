@@ -443,14 +443,20 @@ export const computeClientProfitabilityReport = async ({ servicePeriod, clientId
 
   // Compute Contribution, Net Profit, and Margin
   const report = Object.values(clientMap).map((row) => {
-    const contribution = row.serviceRevenue - row.directCosts;
+    const recognizedRevenue = Number(row.serviceRevenue || 0);
+    const planFee = Number(row.monthlyPlanFee || 0);
+    // If invoice was issued for period use that; otherwise use agreed monthly retainer plan fee
+    const effectiveRevenue = recognizedRevenue > 0 ? recognizedRevenue : planFee;
+
+    const contribution = effectiveRevenue - row.directCosts;
     const netProfit = contribution - row.allocatedOverhead;
-    const margin = row.serviceRevenue > 0
-      ? Number(((netProfit / row.serviceRevenue) * 100).toFixed(2))
+    const margin = effectiveRevenue > 0
+      ? Number(((netProfit / effectiveRevenue) * 100).toFixed(1))
       : null;
 
     return {
       ...row,
+      effectiveRevenue,
       contribution,
       netProfit,
       marginPercent: margin,
