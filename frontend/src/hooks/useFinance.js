@@ -873,8 +873,46 @@ export const usePaymentReceipts = (filters = {}, options = {}) => {
   return useQuery({
     queryKey: ['finance-receipts', filters],
     queryFn: async () => {
-      const response = await api.get('/finance/receipts', { params: filters });
-      return response.data?.receipts || [];
+      try {
+        const response = await api.get('/finance/receipts', { params: filters });
+        const list = response.data?.receipts || response.data?.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          return list;
+        }
+
+        // Seamless fallback to /finance/payments if receipts list is empty
+        try {
+          const altRes = await api.get('/finance/payments', { params: filters });
+          const altList = altRes.data?.payments || altRes.data?.data || [];
+          if (Array.isArray(altList) && altList.length > 0) {
+            return altList.map((p) => ({
+              ...p,
+              receiptNumber: p.receiptNumber || (p._id ? `REC-${p._id.toString().slice(-6).toUpperCase()}` : 'REC-—'),
+              amount: Number(p.amount ?? p.amountPaid ?? 0),
+              paymentMode: p.paymentMode || p.method || 'Bank',
+              receivedDate: p.receivedDate || p.paidAt || p.createdAt,
+            }));
+          }
+        } catch (_) {}
+
+        return Array.isArray(list) ? list : [];
+      } catch (err) {
+        // Fallback to /finance/payments in case /finance/receipts encounters any error
+        try {
+          const fallbackRes = await api.get('/finance/payments', { params: filters });
+          const fallbackList = fallbackRes.data?.payments || fallbackRes.data?.data || [];
+          if (Array.isArray(fallbackList) && fallbackList.length > 0) {
+            return fallbackList.map((p) => ({
+              ...p,
+              receiptNumber: p.receiptNumber || (p._id ? `REC-${p._id.toString().slice(-6).toUpperCase()}` : 'REC-—'),
+              amount: Number(p.amount ?? p.amountPaid ?? 0),
+              paymentMode: p.paymentMode || p.method || 'Bank',
+              receivedDate: p.receivedDate || p.paidAt || p.createdAt,
+            }));
+          }
+        } catch (_) {}
+        throw err;
+      }
     },
     staleTime: 60 * 1000,
     ...options,

@@ -12,12 +12,15 @@ import {
   IndianRupee,
   CreditCard,
   Building,
+  AlertTriangle,
+  RefreshCw,
 } from '@/components/ui/muiIcons';
 import {
   usePaymentReceipts,
   useModuleInvoices,
 } from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
+import { useDateFilter } from '../../../context/DateFilterContext';
 import { formatINR } from '../../../utils/financeFormatters';
 import { SelectDropdown } from '../../../components/ui/SelectDropdown';
 
@@ -26,36 +29,82 @@ export default function PaymentsSection({ onQuickAdd }) {
   const [clientFilter, setClientFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
 
-  const { data: receipts = [], isLoading, refetch } = usePaymentReceipts();
+  const { startDate, endDate, isDateInRange } = useDateFilter();
+
+  const {
+    data: receipts = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = usePaymentReceipts();
+
   const { data: clientsData = [] } = useClients();
   const clients = Array.isArray(clientsData) ? clientsData : clientsData?.clients || [];
 
   const filteredReceipts = useMemo(() => {
     return receipts.filter((r) => {
-      const q = search.toLowerCase();
+      const q = search.trim().toLowerCase();
       const clientName = (r.client?.company || r.client?.name || '').toLowerCase();
-      const ref = (r.reference || '').toLowerCase();
-      const num = (r.receiptNumber || '').toLowerCase();
+      const ref = (r.reference || r.transactionReference || '').toLowerCase();
+      const num = (r.receiptNumber || (r._id ? `REC-${r._id.toString().slice(-6)}` : '')).toLowerCase();
       const invNum = (r.invoice?.invoiceNumber || '').toLowerCase();
-      const matchesSearch = !q || clientName.includes(q) || ref.includes(q) || num.includes(q) || invNum.includes(q);
-      const matchesClient = clientFilter === 'all' || r.client?._id === clientFilter || r.client === clientFilter;
-      const matchesMethod = methodFilter === 'all' || (r.paymentMode || '').toLowerCase() === methodFilter.toLowerCase();
-      return matchesSearch && matchesClient && matchesMethod;
-    });
-  }, [receipts, search, clientFilter, methodFilter]);
+      const projName = (r.project?.name || '').toLowerCase();
 
-  // Aggregate stats
-  const totalReceived = receipts.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-  const thisMonthReceived = receipts
+      const matchesSearch =
+        !q ||
+        clientName.includes(q) ||
+        ref.includes(q) ||
+        num.includes(q) ||
+        invNum.includes(q) ||
+        projName.includes(q);
+
+      const clientId = r.client?._id || r.client;
+      const matchesClient = clientFilter === 'all' || clientId === clientFilter;
+
+      const mode = (r.paymentMode || r.method || '').toLowerCase();
+      const matchesMethod = methodFilter === 'all' || mode === methodFilter.toLowerCase();
+
+      const recDate = r.receivedDate || r.paidAt || r.paymentDate || r.createdAt;
+      const matchesDate = !startDate && !endDate ? true : isDateInRange(recDate);
+
+      return matchesSearch && matchesClient && matchesMethod && matchesDate;
+    });
+  }, [receipts, search, clientFilter, methodFilter, startDate, endDate, isDateInRange]);
+
+  // Aggregate stats based on loaded receipts (matching active date filter)
+  const totalReceived = filteredReceipts.reduce((sum, r) => sum + (Number(r.amount ?? r.amountPaid) || 0), 0);
+  const thisMonthReceived = filteredReceipts
     .filter((r) => {
-      const d = new Date(r.receivedDate || r.createdAt);
+      const d = new Date(r.receivedDate || r.paidAt || r.paymentDate || r.createdAt);
       const now = new Date();
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     })
-    .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    .reduce((sum, r) => sum + (Number(r.amount ?? r.amountPaid) || 0), 0);
 
   return (
     <div className="space-y-5 animate-in fade-in duration-150">
+      {/* ── ERROR ALERT BANNER ────────────────────────────────────────── */}
+      {isError && (
+        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>
+              Unable to load payments ({error?.response?.data?.message || error?.message || 'Server error'}).
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="px-3 py-1 bg-destructive text-destructive-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1.5"
+          >
+            <RefreshCw className="h-3 w-3 shrink-0" />
+            <span>Retry</span>
+          </button>
+        </div>
+      )}
+
       {/* ── METRICS OVERVIEW ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/40 shadow-xs space-y-1">
@@ -86,7 +135,7 @@ export default function PaymentsSection({ onQuickAdd }) {
             <CheckCircle2 size={16} className="text-sky-500" />
           </div>
           <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums">
-            {receipts.length}
+            {filteredReceipts.length}
           </div>
           <p className="text-[11px] text-muted-foreground">Verified payment entries</p>
         </div>
@@ -97,7 +146,7 @@ export default function PaymentsSection({ onQuickAdd }) {
             <ArrowDownRight size={16} className="text-amber-500" />
           </div>
           <div className="text-xl sm:text-2xl font-bold text-foreground tabular-nums">
-            {receipts.length > 0 ? formatINR(Math.round(totalReceived / receipts.length)) : '₹0'}
+            {filteredReceipts.length > 0 ? formatINR(Math.round(totalReceived / filteredReceipts.length)) : '₹0'}
           </div>
           <p className="text-[11px] text-muted-foreground">Per payment receipt</p>
         </div>
@@ -119,6 +168,18 @@ export default function PaymentsSection({ onQuickAdd }) {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
+          {/* Refresh Button */}
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title="Refresh payment records"
+            className="h-9 px-3 rounded-xl bg-background border border-border/50 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 shrink-0 ${isFetching ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+
           {/* Method Filter */}
           <div className="w-[140px] flex-1 sm:flex-initial">
             <SelectDropdown
@@ -178,7 +239,7 @@ export default function PaymentsSection({ onQuickAdd }) {
                 <th className="py-3 px-4">Receipt #</th>
                 <th className="py-3 px-4">Date</th>
                 <th className="py-3 px-4">Client</th>
-                <th className="py-3 px-4">Invoice Linked</th>
+                <th className="py-3 px-4">Invoice / Project</th>
                 <th className="py-3 px-4">Payment Method</th>
                 <th className="py-3 px-4">Reference / UTR</th>
                 <th className="py-3 px-4 text-right">Amount Received</th>
@@ -201,33 +262,43 @@ export default function PaymentsSection({ onQuickAdd }) {
                   </td>
                 </tr>
               ) : (
-                filteredReceipts.map((rec) => (
-                  <tr key={rec._id} className="hover:bg-secondary/30 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-primary">
-                      {rec.receiptNumber || 'REC-—'}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground tabular-nums">
-                      {rec.receivedDate ? new Date(rec.receivedDate).toLocaleDateString() : '—'}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-foreground">
-                      {rec.client?.company || rec.client?.name || '—'}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-muted-foreground">
-                      {rec.invoice?.invoiceNumber || (rec.invoiceId ? 'Invoice Linked' : 'Advance / General')}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-secondary text-foreground">
-                        {rec.paymentMode || 'Bank'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground font-mono">
-                      {rec.reference || '—'}
-                    </td>
-                    <td className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400 tabular-nums text-sm">
-                      +{formatINR(rec.amount || 0)}
-                    </td>
-                  </tr>
-                ))
+                filteredReceipts.map((rec) => {
+                  const dateVal = rec.receivedDate || rec.paidAt || rec.paymentDate || rec.createdAt;
+                  const displayDate = dateVal ? new Date(dateVal).toLocaleDateString() : '—';
+                  const displayReceiptNum = rec.receiptNumber || (rec._id ? `REC-${rec._id.toString().slice(-6).toUpperCase()}` : 'REC-—');
+                  const displayLinked = rec.invoice?.invoiceNumber || (rec.invoiceId ? 'Invoice Linked' : rec.project?.name ? `Project: ${rec.project.name}` : 'Advance / General');
+                  const displayMethod = rec.paymentMode || rec.method || 'Bank';
+                  const displayRef = rec.reference || rec.transactionReference || rec.notes || '—';
+                  const displayAmount = Number(rec.amount ?? rec.amountPaid ?? 0);
+
+                  return (
+                    <tr key={rec._id || Math.random()} className="hover:bg-secondary/30 transition-colors">
+                      <td className="py-3 px-4 font-mono font-bold text-primary">
+                        {displayReceiptNum}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground tabular-nums">
+                        {displayDate}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-foreground">
+                        {rec.client?.company || rec.client?.name || '—'}
+                      </td>
+                      <td className="py-3 px-4 font-mono text-muted-foreground">
+                        {displayLinked}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-secondary text-foreground">
+                          {displayMethod}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground font-mono">
+                        {displayRef}
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400 tabular-nums text-sm">
+                        +{formatINR(displayAmount)}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

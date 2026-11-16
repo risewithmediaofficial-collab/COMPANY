@@ -9,6 +9,7 @@ import FinanceAccount from '../models/financeAccount.model.js';
 import InternalTransfer from '../models/internalTransfer.model.js';
 import Invoice from '../models/invoice.model.js';
 import Payment from '../models/payment.model.js';
+import PaymentNote from '../models/paymentNote.model.js';
 import Expense from '../models/expense.model.js';
 import Subscription from '../models/subscription.model.js';
 import CostAllocation from '../models/costAllocation.model.js';
@@ -1094,45 +1095,106 @@ export const recordClientPaymentReceipt = async (req, res) => {
 
 export const getPaymentReceipts = async (req, res) => {
   try {
-    const { client, invoice, startDate, endDate } = req.query;
+    const { client, invoice, startDate, endDate, status } = req.query;
     const isPaginated = req.query.page !== undefined || req.query.limit !== undefined;
     const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
-    const filter = { status: 'paid' };
+    
+    const filter = {};
+    if (status && status !== 'all') {
+      filter.status = status;
+    } else {
+      filter.status = { $nin: ['failed', 'refunded', 'cancelled'] };
+    }
+
     if (client) filter.client = client;
     if (invoice) filter.invoice = invoice;
     if (startDate || endDate) {
-      filter.receivedDate = {};
-      if (startDate) filter.receivedDate.$gte = new Date(startDate);
+      const dateCond = {};
+      if (startDate) dateCond.$gte = new Date(startDate);
       if (endDate) {
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
-        filter.receivedDate.$lte = end;
+        dateCond.$lte = end;
       }
+      filter.$or = [
+        { receivedDate: dateCond },
+        { paidAt: dateCond },
+        { createdAt: dateCond },
+      ];
     }
 
     const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
     const findQuery = Payment.find(filter)
       .populate('client', 'name company email phone')
       .populate('invoice', 'invoiceNumber total balanceAmount servicePeriod')
+      .populate('project', 'name')
       .populate('destinationAccount', 'accountName accountType bankName')
       .populate('recordedBy', 'name')
-      .sort({ receivedDate: sortDirection, paidAt: sortDirection })
+      .sort({ receivedDate: sortDirection, paidAt: sortDirection, createdAt: sortDirection })
       .lean();
 
     if (isPaginated) {
       findQuery.skip(skip).limit(limit);
     }
 
-    const [total, receipts] = await Promise.all([
+    let [total, receipts] = await Promise.all([
       Payment.countDocuments(filter),
       findQuery,
     ]);
+
+    // If receipts array is empty or partial, also fetch from PaymentNote collection to ensure complete ledger
+    if (!receipts || receipts.length === 0) {
+      const noteFilter = {};
+      if (client) noteFilter.clientId = client;
+      if (startDate || endDate) {
+        noteFilter.paymentDate = {};
+        if (startDate) noteFilter.paymentDate.$gte = new Date(startDate);
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          noteFilter.paymentDate.$lte = end;
+        }
+      }
+      const paymentNotes = await PaymentNote.find(noteFilter)
+        .populate('clientId', 'name company email phone')
+        .populate('projectId', 'name')
+        .populate('addedBy', 'name')
+        .sort({ paymentDate: sortDirection, createdAt: sortDirection })
+        .lean();
+
+      if (paymentNotes && paymentNotes.length > 0) {
+        receipts = paymentNotes.map((pn) => ({
+          _id: pn._id,
+          receiptNumber: `REC-${pn._id.toString().slice(-6).toUpperCase()}`,
+          client: pn.clientId,
+          project: pn.projectId,
+          amount: Number(pn.amountPaid || 0),
+          paymentMode: pn.paymentMode || 'Bank',
+          reference: pn.noteTitle || '',
+          notes: pn.noteDescription || '',
+          receivedDate: pn.paymentDate,
+          paidAt: pn.paymentDate,
+          createdAt: pn.createdAt,
+          recordedBy: pn.addedBy,
+          status: 'paid',
+        }));
+        total = receipts.length;
+      }
+    }
+
+    const formattedReceipts = (receipts || []).map((r) => ({
+      ...r,
+      receiptNumber: r.receiptNumber || (r._id ? `REC-${r._id.toString().slice(-6).toUpperCase()}` : 'REC-—'),
+      amount: Number(r.amount ?? r.amountPaid ?? 0),
+      paymentMode: r.paymentMode || r.method || 'Bank',
+      receivedDate: r.receivedDate || r.paidAt || r.paymentDate || r.createdAt,
+    }));
 
     res.json({
       success: true,
       total,
       ...(isPaginated ? { page, pages: Math.ceil(total / limit) } : {}),
-      receipts,
+      receipts: formattedReceipts,
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });

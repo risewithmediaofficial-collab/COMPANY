@@ -6,6 +6,7 @@
 import mongoose from 'mongoose';
 import Invoice from '../models/invoice.model.js';
 import Payment from '../models/payment.model.js';
+import PaymentNote from '../models/paymentNote.model.js';
 import Expense from '../models/expense.model.js';
 import SalaryRecord from '../models/salaryRecord.model.js';
 import FinanceAccount from '../models/financeAccount.model.js';
@@ -162,15 +163,29 @@ export const computeFinanceKPIs = async ({ startDate, endDate, clientId, project
   });
 
   // 2. Client Payment Receipts (Cash Received)
-  const paymentQuery = { status: 'paid' };
+  const paymentQuery = { status: { $nin: ['failed', 'refunded', 'cancelled'] } };
   if (matchRange.$gte || matchRange.$lte) {
-    paymentQuery.receivedDate = matchRange;
+    paymentQuery.$or = [
+      { receivedDate: matchRange },
+      { paidAt: matchRange },
+      { createdAt: matchRange },
+    ];
   }
   if (clientId) paymentQuery.client = new mongoose.Types.ObjectId(clientId);
   if (projectId) paymentQuery.project = new mongoose.Types.ObjectId(projectId);
 
   const payments = await Payment.find(paymentQuery).lean();
-  const cashReceived = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  let cashReceived = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+  // If cashReceived is 0, also check for CRM PaymentNote records in period
+  if (cashReceived === 0) {
+    const noteFilter = {};
+    if (matchRange.$gte || matchRange.$lte) noteFilter.paymentDate = matchRange;
+    if (clientId) noteFilter.clientId = new mongoose.Types.ObjectId(clientId);
+    if (projectId) noteFilter.projectId = new mongoose.Types.ObjectId(projectId);
+    const paymentNotes = await PaymentNote.find(noteFilter).lean();
+    cashReceived = paymentNotes.reduce((sum, n) => sum + Number(n.amountPaid || 0), 0);
+  }
 
   // 3. Recognized Expenses (posted/approved expenses in period, excluding salary payouts to prevent double-counting with SalaryRecord)
   const expenseQuery = {

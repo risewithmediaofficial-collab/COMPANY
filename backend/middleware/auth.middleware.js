@@ -93,13 +93,16 @@ export const protect = async (req, res, next) => {
  */
 export const authorize = (...roles) => {
   return (req, res, next) => {
-    // Admin and superAdmin have universal access across the entire platform
-    if (req.user && (req.user.role === 'superAdmin' || req.user.role === 'admin')) {
+    // Admin, superAdmin, and organizationOwner have universal access across the entire platform
+    if (req.user && (req.user.role === 'superAdmin' || req.user.role === 'admin' || req.user.role === 'organizationOwner')) {
       return next();
     }
     let allowedRoles = [...roles];
     if (allowedRoles.includes('superAdmin') && !allowedRoles.includes('admin')) {
       allowedRoles.push('admin');
+    }
+    if (allowedRoles.includes('superAdmin') && !allowedRoles.includes('organizationOwner')) {
+      allowedRoles.push('organizationOwner');
     }
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
@@ -116,8 +119,8 @@ export const authorize = (...roles) => {
  */
 export const requirePermission = (permissionKey) => {
   return (req, res, next) => {
-    // SuperAdmins & Admins bypass permission checks
-    if (req.user.role === 'superAdmin' || req.user.role === 'admin') return next();
+    // SuperAdmins, Admins & OrganizationOwners bypass permission checks
+    if (req.user?.role === 'superAdmin' || req.user?.role === 'admin' || req.user?.role === 'organizationOwner') return next();
     
     if (!req.user.permissions?.[permissionKey]) {
       return res.status(403).json({
@@ -144,8 +147,8 @@ export const withWorkspaceScope = (req, baseQuery = {}) => {
   const query = user.organizationId ? { ...baseQuery, organizationId: user.organizationId } : { ...baseQuery };
   const requestedWorkspace = req.headers?.['x-workspace-id'];
 
-  // 1. SuperAdmin & Admin: Universal visibility, with optional workspace filter
-  if (user.role === 'superAdmin' || user.role === 'admin') {
+  // 1. SuperAdmin, Admin & OrganizationOwner: Universal visibility, with optional workspace filter
+  if (user.role === 'superAdmin' || user.role === 'admin' || user.role === 'organizationOwner') {
     if (requestedWorkspace && requestedWorkspace !== 'global') {
       query.brandId = requestedWorkspace;
     }

@@ -144,30 +144,30 @@ router.post('/auth/change-password', authorize('superAdmin', 'admin'), changeFin
 // =============================================
 
 // 1. Overview & Period KPIs
-router.get('/module/overview', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getFinanceOverview);
+router.get('/module/overview', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'employee'), getFinanceOverview);
 
 // 2. Bank, Cash & UPI Accounts
-router.get('/accounts', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getFinanceAccounts);
-router.post('/accounts', authorize('superAdmin', 'admin', 'financeManager'), createFinanceAccount);
-router.put('/accounts/:id', authorize('superAdmin', 'admin', 'financeManager'), updateFinanceAccount);
-router.post('/accounts/:id/reconcile', authorize('superAdmin', 'admin', 'financeManager'), reconcileAccount);
+router.get('/accounts', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'employee'), getFinanceAccounts);
+router.post('/accounts', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), createFinanceAccount);
+router.put('/accounts/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), updateFinanceAccount);
+router.post('/accounts/:id/reconcile', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), reconcileAccount);
 
 // 3. Internal Transfers
-router.get('/transfers', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getInternalTransfers);
-router.post('/transfers', authorize('superAdmin', 'admin', 'financeManager'), createInternalTransfer);
+router.get('/transfers', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'employee'), getInternalTransfers);
+router.post('/transfers', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), createInternalTransfer);
 
 // 4. Invoices & Revenue Master
-router.get('/module/invoices', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager'), getModuleInvoices);
-router.post('/module/invoices', authorize('superAdmin', 'admin', 'financeManager'), createModuleInvoice);
-router.delete('/module/invoices/:id', authorize('superAdmin', 'admin', 'financeManager'), deleteModuleInvoice);
-router.patch('/module/invoices/:id/workflow', authorize('superAdmin', 'admin', 'financeManager'), updateInvoiceWorkflow);
-router.post('/module/invoices/retainer-generate', authorize('superAdmin', 'admin', 'financeManager'), generateMonthlyRetainerInvoices);
+router.get('/module/invoices', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'accountManager', 'employee'), getModuleInvoices);
+router.post('/module/invoices', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), createModuleInvoice);
+router.delete('/module/invoices/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), deleteModuleInvoice);
+router.patch('/module/invoices/:id/workflow', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), updateInvoiceWorkflow);
+router.post('/module/invoices/retainer-generate', authorize('superAdmin', 'admin', 'organizationOwner', 'financeManager'), generateMonthlyRetainerInvoices);
 
 // 5. Client Payment Receipts
-router.get('/receipts', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager'), getPaymentReceipts);
-router.post('/receipts', authorize('superAdmin', 'admin', 'manager', 'financeManager'), recordClientPaymentReceipt);
-router.put('/receipts/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), updatePaymentReceipt);
-router.delete('/receipts/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), deletePaymentReceipt);
+router.get('/receipts', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'accountManager', 'employee'), getPaymentReceipts);
+router.post('/receipts', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'accountManager', 'employee'), recordClientPaymentReceipt);
+router.put('/receipts/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager'), updatePaymentReceipt);
+router.delete('/receipts/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager'), deletePaymentReceipt);
 
 // 6. Expenses & Vendor Bills
 router.get('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), getModuleExpenses);
@@ -269,7 +269,7 @@ router.post('/invoices/:id/viewed', authorize('client'), markInvoiceViewed);
 router.post('/invoices/:id/partial-payment', authorize('superAdmin', 'admin', 'financeManager'), addPartialPaymentToInvoice);
 router.post('/invoices/:id/mark-paid', authorize('superAdmin', 'admin', 'financeManager'), markInvoicePaid);
 router.delete('/invoices/:id', authorize('superAdmin', 'admin'), deleteInvoice);
-router.get('/payments', authorize('superAdmin', 'manager', 'employee', 'client'), getPayments);
+router.get('/payments', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'financeManager', 'employee', 'client'), getPayments);
 
 router.get('/call-history/followups/today', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern', 'client'), getTodayFollowUpCalls);
 router.get('/call-history/client/:clientId', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern', 'client'), getCallHistoryByClient);
