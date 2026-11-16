@@ -33,7 +33,10 @@ import {
   STANDARD_DELIVERABLE_TYPES,
   MONTH_NAMES,
 } from './MonthlyDeliverablesSection';
-import { getDeliverableDemoTitles } from './ProjectMonthlyDeliverablesCard';
+import {
+  getDeliverableDemoTitles,
+  getDeliverableColorStyle,
+} from './ProjectMonthlyDeliverablesCard';
 
 export const ProjectTodoDeliverablesCard = ({
   deliverables = [],
@@ -132,44 +135,49 @@ export const ProjectTodoDeliverablesCard = ({
         </div>
 
         {/* 1 Preview Item */}
-        <div className="p-2.5 rounded-xl bg-secondary/30 space-y-1.5 border border-border/30">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <span className="flex h-5 w-5 items-center justify-center rounded bg-secondary text-[10px] font-bold shrink-0">
-                #{firstSlot.slotNumber}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-secondary text-muted-foreground shrink-0">
-                <FirstIcon size={10} className="text-primary" />
-                <span>{firstSlot.contentType}</span>
-              </span>
-            </div>
+        {(() => {
+          const firstStyle = getDeliverableColorStyle(firstSlot.contentType);
+          return (
+            <div className={`p-2.5 rounded-xl space-y-1.5 shadow-xs ${firstStyle.surface}`}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <span className="flex h-5 w-5 items-center justify-center rounded bg-card border border-border/60 text-[10px] font-bold shrink-0">
+                    #{firstSlot.slotNumber}
+                  </span>
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${firstStyle.badge}`}>
+                    <FirstIcon size={10} className="shrink-0" />
+                    <span>{firstSlot.contentType}</span>
+                  </span>
+                </div>
 
-            {canManage && !firstSlot.isAssigned && (
-              <button
-                type="button"
-                onClick={() => handleAssign(firstSlot)}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-bold transition-all cursor-pointer shadow-xs shrink-0"
+                {canManage && !firstSlot.isAssigned && (
+                  <button
+                    type="button"
+                    onClick={() => handleAssign(firstSlot)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-bold transition-all cursor-pointer shadow-xs shrink-0"
+                  >
+                    <Plus size={11} />
+                    <span>Assign</span>
+                  </button>
+                )}
+              </div>
+
+              <p
+                onClick={() => {
+                  if (firstSlot.isAssigned) {
+                    onSelectTask?.(firstSlot.task._id);
+                  } else {
+                    handleAssign(firstSlot);
+                  }
+                }}
+                className="text-xs font-semibold text-foreground hover:text-primary hover:underline transition-colors truncate cursor-pointer"
+                title={firstSlot.isAssigned ? firstSlot.task.title : firstSlot.suggestedTitle}
               >
-                <Plus size={11} />
-                <span>Assign</span>
-              </button>
-            )}
-          </div>
-
-          <p
-            onClick={() => {
-              if (firstSlot.isAssigned) {
-                onSelectTask?.(firstSlot.task._id);
-              } else {
-                handleAssign(firstSlot);
-              }
-            }}
-            className="text-xs font-semibold text-foreground hover:text-primary hover:underline transition-colors truncate cursor-pointer"
-            title={firstSlot.isAssigned ? firstSlot.task.title : firstSlot.suggestedTitle}
-          >
-            {firstSlot.isAssigned ? firstSlot.task.title : firstSlot.suggestedTitle}
-          </p>
-        </div>
+                {firstSlot.isAssigned ? firstSlot.task.title : firstSlot.suggestedTitle}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* "+ and more" Closed Way Trigger: Click and View */}
         {remainingCount > 0 && (
@@ -242,11 +250,12 @@ export const ProjectTodoDeliverablesCard = ({
             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-2 divide-y divide-border/20">
               {filteredSlots.map((slot) => {
                 const ItemIcon = getDeliverableIcon(slot.contentType);
+                const slotStyle = getDeliverableColorStyle(slot.contentType);
 
                 return (
                   <div
                     key={slot.id}
-                    className="pt-2.5 first:pt-0 p-3 sm:p-3.5 rounded-2xl bg-background hover:bg-secondary/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                    className="pt-2.5 first:pt-0 p-3 sm:p-3.5 rounded-2xl bg-card border border-border/60 hover:border-primary/40 hover:bg-secondary/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-xs"
                   >
                     <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-foreground text-xs font-bold shrink-0">
@@ -255,8 +264,8 @@ export const ProjectTodoDeliverablesCard = ({
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-secondary text-muted-foreground shrink-0">
-                            <ItemIcon size={11} className="text-primary" />
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${slotStyle.badge}`}>
+                            <ItemIcon size={11} className="shrink-0" />
                             <span>{slot.contentType}</span>
                           </span>
 

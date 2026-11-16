@@ -56,64 +56,73 @@ const STAGE_META = {
   new: {
     label: 'New',
     description: 'Fresh leads waiting for first touch.',
-    badge: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
-    surface: ' bg-secondary/20',
-  },
-  qualified: {
-    label: 'Qualified',
-    description: 'Great-fit leads ready for deeper discovery.',
-    badge: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
-    surface: ' bg-secondary/25',
+    badge: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30',
+    surface: 'bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border border-sky-500/20',
+    dot: 'bg-sky-500',
   },
   contacted: {
     label: 'Contacted',
     description: 'Leads touched by call, WhatsApp, or email.',
-    badge: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30',
-    surface: ' bg-secondary/20',
+    badge: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30',
+    surface: 'bg-cyan-500/[0.04] dark:bg-cyan-500/[0.08] border border-cyan-500/20',
+    dot: 'bg-cyan-500',
+  },
+  qualified: {
+    label: 'Qualified',
+    description: 'Great-fit leads ready for deeper discovery.',
+    badge: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30',
+    surface: 'bg-indigo-500/[0.04] dark:bg-indigo-500/[0.08] border border-indigo-500/20',
+    dot: 'bg-indigo-500',
   },
   meeting_booked: {
     label: 'Meeting Booked',
     description: 'Calls and demos already on the calendar.',
-    badge: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
-    surface: ' bg-secondary/25',
+    badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30',
+    surface: 'bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border border-amber-500/20',
+    dot: 'bg-amber-500',
   },
   proposal_sent: {
     label: 'Proposal Sent',
     description: 'Decision makers reviewing your offer.',
-    badge: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30',
-    surface: ' bg-secondary/20',
+    badge: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30',
+    surface: 'bg-purple-500/[0.04] dark:bg-purple-500/[0.08] border border-purple-500/20',
+    dot: 'bg-purple-500',
   },
   negotiation: {
     label: 'Negotiation',
     description: 'Active conversations near the finish line.',
-    badge: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30',
-    surface: ' bg-secondary/30',
+    badge: 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border border-orange-500/30',
+    surface: 'bg-orange-500/[0.04] dark:bg-orange-500/[0.08] border border-orange-500/20',
+    dot: 'bg-orange-500',
   },
   won: {
     label: 'Won',
     description: 'Closed business ready for handoff.',
-    badge: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-    surface: ' bg-secondary/30',
+    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30',
+    surface: 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/20',
+    dot: 'bg-emerald-500',
   },
   lost: {
     label: 'Lost',
     description: 'Archived opportunities and learnings.',
-    badge: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
-    surface: ' bg-card',
+    badge: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30',
+    surface: 'bg-rose-500/[0.04] dark:bg-rose-500/[0.08] border border-rose-500/20',
+    dot: 'bg-rose-500',
   },
   refollow_later: {
     label: 'Refollow Later',
     description: 'Not now, but worth reconnecting with later.',
-    badge: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30',
-    surface: ' bg-secondary/15',
+    badge: 'bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30',
+    surface: 'bg-teal-500/[0.04] dark:bg-teal-500/[0.08] border border-teal-500/20',
+    dot: 'bg-teal-500',
   },
 };
 
 const PRIORITY_META = {
-  low: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-  medium: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30',
-  high: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
-  urgent: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
+  low: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30',
+  medium: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30',
+  high: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30',
+  urgent: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30',
 };
 
 const formatDate = (value) => {
@@ -580,16 +589,17 @@ const Leads = () => {
                     }
                   }}
                   onDrop={(e) => handleDrop(e, stage)}
-                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] bg-card transition-all ${stageInfo.surface} ${
-                    isColActive ? 'ring-2 ring-primary/40 bg-primary/5 ' : ''
+                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] transition-all shadow-sm ${stageInfo.surface} ${
+                    isColActive ? 'ring-2 ring-primary/40 !bg-primary/10' : ''
                   }`}
                 >
                   <div className="px-4 py-4 shrink-0">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold">{stageInfo.label}</h3>
-                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums ${stageInfo.badge}`}>
+                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${stageInfo.dot || 'bg-primary'}`} />
+                          <h3 className="text-sm font-bold text-foreground">{stageInfo.label}</h3>
+                          <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold tabular-nums ${stageInfo.badge}`}>
                             {stageLeads.length}
                           </span>
                         </div>
@@ -647,7 +657,7 @@ const Leads = () => {
                               }}
                               role="button"
                               tabIndex={0}
-                              className={`group cursor-grab rounded-2xl bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 active:cursor-grabbing ${
+                              className={`group cursor-grab rounded-2xl bg-card border border-border/75 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40 active:cursor-grabbing ${
                                 isBeingDragged ? 'opacity-30 scale-95 ring-1 ring-primary/40' : ''
                               }`}
                             >

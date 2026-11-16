@@ -63,46 +63,46 @@ const STATUS_CONFIG = {
   Active: {
     label: 'Active',
     icon: CheckCircle2,
-    dotColor: 'bg-primary',
+    dotColor: 'bg-emerald-500',
     accentBorder: '',
-    badgeClass: 'bg-primary text-primary-foreground ',
-    surface: ' bg-secondary/30',
+    badgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30',
+    surface: 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/20',
     emptyMsg: 'No active clients yet',
   },
   Prospect: {
     label: 'Prospect',
     icon: Sparkles,
-    dotColor: 'bg-foreground/70',
+    dotColor: 'bg-sky-500',
     accentBorder: '',
-    badgeClass: 'bg-secondary text-foreground ',
-    surface: ' bg-secondary/25',
+    badgeClass: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30',
+    surface: 'bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border border-sky-500/20',
     emptyMsg: 'No prospects in pipeline',
   },
   Renew: {
     label: 'Renew',
     icon: RotateCcw,
-    dotColor: 'bg-foreground/60',
+    dotColor: 'bg-amber-500',
     accentBorder: '',
-    badgeClass: 'bg-secondary text-foreground ',
-    surface: ' bg-secondary/20',
+    badgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30',
+    surface: 'bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border border-amber-500/20',
     emptyMsg: 'No renewals pending',
   },
   Inactive: {
     label: 'Inactive',
     icon: Clock,
-    dotColor: 'bg-muted-foreground',
+    dotColor: 'bg-slate-400',
     accentBorder: '',
-    badgeClass: 'bg-muted text-muted-foreground ',
-    surface: ' bg-secondary/15',
+    badgeClass: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30',
+    surface: 'bg-slate-500/[0.04] dark:bg-slate-500/[0.08] border border-slate-500/20',
     emptyMsg: 'No inactive accounts',
   },
   Churned: {
     label: 'Churned',
     icon: UserX,
-    dotColor: 'bg-muted-foreground/60',
+    dotColor: 'bg-rose-500',
     accentBorder: '',
-    badgeClass: 'bg-background text-muted-foreground ',
-    surface: ' bg-card',
+    badgeClass: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30',
+    surface: 'bg-rose-500/[0.04] dark:bg-rose-500/[0.08] border border-rose-500/20',
     emptyMsg: 'No churned accounts',
   },
 };
@@ -709,7 +709,7 @@ const Clients = () => {
                                   setDragOverClientIndex(null);
                                 }}
                                 onClick={() => navigate(`/clients/${client._id}`)}
-                                className={`p-3.5 bg-card rounded-2xl transition-all duration-200 cursor-grab active:cursor-grabbing space-y-2.5 group hover:-translate-y-0.5 active:scale-[0.98] ${conf.accentBorder} ${
+                                className={`p-3.5 bg-card border border-border/75 shadow-sm rounded-2xl transition-all duration-200 cursor-grab active:cursor-grabbing space-y-2.5 group hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40 active:scale-[0.98] ${conf.accentBorder} ${
                                   isBeingDragged
                                     ? 'opacity-30 scale-95 ring-2 ring-primary/30'
                                     : ''

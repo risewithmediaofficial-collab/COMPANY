@@ -28,6 +28,15 @@ import {
   LayoutList,
   ChevronDown,
   ChevronUp,
+  Megaphone,
+  Palette,
+  Target,
+  Code2,
+  Receipt,
+  Save,
+  Wallet,
+  TrendingUp,
+  Layers,
 } from '@/components/ui/muiIcons';
 import { formatINR } from '../../utils/currency';
 import { useUpdateProject, useDeleteProject } from '../../hooks/useProjects';
@@ -80,6 +89,39 @@ const statusLabels = {
   approved: 'Approved',
   rejected: 'Changes Needed',
   done: 'Completed',
+};
+
+const statusTheme = {
+  todo: {
+    surface: 'bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border border-sky-500/20',
+    dot: 'bg-sky-500',
+    badge: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30',
+  },
+  in_progress: {
+    surface: 'bg-blue-500/[0.04] dark:bg-blue-500/[0.08] border border-blue-500/20',
+    dot: 'bg-blue-500',
+    badge: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30',
+  },
+  review: {
+    surface: 'bg-purple-500/[0.04] dark:bg-purple-500/[0.08] border border-purple-500/20',
+    dot: 'bg-purple-500',
+    badge: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30',
+  },
+  approved: {
+    surface: 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/20',
+    dot: 'bg-emerald-500',
+    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30',
+  },
+  rejected: {
+    surface: 'bg-rose-500/[0.04] dark:bg-rose-500/[0.08] border border-rose-500/20',
+    dot: 'bg-rose-500',
+    badge: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30',
+  },
+  done: {
+    surface: 'bg-teal-500/[0.04] dark:bg-teal-500/[0.08] border border-teal-500/20',
+    dot: 'bg-teal-500',
+    badge: 'bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30',
+  },
 };
 
 const projectStatusStyles = {
@@ -406,17 +448,18 @@ const ProjectDetails = () => {
 
   // ─── Budget helpers ───────────────────────────────────────────────────────────
   const syncBudgetForm = () => {
-    const b = project.budgetDetails || {};
+    const b = project?.budgetDetails || {};
+    const toEmptyOrVal = (val) => (val === 0 || val === '0' || val === null || val === undefined ? '' : String(val));
     setBudgetForm({
-      marketingAmount: b.marketingAmount ?? 0,
-      adsAmount: b.adsAmount ?? 0,
-      contentAmount: b.contentAmount ?? 0,
-      designAmount: b.designAmount ?? 0,
-      developmentAmount: b.developmentAmount ?? 0,
-      printingAmount: b.printingAmount ?? 0,
-      otherExpenses: b.otherExpenses ?? 0,
-      totalBudget: b.totalBudget ?? project.budget ?? 0,
-      amountReceived: b.amountReceived ?? 0,
+      marketingAmount: toEmptyOrVal(b.marketingAmount),
+      adsAmount: toEmptyOrVal(b.adsAmount),
+      contentAmount: toEmptyOrVal(b.contentAmount),
+      designAmount: toEmptyOrVal(b.designAmount),
+      developmentAmount: toEmptyOrVal(b.developmentAmount),
+      printingAmount: toEmptyOrVal(b.printingAmount),
+      otherExpenses: toEmptyOrVal(b.otherExpenses),
+      totalBudget: toEmptyOrVal(b.totalBudget ?? project?.budget),
+      amountReceived: toEmptyOrVal(b.amountReceived),
       paymentStatus: b.paymentStatus || 'pending',
       budgetNotes: b.budgetNotes || '',
     });
@@ -571,23 +614,18 @@ const ProjectDetails = () => {
       <div ref={projectDetailsBoardRef} className="flex min-h-[500px] h-[calc(100vh-270px)] gap-4 sm:gap-6 overflow-x-auto pb-6 custom-scrollbar responsive-table-container">
         {statuses.map((status) => {
           const isDragOver = dragOverStatus === status;
-          const columnDotColor =
-            status === 'done' || status === 'approved'
-              ? 'bg-foreground'
-              : status === 'rejected'
-                ? 'bg-muted-foreground/50'
-                : 'bg-muted-foreground';
+          const theme = statusTheme[status] || statusTheme.todo;
 
           return (
             <div key={status} className="flex w-[280px] sm:w-80 flex-shrink-0 flex-col">
               {/* Column Header */}
               <div className="mb-4 flex items-center justify-between px-2">
                 <div className="flex items-center space-x-2">
-                  <div className={`h-2 w-2 rounded-full ${columnDotColor}`} />
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${theme.dot}`} />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
                     {statusLabels[status]}
                   </h3>
-                  <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums ${theme.badge}`}>
                     {kanban[status]?.length || 0}
                   </span>
                 </div>
@@ -610,10 +648,10 @@ const ProjectDetails = () => {
                   }
                 }}
                 onDrop={(e) => handleDrop(e, status)}
-                className={`flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar rounded-2xl p-3 transition-all duration-150 ${
+                className={`flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar rounded-2xl p-3 transition-all duration-150 shadow-sm ${theme.surface} ${
                   isDragOver
-                    ? ' bg-primary/5 shadow-inner'
-                    : ' bg-secondary/20'
+                    ? ' !bg-primary/10 ring-2 ring-primary/40 shadow-inner'
+                    : ''
                 }`}
               >
                 {/* Deliverable Targets Queue in TO DO column (Closed way: shows 1 item + click to view and assign more) */}
@@ -670,7 +708,7 @@ const ProjectDetails = () => {
                         }}
                         onDrop={(e) => handleDrop(e, status, idx)}
                         onClick={() => setSelectedTaskId(task._id)}
-                        className={`group cursor-pointer rounded-2xl bg-card p-4 transition-all active:cursor-grabbing ${
+                        className={`group cursor-pointer rounded-2xl bg-card border border-border/75 p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/40 active:cursor-grabbing border-l-4 ${
                           getCategoryTheme(task.taskType || task.taskCategory).accentBorder
                         } ${
                           isBeingDragged
@@ -1062,18 +1100,18 @@ const ProjectDetails = () => {
     const pending = Math.max(0, total - received);
 
     const budgetFields = [
-      ['marketingAmount', 'Marketing'],
-      ['adsAmount', 'Ads Budget'],
-      ['contentAmount', 'Content'],
-      ['designAmount', 'Design'],
-      ['developmentAmount', 'Development'],
-      ['printingAmount', 'Printing'],
-      ['otherExpenses', 'Other Expenses'],
+      { key: 'marketingAmount', label: 'Marketing', icon: Megaphone, color: 'text-amber-500 bg-amber-500/10' },
+      { key: 'adsAmount', label: 'Ads Budget', icon: Target, color: 'text-rose-500 bg-rose-500/10' },
+      { key: 'contentAmount', label: 'Content', icon: FileText, color: 'text-cyan-500 bg-cyan-500/10' },
+      { key: 'designAmount', label: 'Design', icon: Palette, color: 'text-violet-500 bg-violet-500/10' },
+      { key: 'developmentAmount', label: 'Development', icon: Code2, color: 'text-indigo-500 bg-indigo-500/10' },
+      { key: 'printingAmount', label: 'Printing', icon: Layers, color: 'text-teal-500 bg-teal-500/10' },
+      { key: 'otherExpenses', label: 'Other Expenses', icon: Receipt, color: 'text-slate-500 bg-slate-500/10' },
     ];
 
     if (isManager) {
       return (
-        <div className="rounded-3xl bg-card p-6 space-y-4">
+        <div className="rounded-3xl bg-card border border-border/80 p-6 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} className="shrink-0" /> Ads Budget</h2>
             <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-muted-foreground">Manager View</span>
@@ -1090,106 +1128,356 @@ const ProjectDetails = () => {
     }
 
     if (editingBudget) {
+      const liveDirectCosts = [
+        Number(budgetForm.marketingAmount) || 0,
+        Number(budgetForm.adsAmount) || 0,
+        Number(budgetForm.contentAmount) || 0,
+        Number(budgetForm.designAmount) || 0,
+        Number(budgetForm.developmentAmount) || 0,
+        Number(budgetForm.printingAmount) || 0,
+        Number(budgetForm.otherExpenses) || 0,
+      ].reduce((acc, curr) => acc + curr, 0);
+
+      const liveTotalBudget = Number(budgetForm.totalBudget) || 0;
+      const liveReceived = Number(budgetForm.amountReceived) || 0;
+      const liveGrossProfit = liveTotalBudget - liveDirectCosts;
+      const liveProfitMargin = liveTotalBudget > 0 ? Math.round((liveGrossProfit / liveTotalBudget) * 100) : null;
+      const livePending = Math.max(0, liveTotalBudget - liveReceived);
+
       return (
-        <div className="rounded-3xl bg-card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold">Edit Budget</h2>
-            <div className="flex gap-2">
-              <button onClick={() => setEditingBudget(false)} className="rounded-xl px-4 py-2 text-sm">Cancel</button>
-              <button onClick={handleSaveBudget} disabled={updateProject.isPending} className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-                Save Budget
+        <div className="rounded-3xl bg-card border border-border/80 p-6 sm:p-7 space-y-6 shadow-sm">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <IndianRupee size={22} />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Edit Project Budget</h2>
+                <p className="text-xs text-muted-foreground">
+                  Track client quote value, allocate deliverable costs, and manage collections.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setEditingBudget(false)}
+                className="rounded-xl px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveBudget}
+                disabled={updateProject.isPending}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                <Save size={14} />
+                <span>{updateProject.isPending ? 'Saving...' : 'Save Budget'}</span>
               </button>
             </div>
           </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {budgetFields.map(([key, label]) => (
-              <label key={key} className="space-y-1">
-                <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-                <input
-                  type="number"
-                  className="app-input w-full tabular-nums"
-                  value={budgetForm[key] ?? ''}
-                  onChange={(e) => setBudgetForm((c) => ({ ...c, [key]: e.target.value }))}
-                />
-              </label>
-            ))}
-            <label className="space-y-1">
-              <span className="text-xs font-semibold text-muted-foreground">Total Project Budget</span>
-              <input type="number" className="app-input w-full tabular-nums" value={budgetForm.totalBudget ?? ''} onChange={(e) => setBudgetForm((c) => ({ ...c, totalBudget: e.target.value }))} />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-semibold text-muted-foreground">Amount Received</span>
-              <input type="number" className="app-input w-full tabular-nums" value={budgetForm.amountReceived ?? ''} onChange={(e) => setBudgetForm((c) => ({ ...c, amountReceived: e.target.value }))} />
-            </label>
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-muted-foreground">Payment Status</span>
-              <SelectDropdown
-                value={budgetForm.paymentStatus || 'pending'}
-                onChange={(val) => setBudgetForm((c) => ({ ...c, paymentStatus: val || 'pending' }))}
-                options={[
-                  { value: 'pending', label: 'Pending' },
-                  { value: 'partial', label: 'Partial' },
-                  { value: 'paid', label: 'Paid' },
-                ]}
-                placeholder="Payment Status"
-                allowCustom={false}
-                allowDeselect={false}
-                className="w-full"
-                buttonClassName="h-10 bg-background text-sm rounded-xl border border-border/50"
-              />
+
+          {/* Live Financial Calculation Tiles */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-2xl bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border border-sky-500/20 space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300 block">
+                Total Budget
+              </span>
+              <p className="text-xl font-extrabold text-foreground tabular-nums">
+                {liveTotalBudget > 0 ? formatINR(liveTotalBudget) : '—'}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border border-amber-500/20 space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300 block">
+                Direct Costs
+              </span>
+              <p className="text-xl font-extrabold text-amber-700 dark:text-amber-300 tabular-nums">
+                {liveDirectCosts > 0 ? formatINR(liveDirectCosts) : '₹0'}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/20 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                  Gross Profit
+                </span>
+                {liveProfitMargin !== null && liveTotalBudget > 0 && (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${liveProfitMargin >= 40 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : liveProfitMargin >= 0 ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'}`}>
+                    {liveProfitMargin}%
+                  </span>
+                )}
+              </div>
+              <p className={`text-xl font-extrabold tabular-nums ${liveGrossProfit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                {liveTotalBudget > 0 ? formatINR(liveGrossProfit) : '—'}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-teal-500/[0.04] dark:bg-teal-500/[0.08] border border-teal-500/20 space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 block">
+                Pending Amount
+              </span>
+              <p className="text-xl font-extrabold text-teal-700 dark:text-teal-300 tabular-nums">
+                {livePending > 0 ? formatINR(livePending) : '₹0'}
+              </p>
             </div>
           </div>
-          <textarea
-            className="app-input w-full min-h-24"
-            placeholder="Budget notes..."
-            value={budgetForm.budgetNotes || ''}
-            onChange={(e) => setBudgetForm((c) => ({ ...c, budgetNotes: e.target.value }))}
-          />
+
+          {/* Section 1: Direct Costs & Deliverables Allocation */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                <Wallet size={12} />
+              </span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                Deliverable & Direct Cost Allocations
+              </h3>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {budgetFields.map((field) => {
+                const FieldIcon = field.icon;
+                return (
+                  <div key={field.key} className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                      <span className={`flex h-4 w-4 items-center justify-center rounded ${field.color}`}>
+                        <FieldIcon size={10} />
+                      </span>
+                      <span>{field.label}</span>
+                    </label>
+                    <div className="relative rounded-xl border border-border/80 bg-background transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground/70 text-xs font-bold">
+                        ₹
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        className="w-full pl-7 pr-3 py-2 bg-transparent text-sm font-semibold text-foreground placeholder:text-muted-foreground/35 tabular-nums focus:outline-none"
+                        value={budgetForm[field.key] ?? ''}
+                        onChange={(e) => setBudgetForm((c) => ({ ...c, [field.key]: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 2: Contract Value & Collection */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-secondary/20 border border-border/60 space-y-3.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <Receipt size={12} />
+              </span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                Contract Value & Client Collection
+              </h3>
+            </div>
+
+            <div className="grid gap-3.5 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">
+                  Total Project Budget
+                </label>
+                <div className="relative rounded-xl border border-border/80 bg-background transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground/70 text-xs font-bold">
+                    ₹
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    className="w-full pl-7 pr-3 py-2 bg-transparent text-sm font-bold text-foreground placeholder:text-muted-foreground/35 tabular-nums focus:outline-none"
+                    value={budgetForm.totalBudget ?? ''}
+                    onChange={(e) => setBudgetForm((c) => ({ ...c, totalBudget: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">
+                  Amount Received
+                </label>
+                <div className="relative rounded-xl border border-border/80 bg-background transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground/70 text-xs font-bold">
+                    ₹
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    className="w-full pl-7 pr-3 py-2 bg-transparent text-sm font-bold text-foreground placeholder:text-muted-foreground/35 tabular-nums focus:outline-none"
+                    value={budgetForm.amountReceived ?? ''}
+                    onChange={(e) => setBudgetForm((c) => ({ ...c, amountReceived: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">
+                  Payment Status
+                </label>
+                <SelectDropdown
+                  value={budgetForm.paymentStatus || 'pending'}
+                  onChange={(val) => setBudgetForm((c) => ({ ...c, paymentStatus: val || 'pending' }))}
+                  options={[
+                    { value: 'pending', label: 'Pending Payment' },
+                    { value: 'partial', label: 'Partially Paid' },
+                    { value: 'paid', label: 'Fully Paid' },
+                  ]}
+                  placeholder="Payment Status"
+                  allowCustom={false}
+                  allowDeselect={false}
+                  className="w-full"
+                  buttonClassName="h-[38px] bg-background text-xs font-semibold rounded-xl border border-border/80"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Notes & Milestone Terms */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-foreground">
+              Budget Notes & Payment Terms
+            </label>
+            <textarea
+              className="w-full rounded-xl border border-border/80 bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground/40 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-20"
+              placeholder="Record payment milestones, influencer costs, direct shoot expenses, or quotation references..."
+              value={budgetForm.budgetNotes || ''}
+              onChange={(e) => setBudgetForm((c) => ({ ...c, budgetNotes: e.target.value }))}
+            />
+          </div>
         </div>
       );
     }
 
+    const directCostsTotal = budgetFields.reduce((sum, f) => sum + (Number(b[f.key]) || 0), 0);
+    const grossProfit = total - directCostsTotal;
+    const profitMargin = total > 0 ? Math.round((grossProfit / total) * 100) : null;
+    const collectionPct = total > 0 ? Math.min(100, Math.round((received / total) * 100)) : 0;
+
     return (
-      <div className="rounded-3xl bg-card p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} className="shrink-0" /> Project Budget</h2>
+      <div className="rounded-3xl bg-card border border-border/80 p-6 sm:p-7 space-y-6 shadow-sm">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-border/60">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <IndianRupee size={22} />
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">Project Budget & Finances</h2>
+              <p className="text-xs text-muted-foreground">Contract profitability, received client payments, and cost allocation.</p>
+            </div>
+          </div>
+
           {user?.role !== 'client' && (
             <button
+              type="button"
               onClick={() => { syncBudgetForm(); setEditingBudget(true); }}
-              className="rounded-xl px-4 py-2 text-sm font-semibold hover:bg-secondary"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-foreground hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer shadow-xs"
             >
-              Edit Budget
+              <Edit3 size={13} />
+              <span>Edit Budget</span>
             </button>
           )}
         </div>
-        <div className="grid gap-4 md:grid-cols-3 tabular-nums">
-          <div className="rounded-2xl bg-secondary/40 p-4">
-            <p className="text-xs text-muted-foreground">Total Budget</p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(total)}</p>
+
+        {/* Financial KPI Tiles */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 tabular-nums">
+          <div className="p-4 rounded-2xl bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border border-sky-500/20 space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300 block">Total Contract Budget</span>
+            <p className="text-2xl font-extrabold text-foreground">{formatINR(total)}</p>
           </div>
-          <div className="rounded-2xl bg-secondary/40 p-4">
-            <p className="text-xs text-muted-foreground">Amount Received</p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(received)}</p>
+
+          <div className="p-4 rounded-2xl bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border border-amber-500/20 space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300 block">Direct Expenses</span>
+            <p className="text-2xl font-extrabold text-amber-700 dark:text-amber-300">{formatINR(directCostsTotal)}</p>
           </div>
-          <div className="rounded-2xl bg-secondary/40 p-4">
-            <p className="text-xs text-muted-foreground">Pending Amount</p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(pending)}</p>
-          </div>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 tabular-nums">
-          {budgetFields.map(([key, label]) => (
-            <div key={key} className="rounded-xl bg-secondary/15 px-3 py-2">
-              <p className="text-[11px] text-muted-foreground">{label}</p>
-              <p className="text-sm font-semibold">{formatINR(b[key] || 0)}</p>
+
+          <div className="p-4 rounded-2xl bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/20 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Gross Profit</span>
+              {profitMargin !== null && total > 0 && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${profitMargin >= 40 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : profitMargin >= 0 ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'}`}>
+                  {profitMargin}%
+                </span>
+              )}
             </div>
-          ))}
+            <p className={`text-2xl font-extrabold ${grossProfit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+              {formatINR(grossProfit)}
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-teal-500/[0.04] dark:bg-teal-500/[0.08] border border-teal-500/20 space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 block">Pending Amount</span>
+            <p className="text-2xl font-extrabold text-teal-700 dark:text-teal-300">{formatINR(pending)}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="font-semibold">Payment Status:</span>
-          <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold capitalize">{b.paymentStatus || 'pending'}</span>
+
+        {/* Collection Status Progress Bar */}
+        <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50 space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="text-foreground">Collection Progress ({collectionPct}%)</span>
+            <span className="text-muted-foreground tabular-nums">
+              Received {formatINR(received)} of {formatINR(total)}
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${collectionPct >= 100 ? 'bg-emerald-500' : 'bg-primary'}`}
+              style={{ width: `${collectionPct}%` }}
+            />
+          </div>
         </div>
+
+        {/* Deliverable Costs Breakdown Grid */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Cost Allocation Breakdown
+          </h3>
+          <div className="grid gap-2.5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 tabular-nums">
+            {budgetFields.map((field) => {
+              const FieldIcon = field.icon;
+              return (
+                <div key={field.key} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/60 hover:border-border transition-all">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`flex h-6 w-6 items-center justify-center rounded-lg ${field.color} shrink-0`}>
+                      <FieldIcon size={12} />
+                    </span>
+                    <span className="text-xs font-medium text-muted-foreground truncate">{field.label}</span>
+                  </div>
+                  <span className="text-xs font-bold text-foreground shrink-0">{formatINR(b[field.key] || 0)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Payment Status & Notes */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-semibold text-muted-foreground">Payment Status:</span>
+            <span className={`rounded-full px-3 py-0.5 text-[11px] font-bold capitalize border ${
+              b.paymentStatus === 'paid'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                : b.paymentStatus === 'partial'
+                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                : 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'
+            }`}>
+              {b.paymentStatus || 'pending'}
+            </span>
+          </div>
+        </div>
+
         {b.budgetNotes ? (
-          <div className="rounded-xl bg-secondary/10 p-4 text-sm whitespace-pre-wrap">{b.budgetNotes}</div>
+          <div className="rounded-2xl bg-secondary/20 border border-border/40 p-4 text-xs text-foreground whitespace-pre-wrap leading-relaxed">
+            <p className="font-bold text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Notes & Terms</p>
+            {b.budgetNotes}
+          </div>
         ) : null}
       </div>
     );

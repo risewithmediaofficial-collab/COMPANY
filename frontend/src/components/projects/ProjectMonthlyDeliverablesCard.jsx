@@ -42,6 +42,56 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
+export const getDeliverableColorStyle = (contentType) => {
+  const norm = (contentType || '').toLowerCase().trim();
+  if (norm.includes('reel') || norm.includes('short')) {
+    return {
+      surface: 'bg-rose-500/[0.04] dark:bg-rose-500/[0.08] border border-rose-500/20',
+      iconBox: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
+      bar: 'bg-rose-500',
+      badge: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30',
+    };
+  }
+  if (norm.includes('story')) {
+    return {
+      surface: 'bg-cyan-500/[0.04] dark:bg-cyan-500/[0.08] border border-cyan-500/20',
+      iconBox: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
+      bar: 'bg-cyan-500',
+      badge: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30',
+    };
+  }
+  if (norm.includes('poster') || norm.includes('graphic') || norm.includes('post')) {
+    return {
+      surface: 'bg-violet-500/[0.04] dark:bg-violet-500/[0.08] border border-violet-500/20',
+      iconBox: 'bg-violet-500/15 text-violet-600 dark:text-violet-400',
+      bar: 'bg-violet-500',
+      badge: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/30',
+    };
+  }
+  if (norm.includes('carousel')) {
+    return {
+      surface: 'bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border border-amber-500/20',
+      iconBox: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+      bar: 'bg-amber-500',
+      badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30',
+    };
+  }
+  if (norm.includes('video') || norm.includes('shoot') || norm.includes('youtube')) {
+    return {
+      surface: 'bg-red-500/[0.04] dark:bg-red-500/[0.08] border border-red-500/20',
+      iconBox: 'bg-red-500/15 text-red-600 dark:text-red-400',
+      bar: 'bg-red-500',
+      badge: 'bg-red-500/15 text-red-700 dark:text-red-300 border border-red-500/30',
+    };
+  }
+  return {
+    surface: 'bg-primary/[0.04] dark:bg-primary/[0.08] border border-primary/20',
+    iconBox: 'bg-primary/15 text-primary',
+    bar: 'bg-primary',
+    badge: 'bg-primary/15 text-primary border border-primary/30',
+  };
+};
+
 export const getDeliverableDemoTitles = (contentType, targetQuantity = 10) => {
   const norm = (contentType || '').toLowerCase().trim();
   const count = Math.max(1, targetQuantity);
@@ -363,21 +413,22 @@ export const ProjectMonthlyDeliverablesCard = ({
                 (t) => (t.value || '').toLowerCase() === itemTypeStr
               );
               const IconComponent = matchedType?.icon || Target;
+              const colorStyle = getDeliverableColorStyle(itemTypeStr);
 
               const isOver = item.status === 'OVER_TASK';
               const isReached = item.status === 'TARGET_REACHED';
               const visualProgress = Math.min(100, item.progressPercentage || 0);
 
-              let badgeBg = 'bg-secondary text-foreground ';
+              let badgeBg = colorStyle.badge;
               let badgeText = `${item.remaining} Remaining`;
               let BadgeIcon = Clock;
 
               if (isReached) {
-                badgeBg = 'bg-primary text-primary-foreground ';
+                badgeBg = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30';
                 badgeText = 'Target Reached';
                 BadgeIcon = CheckCircle2;
               } else if (isOver) {
-                badgeBg = 'bg-brand text-brand-foreground font-extrabold';
+                badgeBg = 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30';
                 badgeText = `Over by ${item.overBy}`;
                 BadgeIcon = AlertTriangle;
               }
@@ -385,11 +436,7 @@ export const ProjectMonthlyDeliverablesCard = ({
               return (
                 <div
                   key={item._id || item.contentType}
-                  className={`relative flex flex-col justify-between rounded-2xl p-4 transition-all duration-200 ${
-                    isOver || isReached
-                      ? ' bg-secondary/40 '
-                      : ' bg-secondary/15 '
-                  }`}
+                  className={`relative flex flex-col justify-between rounded-2xl p-4 transition-all duration-200 shadow-sm ${colorStyle.surface}`}
                 >
                   {/* Top: Icon & Status Badge */}
                   <div className="flex items-start justify-between gap-2 mb-3">
@@ -398,7 +445,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold text-xs ${
                           isOver || isReached
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-foreground '
+                            : colorStyle.iconBox
                         }`}
                       >
                         <IconComponent size={16} />
@@ -436,7 +483,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                         className={`h-full rounded-full transition-all duration-500 ${
                           isOver || isReached
                             ? 'bg-brand'
-                            : 'bg-primary'
+                            : colorStyle.bar
                         }`}
                         style={{ width: `${visualProgress}%` }}
                       />

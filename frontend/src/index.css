@@ -4,14 +4,14 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 6%;
+    --background: 216 33% 98.2%;
+    --foreground: 222 47% 11%;
 
-    --card: 240 5% 97.5%;
-    --card-foreground: 240 10% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 6%;
+    --popover-foreground: 222 47% 11%;
 
     /* RiseWithMedia Brand Blue (#12B7D4) */
     --brand: 189 84% 45%;
@@ -21,20 +21,20 @@
     --primary: 189 89% 37%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 92.5%;
-    --secondary-foreground: 240 6% 12%;
+    --secondary: 214 32% 94.5%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 240 4.5% 94.5%;
-    --muted-foreground: 240 4% 43%;
+    --muted: 214 25% 95%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 189 48% 93%;
+    --accent: 189 60% 93%;
     --accent-foreground: 191 78% 18%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 5% 88%;
-    --input: 240 5% 88%;
+    --border: 214 28% 89%;
+    --input: 214 28% 89%;
     --ring: 189 84% 45%;
 
     --radius: 0.75rem;
@@ -43,15 +43,15 @@
 
   .dark {
     color-scheme: dark;
-    --tracker-status-sticky: #1c1c22;
-    --background: 240 10% 4%;
-    --foreground: 0 0% 96%;
+    --tracker-status-sticky: #111827;
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 5% 12%;
-    --card-foreground: 0 0% 96%;
+    --card: 222 40% 11%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 5% 13.5%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 222 40% 12%;
+    --popover-foreground: 210 40% 98%;
 
     /* Exact RiseWithMedia Logo Blue (#12B7D4) pops cleanly on dark surfaces */
     --brand: 189 84% 45%;
@@ -60,11 +60,11 @@
     --primary: 189 84% 45%;
     --primary-foreground: 194 78% 7%;
 
-    --secondary: 240 5% 17%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 217 33% 16%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 5% 14.5%;
-    --muted-foreground: 240 4% 65%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 65%;
 
     --accent: 189 45% 18%;
     --accent-foreground: 189 85% 78%;
@@ -72,8 +72,8 @@
     --destructive: 0 78% 54%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 5% 22%;
-    --input: 240 5% 24%;
+    --border: 217 33% 20%;
+    --input: 217 33% 22%;
     --ring: 189 84% 45%;
   }
 }

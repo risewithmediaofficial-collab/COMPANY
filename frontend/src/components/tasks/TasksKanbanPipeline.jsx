@@ -41,8 +41,9 @@ export const KANBAN_COLUMNS = [
     id: 'todo',
     title: 'To Do',
     Icon: ClipboardList,
-    color: ' bg-neutral-500/5',
-    badge: 'bg-secondary text-secondary-foreground ',
+    surface: 'bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border border-sky-500/20',
+    dot: 'bg-sky-500',
+    badge: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30',
     description: 'Fresh tasks assigned to team',
     accentBorder: ' ',
   },
@@ -50,8 +51,9 @@ export const KANBAN_COLUMNS = [
     id: 'in_progress',
     title: 'In Progress',
     Icon: Zap,
-    color: ' bg-neutral-500/5',
-    badge: 'bg-neutral-200 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100 ',
+    surface: 'bg-blue-500/[0.04] dark:bg-blue-500/[0.08] border border-blue-500/20',
+    dot: 'bg-blue-500',
+    badge: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30',
     description: 'Work actively ongoing',
     accentBorder: ' ',
   },
@@ -59,8 +61,9 @@ export const KANBAN_COLUMNS = [
     id: 'review',
     title: 'Internal Approval',
     Icon: Search,
-    color: ' bg-neutral-500/5',
-    badge: 'bg-secondary text-foreground ',
+    surface: 'bg-purple-500/[0.04] dark:bg-purple-500/[0.08] border border-purple-500/20',
+    dot: 'bg-purple-500',
+    badge: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30',
     description: 'Internal manager / lead review',
     accentBorder: ' ',
   },
@@ -68,8 +71,9 @@ export const KANBAN_COLUMNS = [
     id: 'client_approval',
     title: 'Client Approval',
     Icon: Users,
-    color: ' bg-neutral-500/5',
-    badge: 'bg-secondary text-foreground ',
+    surface: 'bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border border-amber-500/20',
+    dot: 'bg-amber-500',
+    badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30',
     description: 'Awaiting client feedback/signoff',
     accentBorder: ' ',
   },
@@ -77,8 +81,9 @@ export const KANBAN_COLUMNS = [
     id: 'smm_team',
     title: 'SMM Team',
     Icon: Rocket,
-    color: ' bg-neutral-500/5',
-    badge: 'bg-secondary text-foreground ',
+    surface: 'bg-indigo-500/[0.04] dark:bg-indigo-500/[0.08] border border-indigo-500/20',
+    dot: 'bg-indigo-500',
+    badge: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30',
     description: 'Ready for posting & scheduling',
     accentBorder: ' ',
   },
@@ -86,8 +91,9 @@ export const KANBAN_COLUMNS = [
     id: 'drive_uploaded',
     title: 'Drive Uploaded',
     Icon: UploadCloud,
-    color: ' bg-neutral-500/5',
-    badge: 'bg-secondary text-foreground ',
+    surface: 'bg-teal-500/[0.04] dark:bg-teal-500/[0.08] border border-teal-500/20',
+    dot: 'bg-teal-500',
+    badge: 'bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30',
     description: 'Edited assets uploaded to Drive',
     accentBorder: ' ',
   },
@@ -95,8 +101,9 @@ export const KANBAN_COLUMNS = [
     id: 'completed',
     title: 'Completed',
     Icon: CheckCircle2,
-    color: ' bg-neutral-500/5',
-    badge: 'bg-primary text-primary-foreground',
+    surface: 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/20',
+    dot: 'bg-emerald-500',
+    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30',
     description: 'Done and published',
     accentBorder: ' ',
   },
@@ -449,15 +456,16 @@ export const TasksKanbanPipeline = React.memo(({
                 onDragEnter={(e) => handleDragEnter(e, column.id)}
                 onDragLeave={(e) => handleDragLeave(e, column.id)}
                 onDrop={(e) => handleDrop(e, column.id)}
-                className={`flex flex-col w-[85vw] max-w-[320px] sm:w-[295px] sm:max-w-none shrink-0 snap-center sm:snap-align-none rounded-xl transition-all duration-200 select-none ${column.accentBorder} ${
+                className={`flex flex-col w-[85vw] max-w-[320px] sm:w-[295px] sm:max-w-none shrink-0 snap-center sm:snap-align-none rounded-2xl transition-all duration-200 select-none shadow-sm ${column.surface || 'bg-muted/40'} ${
                   isDragOver
-                    ? ' bg-secondary ring-2 ring-neutral-500/30 shadow-lg'
-                    : ' bg-muted/40'
+                    ? ' !bg-primary/10 ring-2 ring-primary/40 shadow-lg'
+                    : ''
                 } p-3 h-[calc(100dvh-230px)] sm:h-[calc(100vh-275px)] min-h-[440px] max-h-[calc(100dvh-180px)] sm:max-h-[calc(100vh-220px)]`}
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between pb-2.5 shrink-0">
                   <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${column.dot || 'bg-primary'}`} />
                     <ColumnIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <h3 className="text-xs font-bold tracking-tight text-foreground">
                       {column.title}
@@ -568,9 +576,9 @@ export const TasksKanbanPipeline = React.memo(({
                           onDragStart={(e) => handleDragStart(e, task)}
                           onDragEnd={handleDragEnd}
                           onClick={() => onSelectTask && onSelectTask(task)}
-                          className={`group relative flex flex-col justify-between rounded-xl bg-card p-3 transition-all duration-200 hover:-translate-y-0.5 ${priorityBorder} ${
+                          className={`group relative flex flex-col justify-between rounded-xl bg-card border border-border/80 shadow-sm p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40 ${priorityBorder} ${
                             isDragging
-                              ? 'opacity-40 scale-95 ring-2 ring-neutral-500 shadow-xl cursor-grabbing'
+                              ? 'opacity-40 scale-95 ring-2 ring-primary/40 shadow-xl cursor-grabbing'
                               : 'cursor-grab active:cursor-grabbing'
                           }`}
                         >
