@@ -203,6 +203,7 @@ export default function Finance() {
   const handleLockPortal = () => {
     sessionStorage.removeItem('rwm_finance_auth_token');
     sessionStorage.removeItem('rwm_finance_auth_time');
+    window.dispatchEvent(new Event('rwm-finance-auth-changed'));
     setIsUnlocked(false);
   };
 

@@ -2,14 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Lock,
-  Unlock,
   ShieldAlert,
-  KeyRound,
   Eye,
   EyeOff,
-  Building,
-  CheckCircle2,
-  AlertTriangle,
   ArrowRight,
   ArrowLeft,
   ShieldCheck,
@@ -41,6 +36,7 @@ export default function FinanceLoginGate({ onAuthenticated, user }) {
       if (res.data?.success) {
         sessionStorage.setItem('rwm_finance_auth_token', 'true');
         sessionStorage.setItem('rwm_finance_auth_time', Date.now().toString());
+        window.dispatchEvent(new Event('rwm-finance-auth-changed'));
         toast.success('Finance Portal unlocked successfully');
         onAuthenticated();
         return;
@@ -51,6 +47,7 @@ export default function FinanceLoginGate({ onAuthenticated, user }) {
       if (validDefaults.includes(password)) {
         sessionStorage.setItem('rwm_finance_auth_token', 'true');
         sessionStorage.setItem('rwm_finance_auth_time', Date.now().toString());
+        window.dispatchEvent(new Event('rwm-finance-auth-changed'));
         toast.success('Finance Portal unlocked successfully');
         onAuthenticated();
         return;
@@ -64,16 +61,11 @@ export default function FinanceLoginGate({ onAuthenticated, user }) {
     }
   };
 
-  const handleUseDefault = () => {
-    setPassword('RiseFinance@2026');
-    setError('');
-  };
-
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center p-3 sm:p-6 w-full font-sans">
-      <div className="w-full max-w-md bg-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xl border border-border/50 animate-in fade-in zoom-in-95 duration-200">
+    <div className="min-h-[75vh] flex items-center justify-center py-8 px-4 w-full font-sans">
+      <div className="w-full max-w-md mx-auto bg-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-border/70 animate-in fade-in zoom-in-95 duration-200">
         {/* Brand & Security Header */}
-        <div className="text-center space-y-3 mb-5 sm:mb-6">
+        <div className="text-center space-y-3 mb-6">
           <div className="relative inline-flex items-center justify-center">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-inner">
               <ShieldCheck size={32} className="sm:w-9 sm:h-9" />
@@ -118,18 +110,9 @@ export default function FinanceLoginGate({ onAuthenticated, user }) {
           </div>
 
           <div className="space-y-1.5 text-left">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-foreground">
-                Finance Password
-              </label>
-              <button
-                type="button"
-                onClick={handleUseDefault}
-                className="text-[11px] font-bold text-primary hover:underline cursor-pointer py-0.5"
-              >
-                Insert Default
-              </button>
-            </div>
+            <label className="text-xs font-bold text-foreground">
+              Finance Password
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -175,34 +158,16 @@ export default function FinanceLoginGate({ onAuthenticated, user }) {
           </button>
         </form>
 
-        {/* Credentials Notice Box */}
-        <div className="mt-5 sm:mt-6 pt-4 sm:pt-5 border-t border-border/40 space-y-3">
-          <div className="p-3 sm:p-3.5 rounded-xl bg-secondary/50 border border-border/30 text-xs space-y-1.5 text-left">
-            <div className="flex items-center gap-1.5 font-bold text-foreground">
-              <KeyRound size={13} className="text-primary shrink-0" />
-              <span>Default Credentials for Setup</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Default Password:{' '}
-              <code className="px-1.5 py-0.5 rounded bg-card font-mono font-bold text-foreground border border-border/50 break-all select-all">
-                RiseFinance@2026
-              </code>
-            </p>
-            <p className="text-[10px] text-muted-foreground/80">
-              You can change this password anytime inside <strong>Finance → Settings</strong>.
-            </p>
-          </div>
-
-          <div className="text-center pt-1">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-secondary"
-            >
-              <ArrowLeft size={13} />
-              <span>Return to CRM Dashboard</span>
-            </button>
-          </div>
+        {/* Return to Dashboard */}
+        <div className="mt-6 pt-5 border-t border-border/40 text-center">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-secondary"
+          >
+            <ArrowLeft size={13} />
+            <span>Return to CRM Dashboard</span>
+          </button>
         </div>
       </div>
     </div>

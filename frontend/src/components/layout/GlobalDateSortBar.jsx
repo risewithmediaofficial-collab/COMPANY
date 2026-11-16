@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Calendar, X } from '@/components/ui/muiIcons';
 import { useDateFilter } from '@/context/DateFilterContext';
@@ -45,6 +46,12 @@ export const shouldShowGlobalDateFilter = (rawPathname) => {
   // Normalize trailing slashes (e.g. '/finance/' -> '/finance')
   const pathname = rawPathname.replace(/\/+$/, '') || '/';
 
+  // If on /finance and portal is locked, do not render date filter bar above login gate
+  if (pathname === '/finance' || pathname.startsWith('/finance/')) {
+    const isFinanceUnlocked = typeof window !== 'undefined' && sessionStorage.getItem('rwm_finance_auth_token') === 'true';
+    if (!isFinanceUnlocked) return false;
+  }
+
   // Explicitly allow exact routes in whitelist
   if (ALLOWED_DATE_FILTER_ROUTES.includes(pathname)) return true;
 
@@ -75,6 +82,17 @@ const formatRangeLabel = (dateStr) => {
 
 export const GlobalDateSortBar = () => {
   const location = useLocation();
+  const [, setFinanceAuthTick] = useState(0);
+
+  useEffect(() => {
+    const handleAuthChange = () => setFinanceAuthTick((t) => t + 1);
+    window.addEventListener('rwm-finance-auth-changed', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('rwm-finance-auth-changed', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
 
   const {
     startDate,
