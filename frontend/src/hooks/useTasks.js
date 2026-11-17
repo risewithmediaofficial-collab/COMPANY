@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api';
 import { toast } from 'sonner';
+import { formatApiErrorMessage } from '../utils/taskFields';
 
 export const useTasks = (filters = {}, options = {}) => {
   return useQuery({
@@ -51,7 +52,7 @@ export const useWeeklyTaskReport = (filters = {}, options = {}) => {
   });
 };
 
-export const useCreateTask = () => {
+export const useCreateTask = (options = {}) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -59,14 +60,23 @@ export const useCreateTask = () => {
       const response = await api.post('/tasks', data);
       return response.data.task;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task-calendar'] });
-      toast.success('Task created successfully!');
+      if (options.onSuccess) {
+        options.onSuccess(data, variables, context);
+      } else if (!options.suppressToast) {
+        toast.success('Task created successfully!');
+      }
     },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to create task');
+    onError: (error, variables, context) => {
+      if (options.onError) {
+        options.onError(error, variables, context);
+      } else if (!options.suppressToast) {
+        toast.error(formatApiErrorMessage(error, 'Failed to create task'));
+      }
     },
+    ...options,
   });
 };
 
@@ -85,7 +95,7 @@ export const useCreateDailyTask = () => {
       toast.success('Daily task saved');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to save daily task');
+      toast.error(formatApiErrorMessage(error, 'Failed to save daily task'));
     },
   });
 };
@@ -105,7 +115,7 @@ export const useUpdateTask = () => {
       toast.success('Task updated successfully!');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update task');
+      toast.error(formatApiErrorMessage(error, 'Failed to update task'));
     },
   });
 };
@@ -123,7 +133,7 @@ export const useDeleteTask = () => {
       toast.success('Task deleted successfully!');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to delete task');
+      toast.error(formatApiErrorMessage(error, 'Failed to delete task'));
     },
   });
 };
@@ -141,7 +151,7 @@ export const useUpdateTaskStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['task-calendar'] });
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update task status');
+      toast.error(formatApiErrorMessage(error, 'Failed to update task status'));
     },
   });
 };

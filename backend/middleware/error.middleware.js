@@ -28,7 +28,18 @@ export const errorHandler = (err, req, res, next) => {
   // Mongoose validation error
   if (err.name === 'ValidationError') {
     statusCode = 400;
-    message = Object.values(err.errors || {}).map((e) => e.message).join(', ') || 'Validation error';
+    const details = Object.values(err.errors || {}).map((e) => {
+      if (e.kind === 'enum') {
+        const cleanPath = (e.path || 'field').replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').toLowerCase();
+        return `"${e.value}" is not a valid option for ${cleanPath}`;
+      }
+      if (e.kind === 'required') {
+        const cleanPath = (e.path || 'field').replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').toLowerCase();
+        return `${cleanPath} is required`;
+      }
+      return (e.message || '').replace(/`/g, "'");
+    });
+    message = details.join('. ') || 'Validation error';
   }
 
   // JWT errors

@@ -49,6 +49,28 @@ import DuplicateConfirmDialog from '../modals/DuplicateConfirmDialog';
 import { toast } from 'sonner';
 import { SelectDropdown } from '../ui/SelectDropdown';
 import { ProjectTaskTargetsBanner } from '../projects/ProjectTaskTargetsBanner';
+import {
+  STATUS_EDITOR_OPTIONS,
+  STATUS_VIDEOGRAPHER_OPTIONS,
+  STATUS_SMM_OPTIONS,
+  STATUS_SCRIPT_OPTIONS,
+  mapEditorStatusToEnum,
+  mapVideographerStatusToEnum,
+  mapSmmStatusToEnum,
+  mapScriptStatusToEnum,
+  formatEditorStatusForUi,
+  formatVideographerStatusForUi,
+  formatSmmStatusForUi,
+  formatScriptStatusForUi,
+  formatApiErrorMessage,
+} from '../../utils/taskFields';
+
+export {
+  STATUS_EDITOR_OPTIONS,
+  STATUS_VIDEOGRAPHER_OPTIONS,
+  STATUS_SMM_OPTIONS,
+  STATUS_SCRIPT_OPTIONS,
+};
 
 export const PLATFORM_OPTIONS = [
   { id: 'Instagram', label: 'Instagram', Icon: Instagram },
@@ -95,10 +117,6 @@ export const VIDEO_DURATION_OPTIONS = ['15 sec', '30 sec', '60 sec', '90 sec', '
 export const CTA_OPTIONS = ['None', 'Call Now', 'WhatsApp', 'Visit Website', 'Send DM', 'Book Now', 'Learn More'];
 export const SCRIPT_LANGUAGES = ['English', 'Tamil', 'Kannada', 'Telugu', 'Hindi', 'Other'];
 export const EQUIPMENT_OPTIONS = ['Camera', 'Mobile', 'Gimbal', 'Tripod', 'Microphone', 'Lighting'];
-export const STATUS_EDITOR_OPTIONS = ['Pending', 'Editing', 'Review', 'Revision Required', 'Completed'];
-export const STATUS_VIDEOGRAPHER_OPTIONS = ['Scheduled', 'In Progress', 'Completed', 'Retake Required'];
-export const STATUS_SMM_OPTIONS = ['Content Pending', 'Approval Pending', 'Scheduled', 'Published'];
-export const STATUS_SCRIPT_OPTIONS = ['Draft', 'Internal Review', 'Client Approval', 'Approved', 'Revision Required'];
 
 export const KanbanCreateTaskModal = ({
   isOpen,
@@ -116,7 +134,7 @@ export const KanbanCreateTaskModal = ({
     if (onOpenChange) onOpenChange(false);
   };
 
-  const createTaskMutation = useCreateTask();
+  const createTaskMutation = useCreateTask({ suppressToast: true });
   const { data: clientsData = [] } = useClients();
   const { data: projectsData = [] } = useProjects();
   const { data: usersData = [] } = useUsers();
@@ -337,6 +355,26 @@ export const KanbanCreateTaskModal = ({
           setSubType('reel');
         }
       }
+      if (initialValues.editingStatus) {
+        setEditorStatus(formatEditorStatusForUi(initialValues.editingStatus));
+      } else {
+        setEditorStatus('Pending');
+      }
+      if (initialValues.shootStatus) {
+        setVideographerStatus(formatVideographerStatusForUi(initialValues.shootStatus));
+      } else {
+        setVideographerStatus('Scheduled');
+      }
+      if (initialValues.postingStatus) {
+        setSmmStatus(formatSmmStatusForUi(initialValues.postingStatus));
+      } else {
+        setSmmStatus('Content Pending');
+      }
+      if (initialValues.scriptStatus) {
+        setScriptStatus(formatScriptStatusForUi(initialValues.scriptStatus));
+      } else {
+        setScriptStatus('Draft');
+      }
     }
 
     if (initialUser?._id) {
@@ -528,7 +566,7 @@ export const KanbanCreateTaskModal = ({
       taskItem.finalVideoDriveLink = finalVideoDriveLink || undefined;
       taskItem.captionOnScreenText = captionOnScreenText || scriptOnScreenText || undefined;
       taskItem.editingInstructions = editingInstructions || undefined;
-      taskItem.editingStatus = editorStatus || 'pending';
+      taskItem.editingStatus = mapEditorStatusToEnum(editorStatus);
 
       // Editor Details
       taskItem.editorAssigned = editorUserId || undefined;
@@ -558,7 +596,7 @@ export const KanbanCreateTaskModal = ({
         checked: false,
       }));
       taskItem.specialInstructions = specialInstructions || undefined;
-      taskItem.shootStatus = videographerStatus || 'pending';
+      taskItem.shootStatus = mapVideographerStatusToEnum(videographerStatus);
       taskItem.videographerContentNeeded = [requiredShots, shootLocation, presenterPerson].filter(Boolean).join(' • ') || undefined;
 
       // SMM Details
@@ -573,7 +611,7 @@ export const KanbanCreateTaskModal = ({
       taskItem.cta = smmCta || 'None';
       taskItem.coverImageDriveLink = smmCoverImageLink || undefined;
       taskItem.publishedPostUrl = publishedPostUrl || undefined;
-      taskItem.postingStatus = smmStatus || 'pending';
+      taskItem.postingStatus = mapSmmStatusToEnum(smmStatus);
 
       // Scriptwriter Details
       taskItem.scriptWriterAssigned = scriptWriterUserId || undefined;
@@ -587,6 +625,7 @@ export const KanbanCreateTaskModal = ({
       taskItem.onScreenText = scriptOnScreenText || captionOnScreenText || undefined;
       taskItem.scriptLink = scriptLink || undefined;
       taskItem.voiceScriptText = scriptText || undefined;
+      taskItem.scriptStatus = mapScriptStatusToEnum(scriptStatus);
 
       // Designer Details
       taskItem.designerAssigned = designerUserId || undefined;
@@ -693,7 +732,7 @@ export const KanbanCreateTaskModal = ({
       if (onTaskCreated) onTaskCreated();
       handleClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create task(s)');
+      toast.error(formatApiErrorMessage(err, 'Failed to create task(s)'));
     }
   };
 

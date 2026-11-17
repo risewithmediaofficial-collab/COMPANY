@@ -4,6 +4,60 @@
 
 import mongoose from 'mongoose';
 
+export const normalizeVoiceStatus = (val) => {
+  if (!val) return 'pending';
+  const s = String(val).trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (['in_progress', 'recording', 'ongoing'].includes(s)) return 'in_progress';
+  if (['completed', 'done'].includes(s)) return 'completed';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'pending';
+};
+
+export const normalizeShootStatus = (val) => {
+  if (!val) return 'pending';
+  const s = String(val).trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (['scheduled'].includes(s)) return 'scheduled';
+  if (['in_progress', 'ongoing', 'shooting'].includes(s)) return 'in_progress';
+  if (['completed', 'done', 'shot'].includes(s)) return 'completed';
+  if (['retake_required', 'retake', 'reshoot'].includes(s)) return 'retake_required';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'pending';
+};
+
+export const normalizeEditingStatus = (val) => {
+  if (!val) return 'pending';
+  const s = String(val).trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (['editing', 'in_progress', 'cutting', 'ongoing'].includes(s)) return 'in_progress';
+  if (['review', 'internal_review', 'in_review'].includes(s)) return 'review';
+  if (['revision_required', 'revision', 'rework'].includes(s)) return 'revision_required';
+  if (['completed', 'done', 'edited'].includes(s)) return 'completed';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'pending';
+};
+
+export const normalizePostingStatus = (val) => {
+  if (!val) return 'pending';
+  const s = String(val).trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (['content_pending', 'pending', 'todo'].includes(s)) return 'pending';
+  if (['approval_pending', 'client_approval', 'waiting_approval'].includes(s)) return 'approval_pending';
+  if (['scheduled'].includes(s)) return 'scheduled';
+  if (['published', 'posted', 'live', 'done', 'completed'].includes(s)) return 'posted';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'pending';
+};
+
+export const normalizeScriptStatus = (val) => {
+  if (!val) return 'draft';
+  const s = String(val).trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (['draft', 'writing'].includes(s)) return 'draft';
+  if (['internal_review', 'review', 'in_review'].includes(s)) return 'internal_review';
+  if (['client_approval', 'waiting_client'].includes(s)) return 'client_approval';
+  if (['approved', 'completed', 'done'].includes(s)) return 'approved';
+  if (['revision_required', 'revision', 'rework'].includes(s)) return 'revision_required';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'draft';
+};
+
 const fileAttachmentSchema = new mongoose.Schema(
   {
     name: { type: String, default: '' },
@@ -163,23 +217,97 @@ const taskSchema = new mongoose.Schema(
     // Role Workflow Sub-statuses
     voiceStatus: {
       type: String,
-      enum: ['pending', 'in_progress', 'completed', 'not_applicable'],
+      enum: [
+        'pending',
+        'in_progress',
+        'completed',
+        'not_applicable',
+        'Pending',
+        'In Progress',
+        'Completed',
+        'Not Applicable',
+      ],
       default: 'pending',
+      set: normalizeVoiceStatus,
     },
     shootStatus: {
       type: String,
-      enum: ['pending', 'in_progress', 'completed', 'not_applicable'],
+      enum: [
+        'pending',
+        'scheduled',
+        'in_progress',
+        'completed',
+        'retake_required',
+        'not_applicable',
+        'Pending',
+        'Scheduled',
+        'In Progress',
+        'Completed',
+        'Retake Required',
+        'Not Applicable',
+      ],
       default: 'pending',
+      set: normalizeShootStatus,
     },
     editingStatus: {
       type: String,
-      enum: ['pending', 'in_progress', 'review', 'completed', 'not_applicable'],
+      enum: [
+        'pending',
+        'editing',
+        'in_progress',
+        'review',
+        'revision_required',
+        'completed',
+        'not_applicable',
+        'Pending',
+        'Editing',
+        'In Progress',
+        'Review',
+        'Revision Required',
+        'Completed',
+        'Not Applicable',
+      ],
       default: 'pending',
+      set: normalizeEditingStatus,
     },
     postingStatus: {
       type: String,
-      enum: ['pending', 'scheduled', 'posted', 'not_applicable'],
+      enum: [
+        'pending',
+        'approval_pending',
+        'scheduled',
+        'posted',
+        'published',
+        'not_applicable',
+        'Pending',
+        'Content Pending',
+        'Approval Pending',
+        'Scheduled',
+        'Published',
+        'Posted',
+        'Not Applicable',
+      ],
       default: 'pending',
+      set: normalizePostingStatus,
+    },
+    scriptStatus: {
+      type: String,
+      enum: [
+        'draft',
+        'internal_review',
+        'client_approval',
+        'approved',
+        'revision_required',
+        'not_applicable',
+        'Draft',
+        'Internal Review',
+        'Client Approval',
+        'Approved',
+        'Revision Required',
+        'Not Applicable',
+      ],
+      default: 'draft',
+      set: normalizeScriptStatus,
     },
 
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

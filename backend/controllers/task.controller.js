@@ -3,7 +3,13 @@
 // =============================================
 
 import mongoose from 'mongoose';
-import Task from '../models/task.model.js';
+import Task, {
+  normalizeVoiceStatus,
+  normalizeShootStatus,
+  normalizeEditingStatus,
+  normalizePostingStatus,
+  normalizeScriptStatus,
+} from '../models/task.model.js';
 import DevTask from '../models/development/devTask.model.js';
 import Client from '../models/client.model.js';
 import Project from '../models/project.model.js';
@@ -18,6 +24,37 @@ import { matchesContentType, getMonthDateRange } from './projectMonthlyDeliverab
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import { parsePagination } from '../utils/pagination.js';
+
+export const formatTaskErrorMessage = (error) => {
+  if (!error) return 'An unexpected error occurred';
+  if (error.name === 'ValidationError' && error.errors) {
+    const messages = Object.values(error.errors).map((err) => {
+      if (err.kind === 'enum') {
+        const cleanPath = (err.path || 'field')
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/_/g, ' ')
+          .toLowerCase();
+        return `"${err.value}" is not a valid option for ${cleanPath}`;
+      }
+      if (err.kind === 'required') {
+        const cleanPath = (err.path || 'field')
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/_/g, ' ')
+          .toLowerCase();
+        return `${cleanPath} is required`;
+      }
+      return (err.message || '').replace(/`/g, "'");
+    });
+    return messages.join('. ');
+  }
+  if (typeof error.message === 'string') {
+    return error.message
+      .replace(/^Task validation failed:\s*/i, '')
+      .replace(/^Validation failed:\s*/i, '')
+      .replace(/`/g, "'");
+  }
+  return error.message || 'An error occurred while processing the task';
+};
 
 const taskStatusMap = {
   'To Do': 'todo',
@@ -306,6 +343,13 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.publishingDate && !payload.postingScheduleDate) payload.postingScheduleDate = payload.publishingDate;
   if (payload.postingPlatforms !== undefined) payload.postingPlatforms = normalizeStringArray(payload.postingPlatforms);
   if (payload.clientFeedback !== undefined) payload.clientFeedback = payload.clientFeedback?.toString?.().trim?.() || '';
+
+  // Role Workflow Sub-statuses
+  if (payload.shootStatus !== undefined) payload.shootStatus = normalizeShootStatus(payload.shootStatus);
+  if (payload.editingStatus !== undefined) payload.editingStatus = normalizeEditingStatus(payload.editingStatus);
+  if (payload.postingStatus !== undefined) payload.postingStatus = normalizePostingStatus(payload.postingStatus);
+  if (payload.voiceStatus !== undefined) payload.voiceStatus = normalizeVoiceStatus(payload.voiceStatus);
+  if (payload.scriptStatus !== undefined) payload.scriptStatus = normalizeScriptStatus(payload.scriptStatus);
 
   // Task Completion Timer & Acceptance payload normalization
   if (payload.allocatedHours !== undefined) payload.allocatedHours = Math.max(0, Number(payload.allocatedHours) || 0);
@@ -1111,7 +1155,7 @@ export const createTask = async (req, res) => {
     emitLiveEvent('taskCreated', { task: serialized, tasks: createdTasks.map((t) => t._id) });
     res.status(201).json({ success: true, task: serialized });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: formatTaskErrorMessage(error) });
   }
 };
 
@@ -1277,7 +1321,7 @@ export const updateTask = async (req, res) => {
     emitLiveEvent('taskUpdated', { task: serialized, taskId: task._id });
     res.json({ success: true, task: serialized });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: formatTaskErrorMessage(error) });
   }
 };
 
@@ -1362,7 +1406,7 @@ export const updateTaskStatus = async (req, res) => {
     emitLiveEvent('taskUpdated', { task: serialized, taskId: task._id });
     res.json({ success: true, task: serialized });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: formatTaskErrorMessage(error) });
   }
 };
 

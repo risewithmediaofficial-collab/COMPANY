@@ -240,3 +240,104 @@ export const getTaskCategoryFromType = (taskType) => {
   if (NON_CONTENT_TASK_TYPE_OPTIONS.some((opt) => opt.value === taskType)) return 'non_content';
   return 'content';
 };
+
+export const STATUS_EDITOR_OPTIONS = ['Pending', 'Editing', 'Review', 'Revision Required', 'Completed'];
+export const STATUS_VIDEOGRAPHER_OPTIONS = ['Scheduled', 'In Progress', 'Completed', 'Retake Required'];
+export const STATUS_SMM_OPTIONS = ['Content Pending', 'Approval Pending', 'Scheduled', 'Published'];
+export const STATUS_SCRIPT_OPTIONS = ['Draft', 'Internal Review', 'Client Approval', 'Approved', 'Revision Required'];
+
+export const mapEditorStatusToEnum = (status) => {
+  const s = String(status || '').toLowerCase().trim();
+  if (['editing', 'in_progress', 'in progress'].includes(s)) return 'in_progress';
+  if (['review', 'internal review'].includes(s)) return 'review';
+  if (['revision required', 'revision_required', 'rework'].includes(s)) return 'revision_required';
+  if (['completed', 'done'].includes(s)) return 'completed';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'pending';
+};
+
+export const mapVideographerStatusToEnum = (status) => {
+  const s = String(status || '').toLowerCase().trim();
+  if (['scheduled'].includes(s)) return 'scheduled';
+  if (['in progress', 'in_progress', 'ongoing'].includes(s)) return 'in_progress';
+  if (['completed', 'done'].includes(s)) return 'completed';
+  if (['retake required', 'retake_required'].includes(s)) return 'retake_required';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'pending';
+};
+
+export const mapSmmStatusToEnum = (status) => {
+  const s = String(status || '').toLowerCase().trim();
+  if (['content pending', 'pending'].includes(s)) return 'pending';
+  if (['approval pending', 'client approval'].includes(s)) return 'approval_pending';
+  if (['scheduled'].includes(s)) return 'scheduled';
+  if (['published', 'posted', 'done'].includes(s)) return 'posted';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'pending';
+};
+
+export const mapScriptStatusToEnum = (status) => {
+  const s = String(status || '').toLowerCase().trim();
+  if (['draft', 'writing'].includes(s)) return 'draft';
+  if (['internal review', 'review'].includes(s)) return 'internal_review';
+  if (['client approval'].includes(s)) return 'client_approval';
+  if (['approved', 'completed', 'done'].includes(s)) return 'approved';
+  if (['revision required', 'rework'].includes(s)) return 'revision_required';
+  if (['not_applicable', 'na', 'none'].includes(s)) return 'not_applicable';
+  return 'draft';
+};
+
+export const formatEditorStatusForUi = (val) => {
+  const s = String(val || '').toLowerCase().trim();
+  if (['editing', 'in_progress'].includes(s)) return 'Editing';
+  if (['review'].includes(s)) return 'Review';
+  if (['revision_required', 'revision'].includes(s)) return 'Revision Required';
+  if (['completed', 'done'].includes(s)) return 'Completed';
+  return 'Pending';
+};
+
+export const formatVideographerStatusForUi = (val) => {
+  const s = String(val || '').toLowerCase().trim();
+  if (['scheduled'].includes(s)) return 'Scheduled';
+  if (['in_progress', 'ongoing'].includes(s)) return 'In Progress';
+  if (['completed', 'done'].includes(s)) return 'Completed';
+  if (['retake_required', 'retake'].includes(s)) return 'Retake Required';
+  return 'Scheduled';
+};
+
+export const formatSmmStatusForUi = (val) => {
+  const s = String(val || '').toLowerCase().trim();
+  if (['approval_pending'].includes(s)) return 'Approval Pending';
+  if (['scheduled'].includes(s)) return 'Scheduled';
+  if (['published', 'posted'].includes(s)) return 'Published';
+  return 'Content Pending';
+};
+
+export const formatScriptStatusForUi = (val) => {
+  const s = String(val || '').toLowerCase().trim();
+  if (['internal_review', 'review'].includes(s)) return 'Internal Review';
+  if (['client_approval'].includes(s)) return 'Client Approval';
+  if (['approved'].includes(s)) return 'Approved';
+  if (['revision_required'].includes(s)) return 'Revision Required';
+  return 'Draft';
+};
+
+export const formatApiErrorMessage = (error, fallback = 'An error occurred') => {
+  if (!error) return fallback;
+  const rawMsg = error.response?.data?.message || error.message || fallback;
+  if (typeof rawMsg !== 'string') return fallback;
+
+  let cleaned = rawMsg
+    .replace(/^Task validation failed:\s*/i, '')
+    .replace(/^Validation failed:\s*/i, '')
+    .replace(/^User validation failed:\s*/i, '')
+    .replace(/`/g, "'")
+    .trim();
+
+  cleaned = cleaned.replace(/is not a valid enum value for path '([^']+)'/gi, (_, path) => {
+    const cleanPath = path.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').toLowerCase();
+    return `is not a valid option for ${cleanPath}`;
+  });
+
+  return cleaned || fallback;
+};
