@@ -73,6 +73,7 @@ const Users = () => {
   const deleteUser = useDeleteUser();
   const adminChangeUserPassword = useAdminChangeUserPassword();
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('team'); // 'team' | 'clients'
   const [roleFilter, setRoleFilter] = useState('all');
   const [permissionsUser, setPermissionsUser] = useState(null);
   const [passwordUser, setPasswordUser] = useState(null);
@@ -80,22 +81,69 @@ const Users = () => {
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
   const [showPasswordFields, setShowPasswordFields] = useState({ newPassword: false, confirmPassword: false });
 
+  // Separate internal staff/team from client portal users
+  const staffUsers = useMemo(() => users.filter((u) => u.role !== 'client'), [users]);
+  const clientUsers = useMemo(() => users.filter((u) => u.role === 'client'), [users]);
+  const employeeUsers = useMemo(() => staffUsers.filter((u) => u.role === 'employee'), [staffUsers]);
+
   const filteredUsers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    return users.filter((u) => {
-      const name = (u.name || '').toLowerCase();
-      const email = (u.email || '').toLowerCase();
-      const role = (u.role || '').toLowerCase();
-      const dept = (u.department || '').toLowerCase();
 
-      const phone = (u.phone || '').toLowerCase();
-      const company = (u.clientId?.company || u.clientId?.name || '').toLowerCase();
-      const matchesSearch = !term || name.includes(term) || email.includes(term) || phone.includes(term) || company.includes(term) || role.includes(term) || dept.includes(term);
-      const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+    // Default & team view strictly excludes client accounts!
+    // Client accounts are only shown when explicitly on the 'clients' tab.
+    let pool = activeTab === 'clients' ? clientUsers : staffUsers;
 
-      return matchesSearch && matchesRole;
+    // Filter by specific team role if not 'all'
+    if (activeTab === 'team' && roleFilter !== 'all') {
+      pool = pool.filter((u) => u.role === roleFilter);
+    }
+
+    // Search filter
+    if (term) {
+      pool = pool.filter((u) => {
+        const name = (u.name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const role = (u.role || '').toLowerCase();
+        const dept = (u.department || u.position || '').toLowerCase();
+        const phone = (u.phone || '').toLowerCase();
+        const company = (u.clientId?.company || u.clientId?.name || '').toLowerCase();
+        return (
+          name.includes(term) ||
+          email.includes(term) ||
+          phone.includes(term) ||
+          company.includes(term) ||
+          role.includes(term) ||
+          dept.includes(term)
+        );
+      });
+    }
+
+    // Sorting:
+    // On team view: show employees 1st, then managers, admins, super admins, etc.
+    if (activeTab === 'team') {
+      const rolePriority = {
+        employee: 1,
+        manager: 2,
+        admin: 3,
+        superAdmin: 4,
+        organizationOwner: 5,
+        referral: 6,
+      };
+      return [...pool].sort((a, b) => {
+        const pA = rolePriority[a.role] || 99;
+        const pB = rolePriority[b.role] || 99;
+        if (pA !== pB) return pA - pB;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+    }
+
+    // On client view: sort by business company or contact name
+    return [...pool].sort((a, b) => {
+      const compA = a.clientId?.company || a.clientId?.name || a.name || '';
+      const compB = b.clientId?.company || b.clientId?.name || b.name || '';
+      return compA.localeCompare(compB);
     });
-  }, [users, searchTerm, roleFilter]);
+  }, [activeTab, clientUsers, staffUsers, roleFilter, searchTerm]);
 
   const handleRoleChange = async (userId, newRole) => {
     try {
@@ -149,36 +197,38 @@ const Users = () => {
   };
 
   // Statistics
-  const total = users.length;
-  const approvedCount = users.filter((u) => u.approvalStatus === 'approved' || !u.approvalStatus).length;
+  const totalUsers = users.length;
+  const approvedStaffCount = staffUsers.filter((u) => u.approvalStatus === 'approved' || !u.approvalStatus).length;
   const pendingCount = users.filter((u) => u.approvalStatus === 'pending').length;
   const activeCount = users.filter((u) => u.isActive).length;
 
-  // Table Columns
-  const tableColumns = [
+  // Table Columns - Team Members
+  const teamTableColumns = [
     {
       key: 'name',
-      label: 'Team Member / Client',
+      label: 'Team Member',
       render: (u) => (
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-xl bg-secondary text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {u.name?.charAt(0) || 'U'}
           </div>
           <div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <p className="font-bold text-foreground">{u.name}</p>
-              {u.clientId?.company && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-secondary text-foreground">
-                  {u.clientId.company}
-                </span>
-              )}
-            </div>
+            <p className="font-bold text-foreground">{u.name}</p>
             <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 tabular-nums">
               <span>{u.email}</span>
               {u.phone && <span className="text-[10px] opacity-80">· {u.phone}</span>}
             </p>
           </div>
         </div>
+      ),
+    },
+    {
+      key: 'department',
+      label: 'Department / Position',
+      render: (u) => (
+        <span className="text-xs font-semibold text-foreground">
+          {u.department || u.position || 'General'}
+        </span>
       ),
     },
     {
@@ -214,14 +264,14 @@ const Users = () => {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleApprovalChange(u._id, 'approved')}
-                  className="p-1 rounded-md bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground"
+                  className="p-1 rounded-md bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer"
                   title="Approve User"
                 >
                   <Check size={13} />
                 </button>
                 <button
                   onClick={() => handleApprovalChange(u._id, 'rejected')}
-                  className="p-1 rounded-md bg-secondary text-muted-foreground hover:text-foreground"
+                  className="p-1 rounded-md bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
                   title="Reject User"
                 >
                   <X size={13} />
@@ -239,7 +289,7 @@ const Users = () => {
         <div className="flex items-center justify-end gap-1">
           <button
             onClick={() => setPermissionsUser(u)}
-            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
             title="Custom Permissions"
           >
             <ShieldCheck size={15} />
@@ -249,15 +299,132 @@ const Users = () => {
               setPasswordUser(u);
               setPasswordForm({ newPassword: '', confirmPassword: '' });
             }}
-            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
             title="Reset Password"
           >
             <KeyRound size={15} />
           </button>
           <button
             onClick={() => setDeleteUserTarget(u)}
-            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
             title="Delete User"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  // Table Columns - Client Accounts
+  const clientTableColumns = [
+    {
+      key: 'name',
+      label: 'Client Contact',
+      render: (u) => (
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-xs shrink-0">
+            {u.name?.charAt(0) || 'C'}
+          </div>
+          <div>
+            <p className="font-bold text-foreground">{u.name}</p>
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 tabular-nums">
+              <span>{u.email}</span>
+              {u.phone && <span className="text-[10px] opacity-80">· {u.phone}</span>}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'company',
+      label: 'Associated Business / Company',
+      render: (u) => (
+        <div className="flex items-center gap-1.5">
+          <Building2 size={13} className="text-muted-foreground shrink-0" />
+          <span className="font-semibold text-foreground text-xs">
+            {u.clientId?.company || u.clientId?.name || 'Independent Client'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'role',
+      label: 'System Role',
+      render: (u) => (
+        <SelectDropdown
+          value={u.role}
+          onChange={(val) => handleRoleChange(u._id, val || u.role)}
+          options={roles.map((r) => ({
+            value: r.value,
+            label: r.label,
+          }))}
+          placeholder="Role"
+          allowCustom={false}
+          allowDeselect={false}
+          className="w-36"
+          buttonClassName="h-8 px-2.5 rounded-lg bg-background text-xs font-semibold border border-border/50"
+        />
+      ),
+    },
+    {
+      key: 'approvalStatus',
+      label: 'Portal Access Status',
+      render: (u) => {
+        const st = u.approvalStatus || 'approved';
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${statusStyles[st] || statusStyles.approved}`}>
+              {st}
+            </span>
+            {st === 'pending' && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleApprovalChange(u._id, 'approved')}
+                  className="p-1 rounded-md bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer"
+                  title="Approve Client Access"
+                >
+                  <Check size={13} />
+                </button>
+                <button
+                  onClick={() => handleApprovalChange(u._id, 'rejected')}
+                  className="p-1 rounded-md bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="Reject Client Access"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      label: '',
+      render: (u) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => setPermissionsUser(u)}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Portal Permissions"
+          >
+            <ShieldCheck size={15} />
+          </button>
+          <button
+            onClick={() => {
+              setPasswordUser(u);
+              setPasswordForm({ newPassword: '', confirmPassword: '' });
+            }}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Reset Password"
+          >
+            <KeyRound size={15} />
+          </button>
+          <button
+            onClick={() => setDeleteUserTarget(u)}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
+            title="Delete Account"
           >
             <Trash2 size={15} />
           </button>
@@ -269,11 +436,18 @@ const Users = () => {
   // Cards Render
   const renderCard = (u) => {
     const st = u.approvalStatus || 'approved';
+    const isClient = u.role === 'client';
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary text-foreground uppercase tracking-wider">
-            {u.role}
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded tracking-wider ${
+              isClient
+                ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'
+                : 'bg-secondary text-foreground uppercase'
+            }`}
+          >
+            {isClient ? 'Client Account' : u.role}
           </span>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusStyles[st] || statusStyles.approved}`}>
             {st}
@@ -281,8 +455,14 @@ const Users = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center font-black text-sm text-foreground shrink-0">
-            {u.name?.charAt(0) || 'U'}
+          <div
+            className={`h-10 w-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 ${
+              isClient
+                ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 font-bold'
+                : 'bg-secondary text-foreground'
+            }`}
+          >
+            {u.name?.charAt(0) || (isClient ? 'C' : 'U')}
           </div>
           <div className="min-w-0">
             <h4 className="font-bold text-sm text-foreground truncate">{u.name}</h4>
@@ -291,20 +471,39 @@ const Users = () => {
         </div>
 
         <div className="p-2.5 rounded-xl bg-secondary/40 space-y-1 text-xs">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Department:</span>
-            <span className="font-semibold text-foreground">{u.department || u.position || 'General'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Joined:</span>
-            <span className="font-medium text-foreground tabular-nums">{new Date(u.createdAt).toLocaleDateString()}</span>
-          </div>
+          {isClient ? (
+            <>
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-muted-foreground shrink-0">Company:</span>
+                <span className="font-semibold text-foreground truncate">
+                  {u.clientId?.company || u.clientId?.name || 'Independent Client'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-muted-foreground shrink-0">Phone:</span>
+                <span className="font-medium text-foreground tabular-nums truncate">{u.phone || '—'}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Department:</span>
+                <span className="font-semibold text-foreground">{u.department || u.position || 'General'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Joined:</span>
+                <span className="font-medium text-foreground tabular-nums">
+                  {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="flex items-center justify-end gap-1 pt-1 ">
+        <div className="flex items-center justify-end gap-1 pt-1">
           <button
             onClick={() => setPermissionsUser(u)}
-            className="px-2.5 py-1 rounded-lg hover:bg-secondary text-xs font-semibold text-foreground flex items-center gap-1"
+            className="px-2.5 py-1 rounded-lg hover:bg-secondary text-xs font-semibold text-foreground flex items-center gap-1 cursor-pointer"
           >
             <ShieldCheck size={13} className="shrink-0" />
             <span>Permissions</span>
@@ -314,14 +513,14 @@ const Users = () => {
               setPasswordUser(u);
               setPasswordForm({ newPassword: '', confirmPassword: '' });
             }}
-            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
             title="Reset Password"
           >
             <KeyRound size={13} />
           </button>
           <button
             onClick={() => setDeleteUserTarget(u)}
-            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
             title="Delete"
           >
             <Trash2 size={13} />
@@ -337,10 +536,11 @@ const Users = () => {
       title="Team Directory & User Access"
       icon={UsersIcon}
       properties={[
-        { label: 'Total Users', value: total, icon: UsersIcon },
-        { label: 'Approved Staff', value: approvedCount, tone: 'success', icon: CheckCircle2 },
+        { label: 'Total Staff', value: staffUsers.length, icon: UsersIcon, tone: 'primary' },
+        { label: 'Employees', value: employeeUsers.length, tone: 'neutral' },
+        { label: 'Client Accounts', value: clientUsers.length, icon: Building2, tone: 'info' },
+        { label: 'Approved Staff', value: approvedStaffCount, tone: 'success', icon: CheckCircle2 },
         { label: 'Pending Approval', value: pendingCount, tone: pendingCount > 0 ? 'warning' : 'neutral', icon: Clock },
-        { label: 'Active Status', value: activeCount, tone: 'info' },
       ]}
       actions={
         <Button
@@ -354,30 +554,123 @@ const Users = () => {
         </Button>
       }
     >
-      {/* Role Filter Tabs */}
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-        {['all', 'superAdmin', 'admin', 'manager', 'employee', 'client', 'referral'].map((r) => (
+      {/* Category Tabs: Team & Staff vs Client Accounts */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="inline-flex p-1 rounded-2xl bg-secondary/70 border border-border/40">
           <button
-            key={r}
-            onClick={() => setRoleFilter(r)}
-            className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
-              roleFilter === r
-                ? 'bg-primary text-primary-foreground '
-                : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
+            type="button"
+            onClick={() => {
+              setActiveTab('team');
+              setRoleFilter('all');
+            }}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'team'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
             }`}
           >
-            {r === 'all' ? 'All Roles' : r.replace(/([A-Z])/g, ' $1')}
+            <UsersIcon size={14} />
+            <span>Team & Staff</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeTab === 'team'
+                  ? 'bg-primary-foreground/20 text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground'
+              }`}
+            >
+              {staffUsers.length}
+            </span>
           </button>
-        ))}
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('clients');
+              setRoleFilter('all');
+            }}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'clients'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+            }`}
+          >
+            <Building2 size={14} />
+            <span>Client Accounts</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeTab === 'clients'
+                  ? 'bg-primary-foreground/20 text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground'
+              }`}
+            >
+              {clientUsers.length}
+            </span>
+          </button>
+        </div>
+
+        {activeTab === 'team' && (
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="font-semibold text-foreground">{employeeUsers.length}</span> employees &middot;{' '}
+            <span className="font-semibold text-foreground">{staffUsers.length - employeeUsers.length}</span> management / staff
+          </div>
+        )}
+        {activeTab === 'clients' && (
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="font-semibold text-foreground">{clientUsers.length}</span> client portal logins
+          </div>
+        )}
       </div>
+
+      {/* Role Filter Tabs (Shown for Team tab: Employees 1st, then Management roles) */}
+      {activeTab === 'team' && (
+        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 custom-scrollbar">
+          {[
+            { key: 'all', label: 'All Team Staff' },
+            { key: 'employee', label: 'Employees' },
+            { key: 'admin', label: 'Admins' },
+            { key: 'manager', label: 'Managers' },
+            { key: 'superAdmin', label: 'Super Admins' },
+            { key: 'organizationOwner', label: 'Org Owners' },
+            { key: 'referral', label: 'Referrals' },
+          ].map((r) => {
+            const count =
+              r.key === 'all'
+                ? staffUsers.length
+                : staffUsers.filter((u) => u.role === r.key).length;
+            if (count === 0 && r.key !== 'all' && r.key !== 'employee' && r.key !== 'admin') {
+              return null;
+            }
+            return (
+              <button
+                key={r.key}
+                onClick={() => setRoleFilter(r.key)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  roleFilter === r.key
+                    ? 'bg-primary text-primary-foreground font-bold shadow-sm'
+                    : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/40'
+                }`}
+              >
+                <span>{r.label}</span>
+                <span className={`text-[10px] font-mono ${roleFilter === r.key ? 'opacity-90' : 'opacity-60'}`}>
+                  ({count})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <DatabaseView
         viewKey="rwm_users_view_v1"
         views={['cards', 'table']}
         items={filteredUsers}
         totalCount={filteredUsers.length}
-        searchPlaceholder="Search team members by name, email, role, or department..."
-        columns={tableColumns}
+        searchPlaceholder={
+          activeTab === 'clients'
+            ? 'Search client accounts by name, company, email, or phone...'
+            : 'Search team members by name, email, department, or role...'
+        }
+        columns={activeTab === 'clients' ? clientTableColumns : teamTableColumns}
         renderCard={renderCard}
         onSearchChange={setSearchTerm}
       />
