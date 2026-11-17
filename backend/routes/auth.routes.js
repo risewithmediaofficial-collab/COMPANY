@@ -14,6 +14,7 @@ import {
   resetPassword,
   updateProfile,
   changePassword,
+  completeOnboarding,
 } from '../controllers/auth.controller.js';
 import { getEnv } from '../config/env.js';
 import { protect } from '../middleware/auth.middleware.js';
@@ -42,5 +43,6 @@ router.post('/logout', logout);
 router.get('/me', getMe);
 router.put('/update-profile', updateProfile);
 router.put('/change-password', changePassword);
+router.post('/complete-onboarding', completeOnboarding);
 
 export default router;

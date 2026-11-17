@@ -22,6 +22,8 @@ import {
   getClientProjects,
   getClientTasks,
   getClientAdBudget,
+  submitClientOnboarding,
+  getClientOnboarding,
 } from '../controllers/portal.controller.js';
 import { authorize, protect } from '../middleware/auth.middleware.js';
 
@@ -41,6 +43,8 @@ router.get('/invoices', authorize('client'), getClientInvoices);
 router.get('/projects', authorize('client'), getClientProjects);
 router.get('/tasks', authorize('client'), getClientTasks);
 router.get('/budget', authorize('client'), getClientAdBudget);
+router.post('/onboarding', authorize('client'), submitClientOnboarding);
+router.get('/onboarding', authorize('client', 'superAdmin', 'admin', 'manager'), getClientOnboarding);
 
 // ─── ADMIN / MANAGER ROUTES ──────────────────────────────────────────────────
 router.post('/content', authorize('superAdmin', 'manager', 'employee'), createContentItem);

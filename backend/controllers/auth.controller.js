@@ -328,14 +328,36 @@ export const resetPassword = async (req, res) => {
 // @access  Private
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone, department, position, avatar } = req.body;
+    const { name, phone, department, position, avatar, hasSeenOnboarding } = req.body;
+    const updateData = { name, phone, department, position, avatar };
+    if (hasSeenOnboarding !== undefined) {
+      updateData.hasSeenOnboarding = Boolean(hasSeenOnboarding);
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, phone, department, position, avatar },
+      updateData,
       { new: true, runValidators: true }
     ).select('-password -refreshToken -resetPasswordToken -resetPasswordExpire');
 
     res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Mark user onboarding modal as viewed / completed
+// @route   POST /api/auth/complete-onboarding
+// @access  Private
+export const completeOnboarding = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { hasSeenOnboarding: true },
+      { new: true }
+    ).select('-password -refreshToken -resetPasswordToken -resetPasswordExpire');
+
+    res.json({ success: true, message: 'Onboarding completed', user });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

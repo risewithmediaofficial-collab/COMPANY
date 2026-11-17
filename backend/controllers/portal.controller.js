@@ -19,6 +19,8 @@ import Campaign from '../models/smm/campaign.model.js';
 import SmmAdSpend from '../models/smm/smmAdSpend.model.js';
 import SmmMonthlyTracker from '../models/smm/smmMonthlyTracker.model.js';
 import SmmClient from '../models/smm/smmClient.model.js';
+import Proposal from '../models/proposal.model.js';
+import ClientCredential from '../models/clientCredential.model.js';
 import { parsePagination } from '../utils/pagination.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 
@@ -90,6 +92,55 @@ export const getPortalDashboard = async (req, res) => {
     const balanceDue = clientInvoices.reduce((sum, item) => sum + Number(item.balanceAmount !== undefined ? item.balanceAmount : Math.max(0, (item.totalAmount || item.total || 0) - (item.paidAmount || 0))), 0);
     const openInvoices = clientInvoices.filter(item => ['sent', 'overdue', 'partially_paid', 'draft'].includes(String(item.status).toLowerCase()));
     const overdueInvoices = clientInvoices.filter(item => String(item.status).toLowerCase() === 'overdue' || (item.dueDate && new Date(item.dueDate) < now && String(item.status).toLowerCase() !== 'paid'));
+
+    // Map individual project financials (Paid, Pending, Total per project)
+    const projectFinancials = {};
+    clientInvoices.forEach((inv) => {
+      const projId = inv.project?._id ? inv.project._id.toString() : (inv.project ? inv.project.toString() : null);
+      if (projId) {
+        if (!projectFinancials[projId]) {
+          projectFinancials[projId] = { totalAmount: 0, paidAmount: 0, pendingAmount: 0, invoiceCount: 0 };
+        }
+        const total = Number(inv.totalAmount || inv.total || 0);
+        const paid = Number(inv.paidAmount || 0);
+        const balance = Number(inv.balanceAmount !== undefined ? inv.balanceAmount : Math.max(0, total - paid));
+        projectFinancials[projId].totalAmount += total;
+        projectFinancials[projId].paidAmount += paid;
+        projectFinancials[projId].pendingAmount += balance;
+        projectFinancials[projId].invoiceCount += 1;
+      }
+    });
+
+    const enrichedProjects = clientProjects.map((p) => {
+      const pObj = p.toObject ? p.toObject() : p;
+      const fin = projectFinancials[p._id.toString()] || { totalAmount: 0, paidAmount: 0, pendingAmount: 0, invoiceCount: 0 };
+      return {
+        ...pObj,
+        totalAmount: fin.totalAmount,
+        paidAmount: fin.paidAmount,
+        pendingAmount: fin.pendingAmount,
+        invoiceCount: fin.invoiceCount,
+      };
+    });
+
+    // Client Proposals
+    const clientProposals = await Proposal.find({ client: clientId })
+      .select('title status amount validUntil sentDate createdAt proposalNumber proposalText')
+      .sort({ createdAt: -1 });
+
+    // Client Credentials (Only credentials where visibleToClient === true)
+    const clientCredentials = await ClientCredential.find({
+      clientId,
+      isActive: true,
+      visibleToClient: true,
+    })
+      .select('credentialName credentialType username email mobileNumber url notes createdAt')
+      .sort({ createdAt: -1 });
+
+    // Active Daily Tasks of Client Projects
+    const dailyTasks = clientTasks.filter((t) =>
+      ['in_progress', 'on_process', 'review', 'In Progress', 'Internal Approval', 'review_required', 'todo', 'To Do', 'Task Received'].includes(t.status)
+    );
 
     // 4. Content Items overview
     const [
@@ -275,6 +326,8 @@ export const getPortalDashboard = async (req, res) => {
         phone: client.phone,
         logo: client.logo,
         onboardingSteps: client.onboardingSteps,
+        onboardingDetails: client.onboardingDetails || null,
+        onboardingCompleted: Boolean(client.onboardingCompleted),
         assignedManager: client.assignedManager,
         deliverables: client.deliverables,
         servicePlan: client.servicePlan,
@@ -291,7 +344,7 @@ export const getPortalDashboard = async (req, res) => {
         total: totalProjects,
         active: activeProjects.length,
         completed: completedProjects.length,
-        projects: clientProjects,
+        projects: enrichedProjects,
       },
       taskMetrics: {
         total: totalTasks,
@@ -300,8 +353,11 @@ export const getPortalDashboard = async (req, res) => {
         review: reviewTasks,
         pending: pendingTasks,
         completionRate: taskCompletionRate,
-        tasks: clientTasks.slice(0, 10),
+        dailyTasks: dailyTasks.slice(0, 10),
+        tasks: clientTasks.slice(0, 20),
       },
+      proposals: clientProposals,
+      credentials: clientCredentials,
       smmMetrics,
       tracker: tracker ? {
         _id: tracker._id,
@@ -319,14 +375,118 @@ export const getPortalDashboard = async (req, res) => {
         balanceDue,
         openCount: openInvoices.length,
         overdueCount: overdueInvoices.length,
-        recentInvoices: clientInvoices.slice(0, 5),
+        recentInvoices: clientInvoices.slice(0, 10),
       },
-      activeProjects,
+      activeProjects: enrichedProjects.filter(p => ['active', 'in_progress', 'planning'].includes(p.status)),
       openInvoices,
       recentContent,
     });
   } catch (error) {
     console.error('getPortalDashboard error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── CLIENT ONBOARDING INTAKE FORM ─────────────────────────────────────────────
+
+export const submitClientOnboarding = async (req, res) => {
+  try {
+    const client = await getClientFromUser(req.user);
+    if (!client) {
+      return res.status(404).json({ success: false, message: 'Client profile not found' });
+    }
+
+    const {
+      companyLegalName,
+      brandName,
+      tagline,
+      industryNiche,
+      businessDescription,
+      targetAudience,
+      targetLocations,
+      servicesRequested,
+      primaryBusinessGoal,
+      monthlyMarketingBudget,
+      keyCompetitors,
+      brandTone,
+      brandColors,
+      driveAssetsLink,
+      websiteUrl,
+      socialHandles,
+      primaryContact,
+      additionalNotes,
+    } = req.body;
+
+    client.onboardingDetails = {
+      companyLegalName: companyLegalName?.trim() || client.company || '',
+      brandName: brandName?.trim() || client.name || '',
+      tagline: tagline?.trim() || '',
+      industryNiche: industryNiche?.trim() || client.industry || '',
+      businessDescription: businessDescription?.trim() || '',
+      targetAudience: targetAudience?.trim() || '',
+      targetLocations: targetLocations?.trim() || '',
+      servicesRequested: Array.isArray(servicesRequested) ? servicesRequested : client.services || [],
+      primaryBusinessGoal: primaryBusinessGoal?.trim() || '',
+      monthlyMarketingBudget: monthlyMarketingBudget?.trim() || '',
+      keyCompetitors: keyCompetitors?.trim() || '',
+      brandTone: brandTone?.trim() || '',
+      brandColors: brandColors?.trim() || '',
+      driveAssetsLink: driveAssetsLink?.trim() || client.driveLink || '',
+      websiteUrl: websiteUrl?.trim() || client.website || '',
+      socialHandles: socialHandles || client.socialMedia || {},
+      primaryContact: primaryContact || {
+        name: client.contactName || client.name,
+        phone: client.phone,
+        email: client.email,
+        preferredChannel: 'WhatsApp',
+      },
+      additionalNotes: additionalNotes?.trim() || '',
+      submittedAt: new Date(),
+      status: 'submitted',
+    };
+
+    if (websiteUrl?.trim()) client.website = websiteUrl.trim();
+    if (driveAssetsLink?.trim()) client.driveLink = driveAssetsLink.trim();
+    if (industryNiche?.trim()) client.industry = industryNiche.trim();
+
+    client.onboardingCompleted = true;
+    if (client.onboardingSteps) {
+      client.onboardingSteps.portalActivated = true;
+    }
+
+    await client.save();
+
+    res.json({
+      success: true,
+      message: 'Client onboarding details submitted successfully',
+      onboardingDetails: client.onboardingDetails,
+    });
+  } catch (error) {
+    console.error('submitClientOnboarding error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getClientOnboarding = async (req, res) => {
+  try {
+    let client = null;
+    if (req.user.role === 'client') {
+      client = await getClientFromUser(req.user);
+    } else if (req.query.clientId) {
+      client = await Client.findById(req.query.clientId);
+    }
+
+    if (!client) {
+      return res.status(404).json({ success: false, message: 'Client not found' });
+    }
+
+    res.json({
+      success: true,
+      onboardingDetails: client.onboardingDetails || null,
+      onboardingCompleted: Boolean(client.onboardingCompleted),
+    });
+  } catch (error) {
+    console.error('getClientOnboarding error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

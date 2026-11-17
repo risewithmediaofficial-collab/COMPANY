@@ -7,6 +7,7 @@ import MobileAppInstallButton from '../components/ui/MobileAppInstallButton';
 import EnableBannerNotificationBar from '../components/notifications/EnableBannerNotificationBar';
 import ErrorBoundary from '../components/ui/ErrorBoundary';
 import GlobalDateSortBar from '../components/layout/GlobalDateSortBar';
+import OnboardingWelcomeModal from '../components/onboarding/OnboardingWelcomeModal';
 
 const PageLoadingFallback = () => (
   <div className="w-full py-12 flex flex-col items-center justify-center space-y-3">
@@ -63,6 +64,9 @@ const MainLayout = () => {
 
       {/* Floating PWA Download / Install App Button (Mobile Only) */}
       <MobileAppInstallButton />
+
+      {/* First-Time Login Interactive Onboarding Sticker Modal */}
+      <OnboardingWelcomeModal />
     </div>
   );
 };

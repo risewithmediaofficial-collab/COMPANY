@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   Plus,
@@ -15,6 +16,13 @@ import {
   ArrowRight,
   Sparkles,
   X,
+  Zap,
+  CheckCircle2,
+  Calendar,
+  Layers,
+  AlertCircle,
+  Building2,
+  ShieldCheck,
 } from '@/components/ui/muiIcons';
 import { Button } from '../../components/ui/button';
 import { DataTable } from '../../components/ui/DataTable';
@@ -45,6 +53,23 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+const SOP_FREQUENCIES = [
+  { value: 'all', label: 'All Cadences' },
+  { value: 'daily', label: '⚡ Daily SOPs (Mandatory)', countKey: 'daily' },
+  { value: 'one_time', label: '📋 One-Time SOPs (Process & Onboarding)', countKey: 'one_time' },
+];
+
+const SOP_DEPARTMENTS = [
+  'All Departments',
+  'Social Media Marketing',
+  'Development',
+  'Video Production',
+  'Graphic Design',
+  'Sales & Accounts',
+  'HR & Operations',
+  'General',
+];
+
 const SOP_TYPES = [
   { value: 'company', label: 'Company SOP' },
   { value: 'role_based', label: 'Role-Based SOP' },
@@ -66,7 +91,10 @@ const SOP_ROLES = [
 
 const emptyForm = {
   title: '',
-  sopType: 'company',
+  sopType: 'department',
+  frequency: 'daily',
+  departmentName: 'General',
+  isMandatory: true,
   role: '',
   content: '',
   steps: '',
@@ -87,18 +115,42 @@ const SOPDashboard = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [currentView, setCurrentView] = useState('grid'); // 'grid' | 'table'
+  const [selectedCadence, setSelectedCadence] = useState('daily'); // 'daily' | 'one_time' | 'all'
+  const [selectedDepartment, setSelectedDepartment] = useState('All Departments');
   const [selectedType, setSelectedType] = useState('all');
+  const [completedChecklist, setCompletedChecklist] = useState({});
 
   const { data: sops = [], isLoading } = useSOPs();
   const createSOP = useCreateSOP();
   const updateSOP = useUpdateSOP();
   const deleteSOP = useDeleteSOP();
 
-  const filtered = sops.filter(
-    (sop) =>
-      (selectedType === 'all' || sop.sopType === selectedType) &&
-      (!search.trim() || sop.title?.toLowerCase().includes(search.toLowerCase())),
-  );
+  // Statistics
+  const dailySopsCount = sops.filter((s) => s.frequency === 'daily').length;
+  const oneTimeSopsCount = sops.filter((s) => !s.frequency || s.frequency === 'one_time').length;
+
+  const filtered = sops.filter((sop) => {
+    const term = search.trim().toLowerCase();
+    const matchesSearch =
+      !term ||
+      sop.title?.toLowerCase().includes(term) ||
+      sop.content?.toLowerCase().includes(term) ||
+      sop.steps?.toLowerCase().includes(term) ||
+      sop.departmentName?.toLowerCase().includes(term);
+
+    const matchesCadence =
+      selectedCadence === 'all' ||
+      (selectedCadence === 'daily' && sop.frequency === 'daily') ||
+      (selectedCadence === 'one_time' && (!sop.frequency || sop.frequency === 'one_time'));
+
+    const matchesDept =
+      selectedDepartment === 'All Departments' ||
+      (sop.departmentName || 'General') === selectedDepartment;
+
+    const matchesType = selectedType === 'all' || sop.sopType === selectedType;
+
+    return matchesSearch && matchesCadence && matchesDept && matchesType;
+  });
 
   const canEditSop = (sop) => {
     if (!sop || !user) return false;
@@ -140,7 +192,10 @@ const SOPDashboard = () => {
     setEditing(sop);
     setForm({
       title: sop.title || '',
-      sopType: sop.sopType || 'company',
+      sopType: sop.sopType || 'department',
+      frequency: sop.frequency || 'daily',
+      departmentName: sop.departmentName || 'General',
+      isMandatory: sop.isMandatory !== undefined ? Boolean(sop.isMandatory) : true,
       role: sop.role || '',
       content: sop.content || '',
       steps: sop.steps || '',
@@ -153,55 +208,91 @@ const SOPDashboard = () => {
 
   const handleSave = async () => {
     if (!form.title.trim()) return toast.error('Title is required');
-    if (editing) {
-      await updateSOP.mutateAsync({ id: editing._id, data: form });
-    } else {
-      await createSOP.mutateAsync(form);
+    try {
+      if (editing) {
+        await updateSOP.mutateAsync({ id: editing._id, data: form });
+        toast.success('SOP updated successfully');
+      } else {
+        await createSOP.mutateAsync(form);
+        toast.success('SOP created successfully');
+      }
+      setShowForm(false);
+      setEditing(null);
+      setForm(emptyForm);
+    } catch {
+      toast.error('Failed to save SOP');
     }
-    setShowForm(false);
-    setEditing(null);
-    setForm(emptyForm);
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    await deleteSOP.mutateAsync(deleteId);
-    setDeleteId(null);
-    if (viewingSOP?._id === deleteId) {
-      setViewingSOP(null);
-      setShowViewModal(false);
+    try {
+      await deleteSOP.mutateAsync(deleteId);
+      toast.success('SOP deleted');
+      setDeleteId(null);
+      if (viewingSOP?._id === deleteId) {
+        setViewingSOP(null);
+        setShowViewModal(false);
+      }
+    } catch {
+      toast.error('Failed to delete SOP');
     }
   };
 
   const columns = [
     {
       key: 'title',
-      label: 'Title',
-      render: (row) => <span className="font-bold text-foreground text-xs">{row.title}</span>,
+      label: 'SOP Title',
+      render: (row) => (
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-bold text-foreground text-xs">{row.title}</span>
+            {row.frequency === 'daily' ? (
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                ⚡ DAILY
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-secondary text-muted-foreground">
+                📋 ONE-TIME
+              </span>
+            )}
+            {row.isMandatory && (
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400">
+                MANDATORY
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground truncate max-w-xs">{row.description || row.content}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'departmentName',
+      label: 'Department',
+      render: (row) => (
+        <span className="px-2 py-0.5 rounded-lg bg-secondary text-[11px] font-semibold text-foreground">
+          {row.departmentName || 'General'}
+        </span>
+      ),
     },
     {
       key: 'sopType',
-      label: 'Type',
+      label: 'Scope',
       render: (row) => (
-        <span className="px-2 py-0.5 rounded-lg bg-secondary text-[11px] font-medium text-foreground capitalize">
+        <span className="px-2 py-0.5 rounded-lg bg-secondary/60 text-[11px] font-medium text-foreground capitalize">
           {SOP_TYPES.find((t) => t.value === row.sopType)?.label || row.sopType}
         </span>
       ),
     },
     {
       key: 'role',
-      label: 'Role Target',
-      render: (row) => (row.role ? row.role.replace(/_/g, ' ') : '—'),
+      label: 'Target Role',
+      render: (row) => (row.role ? row.role.replace(/_/g, ' ') : 'All Roles'),
     },
     {
       key: 'createdBy',
       label: 'Author',
       render: (row) => row.createdBy?.name || 'Admin',
-    },
-    {
-      key: 'createdAt',
-      label: 'Created',
-      render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '—'),
     },
   ];
 
@@ -210,6 +301,12 @@ const SOPDashboard = () => {
       title="Knowledge OS & SOPs"
       icon={BookOpen}
       breadcrumbs={[{ name: 'Knowledge', path: '/sop' }, { name: 'SOP Library' }]}
+      properties={[
+        { label: 'Total SOPs', value: sops.length, icon: BookOpen },
+        { label: 'Daily SOPs', value: dailySopsCount, tone: 'warning', icon: Zap },
+        { label: 'One-Time SOPs', value: oneTimeSopsCount, tone: 'neutral', icon: FileText },
+        { label: 'Active Depts', value: SOP_DEPARTMENTS.length - 1, tone: 'info' },
+      ]}
       actions={
         canAdd ? (
           <Button
@@ -222,40 +319,121 @@ const SOPDashboard = () => {
           </Button>
         ) : null
       }
-      properties={
-        <>
+    >
+      {/* ── Daily SOP & EOD Submission Protocol Banner ── */}
+      <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-amber-500/15 via-primary/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <Zap size={20} className="fill-current" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <span>Department Daily SOP &amp; Compulsory EOD Protocol</span>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                Compulsory
+              </span>
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Every employee and intern must strictly follow their department's daily SOP workflow checklist and submit their Daily EOD Report before clocking out.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/attendance?tab=eod"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm hover:opacity-95 transition-all shrink-0 cursor-pointer"
+        >
+          <FileText size={14} />
+          <span>Submit Daily EOD Report &rarr;</span>
+        </Link>
+      </div>
+
+      {/* ── Cadence Tabs: Daily vs One-Time ── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div className="inline-flex p-1 rounded-2xl bg-secondary/70 border border-border/40">
           <button
             type="button"
-            onClick={() => setSelectedType('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all min-h-[36px] shrink-0 ${
-              selectedType === 'all'
-                ? 'bg-primary text-primary-foreground '
-                : 'bg-card text-muted-foreground hover:text-foreground'
+            onClick={() => setSelectedCadence('daily')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedCadence === 'daily'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
             }`}
           >
-            All SOPs ({sops.length})
+            <Zap size={14} />
+            <span>⚡ Daily SOPs (Mandatory)</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                selectedCadence === 'daily'
+                  ? 'bg-primary-foreground/20 text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground'
+              }`}
+            >
+              {dailySopsCount}
+            </span>
           </button>
-          {SOP_TYPES.map((t) => {
-            const count = sops.filter((s) => s.sopType === t.value).length;
-            const isSelected = selectedType === t.value;
-            return (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setSelectedType(t.value)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all min-h-[36px] shrink-0 ${
-                  isSelected
-                    ? 'bg-primary text-primary-foreground '
-                    : 'bg-card text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {t.label} ({count})
-              </button>
-            );
-          })}
-        </>
-      }
-    >
+
+          <button
+            type="button"
+            onClick={() => setSelectedCadence('one_time')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              selectedCadence === 'one_time'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
+            }`}
+          >
+            <FileText size={14} />
+            <span>📋 One-Time SOPs (Onboarding &amp; Policy)</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                selectedCadence === 'one_time'
+                  ? 'bg-primary-foreground/20 text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground'
+              }`}
+            >
+              {oneTimeSopsCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedCadence('all')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              selectedCadence === 'all'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <span>All</span>
+            <span className="text-[10px] font-mono opacity-80">({sops.length})</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Department Filter Pills ── */}
+      <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 custom-scrollbar">
+        {SOP_DEPARTMENTS.map((dept) => {
+          const count =
+            dept === 'All Departments'
+              ? sops.length
+              : sops.filter((s) => (s.departmentName || 'General') === dept).length;
+          return (
+            <button
+              key={dept}
+              type="button"
+              onClick={() => setSelectedDepartment(dept)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-all flex items-center gap-1.5 ${
+                selectedDepartment === dept
+                  ? 'bg-foreground text-background font-bold shadow-sm'
+                  : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/40'
+              }`}
+            >
+              <span>{dept}</span>
+              <span className="text-[10px] font-mono opacity-75">({count})</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Notion-Style Multi-View Database Engine */}
       <DatabaseView
         views={[
@@ -275,16 +453,27 @@ const SOPDashboard = () => {
               <div
                 key={sop._id}
                 onClick={() => openView(sop)}
-                className="p-5 bg-card rounded-2xl transition-all cursor-pointer space-y-3 group flex flex-col justify-between"
+                className="p-5 bg-card rounded-2xl transition-all cursor-pointer space-y-3 group flex flex-col justify-between border border-border/40 hover:border-primary/40 hover:shadow-md"
               >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
-                      {SOP_TYPES.find((t) => t.value === sop.sopType)?.label || sop.sopType}
-                    </span>
-                    {sop.role && (
-                      <span className="text-[10px] font-medium text-muted-foreground capitalize">
-                        {sop.role.replace(/_/g, ' ')}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {sop.frequency === 'daily' ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                          <Zap size={11} className="fill-current" /> Daily SOP
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-secondary text-muted-foreground">
+                          📋 One-Time
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
+                        {sop.departmentName || 'General'}
+                      </span>
+                    </div>
+                    {sop.isMandatory && (
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                        Compulsory
                       </span>
                     )}
                   </div>
@@ -298,7 +487,7 @@ const SOPDashboard = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between pt-3 text-[11px] text-muted-foreground border-t border-border/30">
                   <span>Author: {sop.createdBy?.name || 'Admin'}</span>
                   <span className="group-hover:text-primary flex items-center gap-1 font-semibold">
                     Read SOP <ArrowRight size={12} />
@@ -348,12 +537,29 @@ const SOPDashboard = () => {
                     {viewingSOP?.title || 'SOP Details'}
                   </DialogTitle>
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1">
-                    <span className="text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full ">
+                    {viewingSOP?.frequency === 'daily' ? (
+                      <span className="text-[11px] sm:text-xs font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                        <Zap size={12} className="fill-current" /> Daily SOP
+                      </span>
+                    ) : (
+                      <span className="text-[11px] sm:text-xs font-semibold bg-secondary text-muted-foreground px-2.5 py-0.5 rounded-full">
+                        📋 One-Time SOP
+                      </span>
+                    )}
+                    <span className="text-[11px] sm:text-xs font-bold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                      {viewingSOP?.departmentName || 'General'}
+                    </span>
+                    <span className="text-[11px] sm:text-xs font-semibold bg-secondary text-muted-foreground px-2.5 py-0.5 rounded-full">
                       {SOP_TYPES.find((t) => t.value === viewingSOP?.sopType)?.label || viewingSOP?.sopType}
                     </span>
                     {viewingSOP?.role && (
                       <span className="text-[11px] sm:text-xs font-semibold bg-secondary text-foreground px-2.5 py-0.5 rounded-full capitalize">
                         Role: {viewingSOP.role.replace(/_/g, ' ')}
+                      </span>
+                    )}
+                    {viewingSOP?.isMandatory && (
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                        Compulsory
                       </span>
                     )}
                     <StatusBadge tone={viewingSOP?.status === 'active' ? 'success' : 'neutral'}>
@@ -380,6 +586,34 @@ const SOPDashboard = () => {
             {/* Scrollable Body */}
             {viewingSOP && (
               <div className="space-y-6 p-4 sm:p-6 md:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                {viewingSOP.frequency === 'daily' && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-primary/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                        <Zap size={18} className="fill-current" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-foreground flex items-center gap-2">
+                          <span>Daily Operational SOP</span>
+                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                            Compulsory EOD
+                          </span>
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Follow all checklist steps daily for department excellence. Remember to submit your End-of-Day (EOD) work report before shift ends.
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/attendance?tab=eod"
+                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shrink-0 hover:opacity-95 shadow-sm transition-all"
+                    >
+                      <FileText size={13} />
+                      <span>Submit EOD Report &rarr;</span>
+                    </Link>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-secondary/30 p-3.5 rounded-xl ">
                   <span className="flex items-center gap-1.5 font-medium">
                     <User size={14} className="text-primary" />
@@ -492,34 +726,82 @@ const SOPDashboard = () => {
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-semibold text-foreground mb-1.5 block">SOP Type</label>
-                <SelectDropdown
-                  value={form.sopType}
-                  onChange={(val) => setForm({ ...form, sopType: val })}
-                  options={SOP_TYPES}
-                  allowCustom={false}
-                  allowDeselect={false}
-                  placeholder="Select SOP type"
-                />
+              {/* Cadence and Department */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Frequency / Cadence *</label>
+                  <SelectDropdown
+                    value={form.frequency}
+                    onChange={(val) => setForm({ ...form, frequency: val })}
+                    options={[
+                      { value: 'daily', label: '⚡ Daily SOP (Must follow daily & submit EOD)' },
+                      { value: 'one_time', label: '📋 One-Time SOP (Onboarding / Reference)' },
+                    ]}
+                    allowCustom={false}
+                    allowDeselect={false}
+                    placeholder="Select frequency"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Department *</label>
+                  <SelectDropdown
+                    value={form.departmentName}
+                    onChange={(val) => setForm({ ...form, departmentName: val })}
+                    options={SOP_DEPARTMENTS.filter((d) => d !== 'All Departments').map((d) => ({
+                      value: d,
+                      label: d,
+                    }))}
+                    allowCustom={false}
+                    allowDeselect={false}
+                    placeholder="Select department"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="text-sm font-semibold text-foreground mb-1.5 block">Target Role</label>
-                <SelectDropdown
-                  value={form.role}
-                  onChange={(val) => setForm({ ...form, role: val })}
-                  options={[
-                    { value: '', label: 'All Roles' },
-                    ...SOP_ROLES.map((r) => ({
-                      value: r,
-                      label: r.replace(/_/g, ' '),
-                    })),
-                  ]}
-                  allowCustom={false}
-                  allowDeselect={false}
-                  placeholder="Select target role"
+              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/40 border border-border/40">
+                <input
+                  type="checkbox"
+                  id="sopIsMandatory"
+                  checked={form.isMandatory}
+                  onChange={(e) => setForm({ ...form, isMandatory: e.target.checked })}
+                  className="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                 />
+                <label htmlFor="sopIsMandatory" className="text-xs font-semibold text-foreground cursor-pointer select-none">
+                  Compulsory SOP &mdash; All members in this department must strictly follow this SOP and log EOD status.
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">SOP Type</label>
+                  <SelectDropdown
+                    value={form.sopType}
+                    onChange={(val) => setForm({ ...form, sopType: val })}
+                    options={SOP_TYPES}
+                    allowCustom={false}
+                    allowDeselect={false}
+                    placeholder="Select SOP type"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Target Role</label>
+                  <SelectDropdown
+                    value={form.role}
+                    onChange={(val) => setForm({ ...form, role: val })}
+                    options={[
+                      { value: '', label: 'All Roles' },
+                      ...SOP_ROLES.map((r) => ({
+                        value: r,
+                        label: r.replace(/_/g, ' '),
+                      })),
+                    ]}
+                    allowCustom={false}
+                    allowDeselect={false}
+                    placeholder="Select target role"
+                  />
+                </div>
               </div>
 
               <div>

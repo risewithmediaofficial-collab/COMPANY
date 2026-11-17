@@ -72,6 +72,7 @@ const userSchema = new mongoose.Schema(
     approvedAt: { type: Date },
     rejectedAt: { type: Date },
     lastLogin: { type: Date },
+    hasSeenOnboarding: { type: Boolean, default: false },
 
     // Permissions (granular overrides beyond role)
     permissions: {

@@ -6,7 +6,8 @@ import {
   Receipt, TrendingUp, TrendingDown, AlertCircle, ArrowUpRight,
   Layers, Star, Activity, Calendar, FileText, IndianRupee,
   Film, Sparkles, CheckSquare, ArrowRight, ExternalLink,
-  Megaphone, CreditCard, Download, ShieldCheck, Check
+  Megaphone, CreditCard, Download, ShieldCheck, Check,
+  Eye, EyeOff, Copy, LockKeyhole, FolderOpen, X
 } from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
@@ -14,6 +15,17 @@ import { useDateFilter } from '../../../context/DateFilterContext';
 import { exportProposalToPDF, exportInvoiceToPDF } from '../../../utils/pdfExport';
 import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
 import { useProposals } from '../../../hooks/useProposals';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Input } from '../../../components/ui/input';
+import { Textarea } from '../../../components/ui/textarea';
+import { Button } from '../../../components/ui/button';
 
 const KPICard = ({ label, value, icon: Icon, sub }) => (
   <div
@@ -36,6 +48,31 @@ const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export default function PortalDashboard({ user, setPendingCount }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // New Interactive State for Client Portal
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [isSubmittingOnboarding, setIsSubmittingOnboarding] = useState(false);
+  const [activeTaskTab, setActiveTaskTab] = useState('daily');
+  const [revealedPasswords, setRevealedPasswords] = useState({});
+  const [copiedKey, setCopiedKey] = useState(null);
+
+  const [onboardingForm, setOnboardingForm] = useState({
+    companyLegalName: '',
+    brandName: '',
+    tagline: '',
+    industryNiche: '',
+    targetAudience: '',
+    primaryGoals: '',
+    servicesRequested: [],
+    estimatedBudget: '',
+    competitors: '',
+    websiteUrl: '',
+    driveAssetsUrl: '',
+    socialMedia: { instagram: '', facebook: '', linkedin: '', youtube: '' },
+    primaryContactName: '',
+    primaryContactPhone: '',
+    primaryContactEmail: '',
+  });
 
   const socket = useSocket();
   const { isDateInRange, isFiltered: isDateFiltered } = useDateFilter();
@@ -65,6 +102,71 @@ export default function PortalDashboard({ user, setPendingCount }) {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (data?.client?.onboardingDetails) {
+      setOnboardingForm((prev) => ({
+        ...prev,
+        ...data.client.onboardingDetails,
+        socialMedia: {
+          ...prev.socialMedia,
+          ...(data.client.onboardingDetails.socialMedia || {}),
+        },
+      }));
+    } else if (data?.client) {
+      setOnboardingForm((prev) => ({
+        ...prev,
+        companyLegalName: data.client.company || '',
+        brandName: data.client.name || '',
+        primaryContactName: data.client.name || '',
+        primaryContactEmail: data.client.email || '',
+        primaryContactPhone: data.client.phone || '',
+      }));
+    }
+  }, [data?.client]);
+
+  const handleCopyText = (text, key) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const togglePasswordVisibility = (id) => {
+    setRevealedPasswords((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleServiceRequested = (serviceName) => {
+    setOnboardingForm((prev) => {
+      const current = prev.servicesRequested || [];
+      if (current.includes(serviceName)) {
+        return { ...prev, servicesRequested: current.filter((s) => s !== serviceName) };
+      } else {
+        return { ...prev, servicesRequested: [...current, serviceName] };
+      }
+    });
+  };
+
+  const handleSaveOnboarding = async (e) => {
+    e?.preventDefault();
+    if (!onboardingForm.companyLegalName && !onboardingForm.brandName) {
+      return toast.error('Please provide your brand or company name.');
+    }
+    setIsSubmittingOnboarding(true);
+    try {
+      const res = await api.post('/portal/onboarding', onboardingForm);
+      if (res.data?.success) {
+        toast.success('Onboarding details submitted successfully!');
+        setShowOnboardingModal(false);
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit onboarding form');
+    } finally {
+      setIsSubmittingOnboarding(false);
+    }
+  };
 
   useEffect(() => {
     if (!socket) return;
@@ -178,6 +280,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
       }
     : rawAdBudget;
   const tracker = data?.tracker || null;
+  const clientCredentials = data?.credentials || [];
 
   const handleProposalDownload = async (project) => {
     try {
@@ -266,6 +369,47 @@ export default function PortalDashboard({ user, setPendingCount }) {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* ── Client Onboarding Intake Form Banner ── */}
+      <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-primary/10 via-card to-card border border-primary/25 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="h-11 w-11 rounded-2xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+            <Sparkles size={22} className="fill-current" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm sm:text-base font-bold text-foreground">
+                {client.onboardingDetails?.submittedAt
+                  ? 'Business & Service Profile Submitted'
+                  : 'Complete Your Brand & Business Onboarding Intake'}
+              </h3>
+              {client.onboardingDetails?.submittedAt ? (
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  Profile Complete
+                </span>
+              ) : (
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                  Action Required
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {client.onboardingDetails?.submittedAt
+                ? `Submitted on ${new Date(client.onboardingDetails.submittedAt).toLocaleDateString('en-IN')}. Our strategy and production team is actively aligning with your goals.`
+                : 'Help us serve you better. Share your company legal name, niche, target audience, competitors, and service requirements so we deliver exceptional work.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowOnboardingModal(true)}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shrink-0 hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
+        >
+          <FileText size={14} />
+          <span>{client.onboardingDetails?.submittedAt ? 'Review / Edit Profile' : 'Start Onboarding Form →'}</span>
+        </button>
       </div>
 
       {/* ── SECTION 1: SMM DELIVERABLES THIS MONTH (Reels, Posts, Stories Planned vs Posted) ── */}
@@ -450,13 +594,18 @@ export default function PortalDashboard({ user, setPendingCount }) {
                 No active projects found
               </div>
             ) : (
-              (projectMetrics.projects || []).slice(0, 3).map((p) => (
-                <div key={p._id} className="p-3.5 rounded-2xl bg-secondary/30 space-y-2">
+              (projectMetrics.projects || []).slice(0, 4).map((p) => (
+                <div key={p._id} className="p-3.5 rounded-2xl bg-secondary/30 space-y-2.5 border border-border/30">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h4 className="text-xs font-bold text-foreground">{p.name}</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-xs font-bold text-foreground">{p.name}</h4>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-secondary text-foreground">
+                          {p.status || 'Active'}
+                        </span>
+                      </div>
                       {p.dueDate && (
-                        <p className="text-[10px] text-muted-foreground tabular-nums">
+                        <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5">
                           Due: {new Date(p.dueDate).toLocaleDateString('en-IN')}
                         </p>
                       )}
@@ -476,11 +625,28 @@ export default function PortalDashboard({ user, setPendingCount }) {
                       )}
                     </div>
                   </div>
+
                   <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-foreground transition-all duration-500"
+                      className="h-full rounded-full bg-primary transition-all duration-500"
                       style={{ width: `${p.progress || 0}%` }}
                     />
+                  </div>
+
+                  {/* Individual Project Financial Status */}
+                  <div className="grid grid-cols-3 gap-2 pt-1 text-[10px] tabular-nums">
+                    <div className="p-2 rounded-xl bg-secondary/50 text-center">
+                      <span className="text-[9px] font-bold text-muted-foreground block uppercase">Quoted</span>
+                      <span className="font-black text-foreground text-xs">{fmt(p.totalAmount)}</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-emerald-500/10 text-center">
+                      <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 block uppercase">Paid</span>
+                      <span className="font-black text-emerald-600 dark:text-emerald-400 text-xs">{fmt(p.paidAmount)}</span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-amber-500/10 text-center">
+                      <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 block uppercase">Pending</span>
+                      <span className="font-black text-amber-600 dark:text-amber-400 text-xs">{fmt(p.pendingAmount)}</span>
+                    </div>
                   </div>
                 </div>
               ))
@@ -526,27 +692,83 @@ export default function PortalDashboard({ user, setPendingCount }) {
             </div>
           </div>
 
+          {/* Task Mini-Tabs: Daily Active Tasks vs All Deliverables */}
+          <div className="flex items-center gap-2 pt-1 border-b border-border/30 pb-2">
+            <button
+              type="button"
+              onClick={() => setActiveTaskTab('daily')}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTaskTab === 'daily'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'bg-secondary text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              ⚡ Daily Tasks ({(data?.taskMetrics?.dailyTasks || []).length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTaskTab('all')}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTaskTab === 'all'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'bg-secondary text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              📋 All Deliverables ({(taskMetrics.tasks || []).length})
+            </button>
+          </div>
+
           {/* Task Items List */}
           <div className="space-y-2 pt-1">
-            {(taskMetrics.tasks || []).length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground text-xs">
-                No deliverables pending review right now.
-              </div>
-            ) : (
-              (taskMetrics.tasks || []).slice(0, 4).map((t) => (
-                <div key={t._id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/30 ">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold truncate text-foreground">{t.taskTitle || t.title}</p>
-                    <p className="text-[10px] text-muted-foreground tabular-nums">
-                      {t.taskCategory === 'non_content' ? 'Development / Operations' : 'Content Deliverable'}
-                      {t.dueDate && ` • Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-secondary text-foreground shrink-0">
-                    {t.status}
-                  </span>
+            {activeTaskTab === 'daily' ? (
+              (data?.taskMetrics?.dailyTasks || []).length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-xs">
+                  No active daily sprint tasks today. All project tasks are progressing smoothly!
                 </div>
-              ))
+              ) : (
+                (data?.taskMetrics?.dailyTasks || []).slice(0, 5).map((t) => (
+                  <div key={t._id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/30 ">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-xs font-semibold truncate text-foreground">{t.taskTitle || t.title}</p>
+                        {t.project?.name && (
+                          <span className="text-[9px] font-medium px-1.5 py-0.2 rounded-md bg-secondary text-muted-foreground">
+                            {t.project.name}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground tabular-nums">
+                        {t.taskCategory === 'non_content' ? 'Development / Operations' : 'Content Deliverable'}
+                        {t.dueDate && ` • Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
+                      {t.status}
+                    </span>
+                  </div>
+                ))
+              )
+            ) : (
+              (taskMetrics.tasks || []).length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-xs">
+                  No deliverables pending review right now.
+                </div>
+              ) : (
+                (taskMetrics.tasks || []).slice(0, 5).map((t) => (
+                  <div key={t._id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/30 ">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold truncate text-foreground">{t.taskTitle || t.title}</p>
+                      <p className="text-[10px] text-muted-foreground tabular-nums">
+                        {t.taskCategory === 'non_content' ? 'Development / Operations' : 'Content Deliverable'}
+                        {t.dueDate && ` • Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-secondary text-foreground shrink-0">
+                      {t.status}
+                    </span>
+                  </div>
+                ))
+              )
             )}
           </div>
         </div>
@@ -752,6 +974,145 @@ export default function PortalDashboard({ user, setPendingCount }) {
           <div className="rounded-2xl py-8 text-center bg-card/40">
             <FileText size={28} className="mx-auto text-muted-foreground mb-2 opacity-50" />
             <p className="text-xs font-semibold text-foreground">No proposals yet</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION: CLIENT SECURE CREDENTIALS VAULT (Strictly Client Scoped & Granted Access Only) ── */}
+      <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/40">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-secondary text-foreground flex items-center justify-center shrink-0">
+              <ShieldCheck size={18} />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">Dedicated Credentials &amp; Access Vault</h2>
+              <p className="text-xs text-muted-foreground">
+                Securely encrypted logins, account keys, and credentials granted specifically to your portal.
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-secondary text-foreground self-start sm:self-center">
+            {clientCredentials.length} Accessible Credential{clientCredentials.length === 1 ? '' : 's'}
+          </span>
+        </div>
+
+        {clientCredentials.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+            {clientCredentials.map((c) => {
+              const isPasswordVisible = Boolean(revealedPasswords[c._id]);
+              return (
+                <div
+                  key={c._id}
+                  className="p-4 rounded-2xl bg-secondary/30 space-y-3 flex flex-col justify-between border border-border/30 hover:border-primary/40 transition-all shadow-xs"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-secondary text-foreground">
+                          {(c.credentialType || 'Service').replace(/_/g, ' ')}
+                        </span>
+                        <h4 className="text-xs font-bold text-foreground mt-1.5">{c.credentialName}</h4>
+                      </div>
+                      {c.url && (
+                        <a
+                          href={c.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                          title="Open login link in new tab"
+                        >
+                          <ExternalLink size={13} />
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Username Field */}
+                    {c.username && (
+                      <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card text-xs">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[9px] font-semibold uppercase text-muted-foreground block">
+                            Username / Login
+                          </span>
+                          <span className="font-mono text-xs font-semibold text-foreground truncate block">
+                            {c.username}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(c.username, `user_${c._id}`)}
+                          className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                          title="Copy username"
+                        >
+                          {copiedKey === `user_${c._id}` ? (
+                            <Check size={13} className="text-emerald-500" />
+                          ) : (
+                            <Copy size={13} />
+                          )}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Password Field with Show/Hide & Copy */}
+                    {c.password && (
+                      <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card text-xs">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[9px] font-semibold uppercase text-muted-foreground block">
+                            Password
+                          </span>
+                          <span className="font-mono text-xs font-semibold text-foreground truncate block">
+                            {isPasswordVisible ? c.password : '••••••••••••'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => togglePasswordVisibility(c._id)}
+                            className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                            title={isPasswordVisible ? 'Hide password' : 'Show password'}
+                          >
+                            {isPasswordVisible ? <EyeOff size={13} /> : <Eye size={13} />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyText(c.password, `pass_${c._id}`)}
+                            className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                            title="Copy password"
+                          >
+                            {copiedKey === `pass_${c._id}` ? (
+                              <Check size={13} className="text-emerald-500" />
+                            ) : (
+                              <Copy size={13} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {c.notes && (
+                      <p className="text-[11px] text-muted-foreground bg-secondary/40 p-2 rounded-xl line-clamp-2">
+                        {c.notes}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-1.5 text-[10px] text-muted-foreground border-t border-border/20 flex items-center justify-between">
+                    <span>Added: {c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN') : '—'}</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 size={11} /> Granted to Client
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center bg-card/40 rounded-2xl">
+            <ShieldCheck size={28} className="mx-auto text-muted-foreground mb-2 opacity-50" />
+            <p className="text-xs font-semibold text-foreground">No credentials shared with your portal yet</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Credentials that your account manager grants client access to will securely appear here.
+            </p>
           </div>
         )}
       </div>
@@ -973,6 +1334,404 @@ export default function PortalDashboard({ user, setPendingCount }) {
           </div>
         </div>
       </div>
+
+      {/* ── Client Brand & Business Onboarding Intake Dialog Modal ── */}
+      <Dialog open={showOnboardingModal} onOpenChange={setShowOnboardingModal}>
+        <DialogContent
+          size="lg"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-3xl max-h-[90dvh]"
+        >
+          <div className="flex flex-col min-h-0 h-full">
+            {/* Header */}
+            <div className="shrink-0 bg-card px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 border-b border-border/40 select-none">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base sm:text-xl font-bold tracking-tight text-foreground">
+                    Client Brand &amp; Business Intake Form
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                    Share your business profile so RiseWithMedia can tailor campaigns to your exact goals.
+                  </DialogDescription>
+                </div>
+              </div>
+              <DialogClose asChild>
+                <button
+                  type="button"
+                  className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </DialogClose>
+            </div>
+
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleSaveOnboarding} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
+              {/* Section 1: Business Identity */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                  <span className="h-5 w-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                    1
+                  </span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-foreground">
+                    Brand &amp; Legal Identity
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">
+                      Legal Company / Registered Name *
+                    </label>
+                    <Input
+                      value={onboardingForm.companyLegalName}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, companyLegalName: e.target.value })}
+                      placeholder="e.g. Apex Retail Private Limited"
+                      className="h-10 rounded-xl text-xs"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">
+                      Brand / Trade Name *
+                    </label>
+                    <Input
+                      value={onboardingForm.brandName}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, brandName: e.target.value })}
+                      placeholder="e.g. Apex Studio"
+                      className="h-10 rounded-xl text-xs"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Tagline / Slogan</label>
+                    <Input
+                      value={onboardingForm.tagline}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, tagline: e.target.value })}
+                      placeholder="e.g. Precision In Every Frame"
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Industry / Business Niche</label>
+                    <select
+                      value={onboardingForm.industryNiche}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, industryNiche: e.target.value })}
+                      className="w-full h-10 rounded-xl border border-input bg-background px-3 text-xs text-foreground focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Select industry niche...</option>
+                      <option value="E-Commerce & D2C Brands">E-Commerce &amp; D2C Brands</option>
+                      <option value="Healthcare, Dental & Wellness">Healthcare, Dental &amp; Wellness</option>
+                      <option value="Real Estate, Interiors & Architecture">Real Estate &amp; Interiors</option>
+                      <option value="Food, Restaurants & Hospitality">Food, Restaurants &amp; Hospitality</option>
+                      <option value="Automotive & Dealerships">Automotive &amp; Dealerships</option>
+                      <option value="Education, Coaching & EdTech">Education &amp; EdTech</option>
+                      <option value="B2B Software, IT & Corporate">B2B Software &amp; Tech</option>
+                      <option value="Fashion, Beauty & Lifestyle">Fashion &amp; Lifestyle</option>
+                      <option value="Professional Services">Professional Services</option>
+                      <option value="Other Industry">Other Industry</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Strategy, Audience & Goals */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                  <span className="h-5 w-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                    2
+                  </span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-foreground">
+                    Target Audience &amp; Objectives
+                  </h4>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground mb-1 block">
+                    Target Audience &amp; Demographics
+                  </label>
+                  <Textarea
+                    rows={2}
+                    value={onboardingForm.targetAudience}
+                    onChange={(e) => setOnboardingForm({ ...onboardingForm, targetAudience: e.target.value })}
+                    placeholder="Who are your ideal customers? Age, gender, location, income level, or key problems you solve for them..."
+                    className="text-xs rounded-xl"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Primary Business Objective</label>
+                    <select
+                      value={onboardingForm.primaryGoals}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, primaryGoals: e.target.value })}
+                      className="w-full h-10 rounded-xl border border-input bg-background px-3 text-xs text-foreground focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Select primary objective...</option>
+                      <option value="High-Quality Inbound Leads">High-Quality Inbound Leads</option>
+                      <option value="Brand Awareness & Social Growth">Brand Awareness &amp; Social Growth</option>
+                      <option value="Direct Online Sales / E-Commerce">Direct Online Sales / E-Commerce</option>
+                      <option value="Local Footfall & Appointments">Local Footfall &amp; Appointments</option>
+                      <option value="Mobile App Downloads & Users">Mobile App Downloads &amp; Users</option>
+                      <option value="Complete Brand Overhaul & Positioning">Brand Overhaul &amp; Positioning</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Estimated Monthly Marketing Budget</label>
+                    <select
+                      value={onboardingForm.estimatedBudget}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, estimatedBudget: e.target.value })}
+                      className="w-full h-10 rounded-xl border border-input bg-background px-3 text-xs text-foreground focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Select estimated budget...</option>
+                      <option value="Under ₹25,000 / month">Under ₹25,000 / month</option>
+                      <option value="₹25,000 - ₹50,000 / month">₹25,000 - ₹50,000 / month</option>
+                      <option value="₹50,000 - ₹1,00,000 / month">₹50,000 - ₹1,00,000 / month</option>
+                      <option value="₹1,00,000 - ₹2,50,000 / month">₹1,00,000 - ₹2,50,000 / month</option>
+                      <option value="₹2,50,000+ / month">₹2,50,000+ / month</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground mb-1 block">Key Competitors (Names or URLs)</label>
+                  <Input
+                    value={onboardingForm.competitors}
+                    onChange={(e) => setOnboardingForm({ ...onboardingForm, competitors: e.target.value })}
+                    placeholder="e.g. CompetitorA, CompetitorB.com"
+                    className="h-10 rounded-xl text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Section 3: Services Needed */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                  <span className="h-5 w-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                    3
+                  </span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-foreground">
+                    Services Requested from RiseWithMedia
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                  {[
+                    'Social Media Management & Content',
+                    'Reels & Short-Form Video Production',
+                    'Paid Ads (Meta & Google Ads)',
+                    'Web & Mobile App Development',
+                    'Local SEO & Google Maps Optimization',
+                    'Branding, Identity & Graphics Design',
+                  ].map((serviceName) => {
+                    const checked = (onboardingForm.servicesRequested || []).includes(serviceName);
+                    return (
+                      <label
+                        key={serviceName}
+                        onClick={() => toggleServiceRequested(serviceName)}
+                        className={`p-3 rounded-2xl border text-xs font-bold flex items-center gap-2.5 cursor-pointer transition-all select-none ${
+                          checked
+                            ? 'bg-primary/10 border-primary text-primary shadow-xs'
+                            : 'bg-secondary/40 border-border/40 text-muted-foreground hover:text-foreground hover:bg-secondary'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {}}
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary pointer-events-none"
+                        />
+                        <span className="leading-snug">{serviceName}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Section 4: Digital Assets & Cloud Links */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                  <span className="h-5 w-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                    4
+                  </span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-foreground">
+                    Digital Assets &amp; Brand Links
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Brand Website URL</label>
+                    <Input
+                      value={onboardingForm.websiteUrl}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, websiteUrl: e.target.value })}
+                      placeholder="https://yourbrand.com"
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">
+                      Google Drive / Brand Assets Folder
+                    </label>
+                    <Input
+                      value={onboardingForm.driveAssetsUrl}
+                      onChange={(e) => setOnboardingForm({ ...onboardingForm, driveAssetsUrl: e.target.value })}
+                      placeholder="https://drive.google.com/drive/folders/..."
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">Instagram Handle</label>
+                    <Input
+                      value={onboardingForm.socialMedia?.instagram || ''}
+                      onChange={(e) =>
+                        setOnboardingForm({
+                          ...onboardingForm,
+                          socialMedia: { ...onboardingForm.socialMedia, instagram: e.target.value },
+                        })
+                      }
+                      placeholder="@yourbrand"
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">Facebook Page</label>
+                    <Input
+                      value={onboardingForm.socialMedia?.facebook || ''}
+                      onChange={(e) =>
+                        setOnboardingForm({
+                          ...onboardingForm,
+                          socialMedia: { ...onboardingForm.socialMedia, facebook: e.target.value },
+                        })
+                      }
+                      placeholder="facebook.com/yourbrand"
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">LinkedIn Page</label>
+                    <Input
+                      value={onboardingForm.socialMedia?.linkedin || ''}
+                      onChange={(e) =>
+                        setOnboardingForm({
+                          ...onboardingForm,
+                          socialMedia: { ...onboardingForm.socialMedia, linkedin: e.target.value },
+                        })
+                      }
+                      placeholder="linkedin.com/company/yourbrand"
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">YouTube Channel</label>
+                    <Input
+                      value={onboardingForm.socialMedia?.youtube || ''}
+                      onChange={(e) =>
+                        setOnboardingForm({
+                          ...onboardingForm,
+                          socialMedia: { ...onboardingForm.socialMedia, youtube: e.target.value },
+                        })
+                      }
+                      placeholder="@yourchannel"
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Primary Contact */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                  <span className="h-5 w-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                    5
+                  </span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-foreground">
+                    Primary Contact Person
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Contact Name</label>
+                    <Input
+                      value={onboardingForm.primaryContactName}
+                      onChange={(e) =>
+                        setOnboardingForm({ ...onboardingForm, primaryContactName: e.target.value })
+                      }
+                      placeholder="e.g. John Doe"
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Phone / WhatsApp</label>
+                    <Input
+                      value={onboardingForm.primaryContactPhone}
+                      onChange={(e) =>
+                        setOnboardingForm({ ...onboardingForm, primaryContactPhone: e.target.value })
+                      }
+                      placeholder="+91 98765 43210"
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-foreground mb-1 block">Work Email</label>
+                    <Input
+                      type="email"
+                      value={onboardingForm.primaryContactEmail}
+                      onChange={(e) =>
+                        setOnboardingForm({ ...onboardingForm, primaryContactEmail: e.target.value })
+                      }
+                      placeholder="contact@brand.com"
+                      className="h-10 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sticky Footer */}
+              <div className="pt-4 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">
+                  Submissions are reviewed by RiseWithMedia Admin &amp; SuperAdmin.
+                </span>
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowOnboardingModal(false)}
+                    className="h-10 px-4 rounded-xl text-xs font-semibold"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmittingOnboarding}
+                    className="h-10 px-6 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+                  >
+                    {isSubmittingOnboarding ? 'Submitting...' : 'Save & Submit Onboarding Form'}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

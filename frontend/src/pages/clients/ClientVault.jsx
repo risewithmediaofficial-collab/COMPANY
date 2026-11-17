@@ -94,6 +94,7 @@ const emptyForm = {
   expiryDate: '',
   tags: '',
   socialAccounts: [],
+  visibleToClient: false,
 };
 
 const typeLabels = credentialTypes.reduce((labels, type) => {
@@ -518,6 +519,7 @@ export const CredentialFormDialog = ({ open, onOpenChange, credential, clients, 
       notes: credential?.notes || '',
       expiryDate: credential?.expiryDate ? credential.expiryDate.slice(0, 10) : '',
       tags: Array.isArray(credential?.tags) ? credential.tags.join(', ') : credential?.tags || '',
+      visibleToClient: credential?.visibleToClient !== undefined ? Boolean(credential.visibleToClient) : false,
       socialAccounts: (credential?.socialAccounts || []).map((acc) => ({ ...acc, password: '' })),
     });
   }, [credential, open]);
@@ -650,6 +652,25 @@ export const CredentialFormDialog = ({ open, onOpenChange, credential, clients, 
                   className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                 />
               </FormField>
+
+              {/* Client Access Permission Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/40 border border-border/40">
+                <div className="pr-4">
+                  <label htmlFor="credVisibleToClient" className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2 cursor-pointer">
+                    <LockKeyhole size={15} className="text-primary" /> Grant Client Portal Access
+                  </label>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    When enabled, this client can securely view, reveal, and copy this login in their client portal.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="credVisibleToClient"
+                  checked={Boolean(form.visibleToClient)}
+                  onChange={(e) => updateField('visibleToClient', e.target.checked)}
+                  className="h-5 w-5 rounded-md border-border text-primary focus:ring-primary cursor-pointer shrink-0"
+                />
+              </div>
             </div>
 
             {/* ── Primary Credential Card (Linear Flow) ── */}

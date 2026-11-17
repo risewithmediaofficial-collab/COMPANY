@@ -146,6 +146,11 @@ const clientCredentialSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Permission toggle: Allow client to access & view this credential in client portal
+    visibleToClient: {
+      type: Boolean,
+      default: false,
+    },
     // Tags for organization
     tags: [String],
   },

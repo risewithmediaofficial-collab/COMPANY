@@ -20,11 +20,13 @@ const mapUserRoleToSopRole = (role) => {
 router.get('/', protect, async (req, res) => {
   try {
     const user = req.user;
-    const { status, sopType } = req.query;
+    const { status, sopType, frequency, departmentName } = req.query;
     const query = {};
 
     if (status) query.status = status;
     if (sopType) query.sopType = sopType;
+    if (frequency) query.frequency = frequency;
+    if (departmentName && departmentName !== 'all') query.departmentName = departmentName;
 
     const orgFilter = user.organizationId
       ? { $or: [{ organizationId: user.organizationId }, { organizationId: null }, { organizationId: { $exists: false } }] }
@@ -37,6 +39,7 @@ router.get('/', protect, async (req, res) => {
       query.$or = [
         { sopType: 'company' },
         { sopType: 'department' },
+        { frequency: 'daily' }, // Allow all staff to access department daily SOPs
         { sopType: 'role_based', role: { $in: [sopRole, userPos, 'employee', 'all'].filter(Boolean) } },
         { createdBy: user._id },
       ];
@@ -85,11 +88,27 @@ router.post('/', protect, async (req, res) => {
   try {
     const user = req.user;
 
-    if (!['superAdmin', 'manager', 'employee'].includes(user.role)) {
+    if (!['superAdmin', 'admin', 'manager', 'employee'].includes(user.role)) {
       return res.status(403).json({ success: false, message: 'Not authorized to create SOP' });
     }
 
-    const { title, description, sopType, role, department, project, content, steps, links, status, tags } = req.body;
+    const {
+      title,
+      description,
+      sopType,
+      frequency,
+      departmentName,
+      isMandatory,
+      checklist,
+      role,
+      department,
+      project,
+      content,
+      steps,
+      links,
+      status,
+      tags,
+    } = req.body;
 
     if (!title?.trim()) {
       return res.status(400).json({ success: false, message: 'SOP title is required' });
@@ -101,6 +120,10 @@ router.post('/', protect, async (req, res) => {
       title: title.trim(),
       description: description || '',
       sopType: sopType || 'company',
+      frequency: frequency === 'daily' ? 'daily' : 'one_time',
+      departmentName: departmentName?.trim() || 'General',
+      isMandatory: Boolean(isMandatory),
+      checklist: Array.isArray(checklist) ? checklist : [],
       role: sopType === 'role_based' ? (role || mapUserRoleToSopRole(user.role)) : null,
       department: sopType === 'department' ? department : null,
       project: sopType === 'project' ? project : null,
@@ -130,10 +153,10 @@ router.put('/:id', protect, async (req, res) => {
     }
 
     const author = await User.findById(sop.createdBy).select('role');
-    const isAuthorAdminOrManager = author && ['superAdmin', 'manager'].includes(author.role);
+    const isAuthorAdminOrManager = author && ['superAdmin', 'admin', 'manager'].includes(author.role);
 
     if (isAuthorAdminOrManager) {
-      if (!['superAdmin', 'manager'].includes(user.role)) {
+      if (!['superAdmin', 'admin', 'manager'].includes(user.role)) {
         return res.status(403).json({ success: false, message: 'SOPs posted by Admin or Manager cannot be edited by employees' });
       }
     } else {
@@ -142,12 +165,32 @@ router.put('/:id', protect, async (req, res) => {
       }
     }
 
-    const { title, description, sopType, role, department, project, content, steps, links, status, tags } = req.body;
+    const {
+      title,
+      description,
+      sopType,
+      frequency,
+      departmentName,
+      isMandatory,
+      checklist,
+      role,
+      department,
+      project,
+      content,
+      steps,
+      links,
+      status,
+      tags,
+    } = req.body;
 
     Object.assign(sop, {
-      title: title ?? sop.title,
+      title: title !== undefined ? title.trim() : sop.title,
       description: description ?? sop.description,
       sopType: sopType ?? sop.sopType,
+      frequency: frequency !== undefined ? (frequency === 'daily' ? 'daily' : 'one_time') : sop.frequency,
+      departmentName: departmentName !== undefined ? departmentName.trim() : sop.departmentName,
+      isMandatory: isMandatory !== undefined ? Boolean(isMandatory) : sop.isMandatory,
+      checklist: Array.isArray(checklist) ? checklist : sop.checklist,
       role: (sopType || sop.sopType) === 'role_based' ? role : null,
       department: (sopType || sop.sopType) === 'department' ? department : null,
       project: (sopType || sop.sopType) === 'project' ? project : null,

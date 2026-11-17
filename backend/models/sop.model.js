@@ -15,6 +15,30 @@ const sopSchema = new mongoose.Schema(
       enum: ['company', 'role_based', 'department', 'project'],
       default: 'company',
     },
+    // Cadence: One-Time Reference SOP vs Daily Mandatory Workflow SOP
+    frequency: {
+      type: String,
+      enum: ['one_time', 'daily'],
+      default: 'one_time',
+    },
+    // Department target for organization & daily EOD compliance
+    departmentName: {
+      type: String,
+      default: 'General',
+      trim: true,
+    },
+    // Compulsory daily compliance requirement
+    isMandatory: {
+      type: Boolean,
+      default: false,
+    },
+    // Checklist items to complete before EOD submission
+    checklist: [
+      {
+        text: { type: String, default: '' },
+        required: { type: Boolean, default: true },
+      },
+    ],
     role: {
       type: String,
       enum: ['admin', 'manager', 'employee', 'designer', 'developer', 'content_writer', 'editor', 'social_media_manager', 'other'],

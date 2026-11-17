@@ -115,6 +115,10 @@ export const getClientCredentials = async (req, res) => {
 
     const filter = { clientId, isActive: true };
 
+    if (req.user.role === 'client') {
+      filter.visibleToClient = true;
+    }
+
     if (credentialType) {
       filter.credentialType = credentialType;
     }
@@ -171,6 +175,7 @@ export const getCredentialsVault = async (req, res) => {
         });
       }
       filter.clientId = userClient._id;
+      filter.visibleToClient = true;
     } else {
       if (req.user?.role !== 'superAdmin' && req.user?.role !== 'admin' && req.user?.organizationId) {
         filter.$or = [
@@ -335,6 +340,7 @@ export const createCredential = async (req, res) => {
       mobileNumber,
       expiryDate,
       tags,
+      visibleToClient,
       socialAccounts,
     } = req.body;
 
@@ -371,6 +377,7 @@ export const createCredential = async (req, res) => {
         : [],
       createdBy: req.user._id,
       isActive: true,
+      visibleToClient: Boolean(visibleToClient),
     };
 
     // Encrypt password if provided
@@ -443,6 +450,7 @@ export const updateCredential = async (req, res) => {
       expiryDate,
       tags,
       isActive,
+      visibleToClient,
       socialAccounts,
     } = req.body;
 
@@ -474,6 +482,7 @@ export const updateCredential = async (req, res) => {
         : [];
     }
     if (isActive !== undefined) credential.isActive = isActive;
+    if (visibleToClient !== undefined) credential.visibleToClient = Boolean(visibleToClient);
 
     // Handle password update
     if (password) {

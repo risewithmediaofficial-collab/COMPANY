@@ -1784,6 +1784,186 @@ const ClientDetails = () => {
               <p className="text-sm text-muted-foreground">No social media accounts linked yet.</p>
             )}
           </div>
+
+          {/* ── Client Business Intake Form Submissions (Admin & Super Admin View) ── */}
+          <div className="bg-card rounded-3xl p-6 lg:col-span-2 space-y-5 border border-border/40">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-foreground">Client Business &amp; Service Intake Form</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Comprehensive brand profile and project preferences submitted by the client.
+                  </p>
+                </div>
+              </div>
+
+              {client.onboardingDetails?.submittedAt ? (
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                    Status: {client.onboardingDetails.status || 'Submitted'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(client.onboardingDetails.submittedAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+              ) : (
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                  Intake Form Pending
+                </span>
+              )}
+            </div>
+
+            {client.onboardingDetails ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                {/* Brand & Legal Info */}
+                <div className="p-4 rounded-2xl bg-secondary/30 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    1. Brand &amp; Legal Identity
+                  </span>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Legal Company Name</span>
+                    <p className="text-xs font-bold text-foreground">
+                      {client.onboardingDetails.companyLegalName || client.company || '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Brand / Trade Name</span>
+                    <p className="text-xs font-bold text-foreground">
+                      {client.onboardingDetails.brandName || client.name || '—'}
+                    </p>
+                  </div>
+                  {client.onboardingDetails.tagline && (
+                    <div>
+                      <span className="text-xs text-muted-foreground block">Tagline / Slogan</span>
+                      <p className="text-xs italic text-foreground">&ldquo;{client.onboardingDetails.tagline}&rdquo;</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Industry / Niche</span>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-secondary text-[11px] font-semibold text-foreground">
+                      {client.onboardingDetails.industryNiche || '—'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Audience & Strategy */}
+                <div className="p-4 rounded-2xl bg-secondary/30 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    2. Audience &amp; Objectives
+                  </span>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Target Audience</span>
+                    <p className="text-xs font-medium text-foreground leading-relaxed">
+                      {client.onboardingDetails.targetAudience || 'Not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Primary Goals</span>
+                    <p className="text-xs font-medium text-foreground leading-relaxed">
+                      {client.onboardingDetails.primaryGoals || 'Not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Top Competitors</span>
+                    <p className="text-xs font-medium text-foreground">
+                      {client.onboardingDetails.competitors || 'None listed'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Estimated Budget</span>
+                    <span className="text-xs font-black text-foreground">
+                      {client.onboardingDetails.estimatedBudget || 'Not specified'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Services Requested & Assets */}
+                <div className="p-4 rounded-2xl bg-secondary/30 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    3. Services &amp; Digital Assets
+                  </span>
+                  <div>
+                    <span className="text-xs text-muted-foreground block mb-1">Services Requested</span>
+                    <div className="flex flex-wrap gap-1">
+                      {Array.isArray(client.onboardingDetails.servicesRequested) &&
+                      client.onboardingDetails.servicesRequested.length > 0 ? (
+                        client.onboardingDetails.servicesRequested.map((svc, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold"
+                          >
+                            {svc}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">None selected</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {client.onboardingDetails.driveAssetsUrl && (
+                    <div className="pt-1">
+                      <span className="text-xs text-muted-foreground block">Drive Assets Folder</span>
+                      <a
+                        href={client.onboardingDetails.driveAssetsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1 mt-0.5"
+                      >
+                        <FolderOpen size={13} />
+                        <span>Open Brand Assets Drive &rarr;</span>
+                      </a>
+                    </div>
+                  )}
+
+                  {client.onboardingDetails.websiteUrl && (
+                    <div className="pt-1">
+                      <span className="text-xs text-muted-foreground block">Website</span>
+                      <a
+                        href={client.onboardingDetails.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-foreground hover:underline inline-flex items-center gap-1 mt-0.5"
+                      >
+                        <ExternalLink size={12} />
+                        <span>{client.onboardingDetails.websiteUrl}</span>
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Primary Contact */}
+                  <div className="pt-1 border-t border-border/40">
+                    <span className="text-xs text-muted-foreground block">Primary Contact</span>
+                    <p className="text-xs font-bold text-foreground">
+                      {client.onboardingDetails.primaryContactName || client.name}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {client.onboardingDetails.primaryContactPhone || client.phone} •{' '}
+                      {client.onboardingDetails.primaryContactEmail || client.email}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 text-center bg-secondary/20 rounded-2xl">
+                <FileText size={32} className="mx-auto text-muted-foreground mb-2 opacity-50" />
+                <p className="text-xs font-semibold text-foreground">
+                  The client has not yet submitted their digital onboarding form.
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Once they complete the onboarding intake in their Client Portal, their complete company profile,
+                  target demographics, and service requirements will appear right here.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
