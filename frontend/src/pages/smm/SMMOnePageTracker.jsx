@@ -41,7 +41,7 @@ export const L = {
 export const FIXED_W = COL.NO + COL.TEAM + COL.CLIENT + COL.PLAN; // 368
 
 const STATUS_CYCLE  = { todo:'pending', pending:'done', done:'skip', skip:'todo' };
-const STATUS_LABEL  = { todo:'TODO', pending:'PENDING', done:'DONE', skip:'SKIP' };
+const STATUS_LABEL  = { todo:'TO POST', pending:'PENDING', done:'DONE', skip:'SKIP' };
 
 const getDayOfWeek = (y, m, d) => new Date(y, m - 1, d).getDay();
 const isSunday     = (y, m, d) => getDayOfWeek(y, m, d) === 0;
@@ -189,8 +189,8 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
       ? `${totalCount} DONE`
       : doneCount > 0
       ? `${doneCount}/${totalCount}`
-      : `${totalCount} ${STATUS_LABEL[s] || 'TODO'}`
-    : (STATUS_LABEL[s] || 'TODO');
+      : `${totalCount} ${STATUS_LABEL[s] || 'TO POST'}`
+    : (STATUS_LABEL[s] || 'TO POST');
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -241,7 +241,7 @@ const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer
         title={
           hasMultiple
             ? `${totalCount} items scheduled. Click to cycle, double-click for sidebar breakdown, right-click to select status`
-            : `Status: ${STATUS_LABEL[s] || 'TODO'} (Click to cycle, right-click to select)`
+            : `Status: ${STATUS_LABEL[s] || 'TO POST'} (Click to cycle, right-click to select)`
         }
       >
         {s === 'done' && <CheckCircle2 size={9} className="shrink-0" />}
@@ -1224,10 +1224,10 @@ const SMMOnePageTracker = () => {
       {/* ── Legend & Quick Jump ── */}
       <div className="flex items-center justify-between gap-2.5 flex-wrap">
         <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
-          {/* Todo badge */}
+          {/* To Post badge */}
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-card text-foreground text-[10.5px] font-bold">
             <ListTodo size={11}/>
-            <span>Todo</span>
+            <span>To Post</span>
           </span>
 
           {/* Pending badge */}
@@ -1711,7 +1711,7 @@ const SMMOnePageTracker = () => {
             <div className="flex items-center gap-4 text-[11px] font-semibold flex-wrap tabular-nums">
               <span className="inline-flex items-center gap-1 text-foreground">
                 <ListTodo size={12} />
-                <span>Todo: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='todo').length, 0)}</span>
+                <span>To Post: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='todo').length, 0)}</span>
               </span>
               <span className="inline-flex items-center gap-1 text-foreground">
                 <Clock size={12} />

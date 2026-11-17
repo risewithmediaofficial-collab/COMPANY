@@ -1276,7 +1276,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                               ? 'bg-secondary text-foreground'
                               : 'bg-muted text-muted-foreground'
                           }`}>
-                            {d.postStatus === 'done' ? 'DONE' : d.postStatus === 'pending' ? 'PENDING' : 'TODO'}
+                            {d.postStatus === 'done' ? 'DONE' : d.postStatus === 'pending' ? 'PENDING' : 'TO POST'}
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-muted-foreground truncate max-w-[140px]">
@@ -1290,7 +1290,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                               ? 'bg-secondary text-foreground'
                               : 'bg-muted text-muted-foreground'
                           }`}>
-                            {d.storyStatus === 'done' ? 'DONE' : d.storyStatus === 'pending' ? 'PENDING' : 'TODO'}
+                            {d.storyStatus === 'done' ? 'DONE' : d.storyStatus === 'pending' ? 'PENDING' : 'TO POST'}
                           </span>
                         </td>
                       </tr>
