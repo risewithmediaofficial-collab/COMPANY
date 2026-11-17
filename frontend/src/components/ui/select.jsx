@@ -126,14 +126,14 @@ export const SelectContent = React.forwardRef(
           position={position}
           onKeyDown={handleContentKeyDown}
           className={cn(
-            'z-[99999] min-w-[8rem] max-h-[340px] overflow-hidden rounded-2xl bg-popover p-1.5 shadow-[0_16px_40px_-8px_rgb(0,0,0,0.12)] dark:shadow-[0_16px_40px_-8px_rgb(0,0,0,0.5)] animate-in fade-in-80 zoom-in-95 duration-100',
+            'z-[99999] min-w-[8rem] max-h-[340px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-1.5 shadow-[0_16px_40px_-8px_rgb(0,0,0,0.12)] dark:shadow-[0_16px_40px_-8px_rgb(0,0,0,0.5)] animate-in fade-in-80 zoom-in-95 duration-100',
             position === 'popper' &&
               'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
             className
           )}
           {...props}
         >
-          {/* Search bar always visible inside dropdown popover */}
+          {/* Search bar inside dropdown popover when searchable */}
           {searchable && (
             <div
               onPointerDown={(e) => e.stopPropagation()}
@@ -177,7 +177,7 @@ export const SelectContent = React.forwardRef(
             className={cn(
               'p-1 max-h-[260px] overflow-y-auto custom-scrollbar',
               position === 'popper' &&
-                'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
+                'w-full min-w-[var(--radix-select-trigger-width)]'
             )}
           >
             {matchCount === 0 && searchQuery ? (

@@ -43,7 +43,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { SelectDropdown } from '../../components/ui/SelectDropdown';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
 
@@ -235,19 +241,22 @@ const Users = () => {
       key: 'role',
       label: 'System Role',
       render: (u) => (
-        <SelectDropdown
+        <Select
           value={u.role}
-          onChange={(val) => handleRoleChange(u._id, val || u.role)}
-          options={roles.map((r) => ({
-            value: r.value,
-            label: r.label,
-          }))}
-          placeholder="Role"
-          allowCustom={false}
-          allowDeselect={false}
-          className="w-36"
-          buttonClassName="h-8 px-2.5 rounded-lg bg-background text-xs font-semibold border border-border/50"
-        />
+          onValueChange={(val) => handleRoleChange(u._id, val || u.role)}
+          disabled={!['superAdmin', 'admin'].includes(currentUser?.role) && u.role === 'superAdmin'}
+        >
+          <SelectTrigger className="h-8 w-36 px-2.5 rounded-lg bg-background text-xs font-semibold border border-border/50">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent position="popper" searchable={false}>
+            {roles.map((r) => (
+              <SelectItem key={r.value} value={r.value} className="text-xs font-semibold cursor-pointer">
+                {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       ),
     },
     {
@@ -352,19 +361,22 @@ const Users = () => {
       key: 'role',
       label: 'System Role',
       render: (u) => (
-        <SelectDropdown
+        <Select
           value={u.role}
-          onChange={(val) => handleRoleChange(u._id, val || u.role)}
-          options={roles.map((r) => ({
-            value: r.value,
-            label: r.label,
-          }))}
-          placeholder="Role"
-          allowCustom={false}
-          allowDeselect={false}
-          className="w-36"
-          buttonClassName="h-8 px-2.5 rounded-lg bg-background text-xs font-semibold border border-border/50"
-        />
+          onValueChange={(val) => handleRoleChange(u._id, val || u.role)}
+          disabled={!['superAdmin', 'admin'].includes(currentUser?.role) && u.role === 'superAdmin'}
+        >
+          <SelectTrigger className="h-8 w-36 px-2.5 rounded-lg bg-background text-xs font-semibold border border-border/50">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent position="popper" searchable={false}>
+            {roles.map((r) => (
+              <SelectItem key={r.value} value={r.value} className="text-xs font-semibold cursor-pointer">
+                {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       ),
     },
     {
