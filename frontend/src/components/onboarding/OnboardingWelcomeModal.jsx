@@ -17,6 +17,9 @@ import {
 } from '@/components/ui/muiIcons';
 import api from '@/api';
 
+const EXCLUDED_ROLES = ['superAdmin', 'admin', 'manager'];
+const ALLOWED_ROLES = ['employee', 'intern', 'client'];
+
 export default function OnboardingWelcomeModal() {
   const { user } = useSelector((state) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
@@ -25,17 +28,43 @@ export default function OnboardingWelcomeModal() {
   useEffect(() => {
     if (!user?._id) return;
 
+    // 1. Strictly exclude superAdmin, admin, and manager
+    if (EXCLUDED_ROLES.includes(user.role) || !ALLOWED_ROLES.includes(user.role)) {
+      return;
+    }
+
     const storageKey = `rwm_welcome_seen_${user._id}`;
     const alreadySeenLocal = localStorage.getItem(storageKey) === 'true';
+    const alreadySeenSession = sessionStorage.getItem(storageKey) === 'true';
     const alreadySeenRemote = Boolean(user.hasSeenOnboarding);
 
-    if (!alreadySeenLocal && !alreadySeenRemote) {
-      // Small 700ms delay so page loads cleanly before the sticker modal pops in
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 700);
-      return () => clearTimeout(timer);
+    // 2. If already completed/seen in local, session, or remote database, do not show
+    if (alreadySeenLocal || alreadySeenSession || alreadySeenRemote) {
+      return;
     }
+
+    // 3. 1st time login only (existing users do not need this)
+    if (user.isFirstLogin === false) {
+      localStorage.setItem(storageKey, 'true');
+      return;
+    }
+
+    // If account was created more than 2 days ago and not explicitly flagged as first-time login, skip
+    if (user.createdAt) {
+      const accountAgeDays = (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+      if (accountAgeDays > 2 && user.isFirstLogin !== true) {
+        localStorage.setItem(storageKey, 'true');
+        return;
+      }
+    }
+
+    // Small 700ms delay so page loads cleanly before the sticker modal pops in
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+      sessionStorage.setItem(storageKey, 'true');
+    }, 700);
+
+    return () => clearTimeout(timer);
   }, [user]);
 
   const handleDismiss = async () => {
@@ -45,6 +74,7 @@ export default function OnboardingWelcomeModal() {
     }
     const storageKey = `rwm_welcome_seen_${user._id}`;
     localStorage.setItem(storageKey, 'true');
+    sessionStorage.setItem(storageKey, 'true');
 
     setIsClosing(true);
     try {
@@ -59,7 +89,7 @@ export default function OnboardingWelcomeModal() {
     }, 200);
   };
 
-  if (!isOpen || !user) return null;
+  if (!isOpen || !user || EXCLUDED_ROLES.includes(user.role) || !ALLOWED_ROLES.includes(user.role)) return null;
 
   const role = user.role || 'employee';
   const firstName = (user.name || 'Friend').split(' ')[0];

@@ -158,6 +158,7 @@ export const login = async (req, res) => {
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id);
 
+    const isFirstLogin = !user.lastLogin && !user.hasSeenOnboarding;
     user.refreshToken = refreshToken;
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
@@ -195,6 +196,9 @@ export const login = async (req, res) => {
         referralCode: user.referralCode,
         permissions: user.permissions,
         clientId: user.clientId,
+        hasSeenOnboarding: Boolean(user.hasSeenOnboarding),
+        isFirstLogin: Boolean(isFirstLogin),
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
